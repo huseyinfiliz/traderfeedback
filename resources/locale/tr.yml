@@ -1,0 +1,116 @@
+huseyinfiliz-traderfeedback:
+  # Forum translations
+  forum:
+    nav:
+      feedback_link: Alışveriş Geri Bildirimi
+    
+    form:
+      title: "{username} için geri bildirim ver"
+      type_label: Geri Bildirim Türü
+      type_positive: Olumlu
+      type_neutral: Nötr
+      type_negative: Olumsuz
+      role_label: Rolünüz
+      role_buyer: Alıcı
+      role_seller: Satıcı
+      role_trader: Takasçı
+      transaction_id_label: İşlem ID (isteğe bağlı)
+      transaction_id_placeholder: İşlem ID veya tartışma bağlantısı girin
+      comment_label: Yorum
+      comment_placeholder: Bu kullanıcı ile alışveriş deneyiminizi açıklayın
+      submit_button: Geri Bildirim Gönder
+      error_too_short: Yorum en az {min} karakter olmalıdır
+      error_too_long: Yorum en fazla {max} karakter olmalıdır
+      success: Geri bildirim başarıyla gönderildi
+    
+    user_card:
+      score_tooltip: Alışveriş Puanı
+      positive_tooltip: Olumlu Geri Bildirimler
+      neutral_tooltip: Nötr Geri Bildirimler
+      negative_tooltip: Olumsuz Geri Bildirimler
+    
+    feedback_page:
+      title: "{username} Alışveriş Geri Bildirimleri"
+      stats:
+        score: Puan
+        total: Toplam Geri Bildirim
+        positive: Olumlu
+        neutral: Nötr
+        negative: Olumsuz
+      no_feedback: Bu kullanıcı henüz geri bildirim almamış
+      give_feedback_button: Geri Bildirim Ver
+      filter:
+        all: Tüm Geri Bildirimler
+        positive: Sadece Olumlu
+        neutral: Sadece Nötr
+        negative: Sadece Olumsuz
+        as_buyer: Alıcı Olarak
+        as_seller: Satıcı Olarak
+        as_trader: Takasçı Olarak
+      sort:
+        newest: En Yeni İlk
+        oldest: En Eski İlk
+    
+    feedback_item:
+      as_buyer: Alıcı olarak
+      as_seller: Satıcı olarak
+      as_trader: Takasçı olarak
+      report_button: Bildir
+      delete_button: Sil
+      edit_button: Düzenle
+      confirm_delete: Bu geri bildirimi silmek istediğinizden emin misiniz?
+    
+    report_modal:
+      title: Geri Bildirimi Bildir
+      reason_label: Sebep
+      reason_placeholder: Bu geri bildirimi neden bildirdiğinizi açıklayın
+      submit_button: Bildirimi Gönder
+      success: Geri bildirim başarıyla bildirildi
+    
+    notifications:
+      new_feedback_title: "{username} size {type} geri bildirim verdi"
+      feedback_approved_title: "{username} için verdiğiniz geri bildirim onaylandı"
+      feedback_rejected_title: "{username} için verdiğiniz geri bildirim reddedildi"
+  
+  # Admin translations
+  admin:
+    permissions:
+      give_feedback: Alışveriş geri bildirimi ver
+      moderate_feedback: Alışveriş geri bildirimlerini yönet
+    
+    settings:
+      title: Alışveriş Geri Bildirimi Ayarları
+      help_text: Alışveriş geri bildirim sistemini yapılandırın
+      allow_negative_label: Olumsuz geri bildirimlere izin ver
+      require_approval_label: Geri bildirimler için onay gerektir
+      min_length_label: Minimum yorum uzunluğu
+      max_length_label: Maksimum yorum uzunluğu
+      submit_button: Ayarları Kaydet
+    
+    dashboard:
+      title: Alışveriş Geri Bildirim İstatistikleri
+      total_feedbacks: Toplam Geri Bildirimler
+      positive_feedbacks: Olumlu Geri Bildirimler
+      neutral_feedbacks: Nötr Geri Bildirimler
+      negative_feedbacks: Olumsuz Geri Bildirimler
+      pending_approvals: Bekleyen Onaylar
+      reported_feedbacks: Bildirilen Geri Bildirimler
+    
+    reports:
+      title: Bildirilen Geri Bildirimler
+      no_reports: Bildirilen geri bildirim yok
+      user_reported: "{username} tarafından bildirildi"
+      approve_button: Onayla
+      reject_button: Reddet
+      dismiss_button: Bildirimi Kapat
+      confirm_approve: Bu geri bildirimi onaylamak istediğinizden emin misiniz?
+      confirm_reject: Bu geri bildirimi reddetmek istediğinizden emin misiniz?
+      confirm_dismiss: Bu bildirimi kapatmak istediğinizden emin misiniz?
+    
+    approvals:
+      title: Bekleyen Onaylar
+      no_approvals: Bekleyen onay yok
+      approve_button: Onayla
+      reject_button: Reddet
+      confirm_approve: Bu geri bildirimi onaylamak istediğinizden emin misiniz?
+      confirm_reject: Bu geri bildirimi reddetmek istediğinizden emin misiniz?

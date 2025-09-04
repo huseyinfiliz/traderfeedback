@@ -1,0 +1,175 @@
+// Trader Feedback Forum Styles
+
+.FeedbackForm {
+  margin-bottom: 20px;
+
+  .Form-group {
+    margin-bottom: 15px;
+  }
+
+  textarea {
+    min-height: 100px;
+  }
+
+  .Button {
+    &.positive {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    &.neutral {
+      background-color: #FF9800;
+      color: white;
+    }
+
+    &.negative {
+      background-color: #F44336;
+      color: white;
+    }
+  }
+}
+
+.FeedbackList {
+  .FeedbackItem {
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid @control-bg;
+
+    .FeedbackItem-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+
+      .FeedbackItem-user {
+        font-weight: bold;
+      }
+
+      .FeedbackItem-date {
+        color: @muted-color;
+        font-size: 0.9em;
+      }
+    }
+
+    .FeedbackItem-type {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-right: 10px;
+      font-size: 0.9em;
+
+      &.positive {
+        background-color: rgba(76, 175, 80, 0.2);
+        color: #2E7D32;
+      }
+
+      &.neutral {
+        background-color: rgba(255, 152, 0, 0.2);
+        color: #E65100;
+      }
+
+      &.negative {
+        background-color: rgba(244, 67, 54, 0.2);
+        color: #C62828;
+      }
+    }
+
+    .FeedbackItem-role {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.9em;
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .FeedbackItem-comment {
+      margin-top: 10px;
+      white-space: pre-wrap;
+    }
+
+    .FeedbackItem-actions {
+      margin-top: 10px;
+      text-align: right;
+      
+      .Button {
+        margin-left: 5px;
+      }
+    }
+  }
+}
+
+.UserCard-traderFeedback {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+
+  .UserCard-traderFeedback-score {
+    font-weight: bold;
+    margin-right: 10px;
+  }
+
+  .UserCard-traderFeedback-counts {
+    font-size: 0.9em;
+
+    .positive {
+      color: #4CAF50;
+    }
+
+    .neutral {
+      color: #FF9800;
+    }
+
+    .negative {
+      color: #F44336;
+    }
+  }
+}
+
+.TraderFeedbackPage {
+  .TraderFeedbackPage-header {
+    margin-bottom: 20px;
+
+    .TraderFeedbackPage-stats {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 10px;
+
+      .TraderFeedbackPage-stat {
+        flex: 1;
+        min-width: 100px;
+        padding: 10px;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        background-color: @control-bg;
+        border-radius: 4px;
+        text-align: center;
+
+        .TraderFeedbackPage-stat-value {
+          font-size: 1.5em;
+          font-weight: bold;
+        }
+
+        .TraderFeedbackPage-stat-label {
+          font-size: 0.9em;
+          color: @muted-color;
+        }
+
+        &.positive .TraderFeedbackPage-stat-value {
+          color: #4CAF50;
+        }
+
+        &.neutral .TraderFeedbackPage-stat-value {
+          color: #FF9800;
+        }
+
+        &.negative .TraderFeedbackPage-stat-value {
+          color: #F44336;
+        }
+
+        &.score .TraderFeedbackPage-stat-value {
+          color: @primary-color;
+        }
+      }
+    }
+  }
+}

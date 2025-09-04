@@ -1,0 +1,56 @@
+{
+    "name": "huseyinfiliz/traderfeedback",
+    "description": "A comprehensive trader feedback system for Flarum",
+    "type": "flarum-extension",
+    "keywords": ["flarum", "trader", "feedback", "rating", "reputation"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Huseyin Filiz",
+            "email": "mysuperuser01@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://github.com/huseyinfiliz/flarum-trader-feedback",
+    "support": {
+        "issues": "https://github.com/huseyinfiliz/flarum-trader-feedback/issues",
+        "source": "https://github.com/huseyinfiliz/flarum-trader-feedback"
+    },
+    "require": {
+        "flarum/core": "^1.2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "HuseyinFiliz\\TraderFeedback\\": "src/"
+        }
+    },
+    "extra": {
+        "flarum-extension": {
+            "title": "Trader Feedback",
+            "category": "feature",
+            "icon": {
+                "name": "fas fa-exchange-alt",
+                "backgroundColor": "#3498db",
+                "color": "#fff"
+            }
+        }
+    },
+    "flagrow": {
+        "discuss": "https://discuss.flarum.org/d/"
+    },
+    "flarum-cli": {
+        "modules": {
+            "githubActions": true
+        }
+    },
+    "require-dev": {
+        "flarum/phpstan": "*"
+    },
+    "scripts": {
+        "analyse:phpstan": "phpstan analyse",
+        "clear-cache:phpstan": "phpstan clear-result-cache"
+    },
+    "scripts-descriptions": {
+        "analyse:phpstan": "Run static analysis"
+    }
+}
