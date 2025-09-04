@@ -1,11 +1,10 @@
-import Component from 'flarum/common/Component';
+import Modal from 'flarum/common/components/Modal';  // Component yerine Modal
 import Button from 'flarum/common/components/Button';
 import Select from 'flarum/common/components/Select';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import app from 'flarum/forum/app';
-//import m from 'mithril'; // Import mithril
 
-export default class FeedbackForm extends Component {
+export default class FeedbackForm extends Modal {  // Modal'dan extend et
   oninit(vnode) {
     super.oninit(vnode);
     
@@ -18,83 +17,86 @@ export default class FeedbackForm extends Component {
     this.transactionId = '';
   }
   
-  view() {
+  className() {
+    return 'Modal Modal--medium';
+  }
+  
+  title() {
+    return app.translator.trans('huseyinfiliz-traderfeedback.forum.form.title', {
+      username: this.user.displayName()
+    });
+  }
+  
+  content() {  // view() yerine content()
     return (
-      <div className="FeedbackForm">
-        <h3>{app.translator.trans('huseyinfiliz-traderfeedback.forum.form.title', {username: this.user.displayName()})}</h3>
-        
-        <div className="Form-group">
-          <label>{app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_label')}</label>
-          <Select
-            value={this.type}
-            options={{
-              'positive': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_positive'),
-              'neutral': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_neutral'),
-              'negative': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_negative')
-            }}
-            onchange={this.handleTypeChange.bind(this)}
-          />
+      <div className="Modal-body">
+        <div className="Form">
+          <div className="Form-group">
+            <label>{app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_label')}</label>
+            <Select
+              value={this.type}
+              options={{
+                'positive': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_positive'),
+                'neutral': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_neutral'),
+                'negative': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_negative')
+              }}
+              onchange={(value) => this.type = value}
+            />
+          </div>
+          
+          <div className="Form-group">
+            <label>{app.translator.trans('huseyinfiliz-traderfeedback.forum.form.role_label')}</label>
+            <Select
+              value={this.role}
+              options={{
+                'buyer': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.role_buyer'),
+                'seller': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.role_seller'),
+                'trader': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.role_trader')
+              }}
+              onchange={(value) => this.role = value}
+            />
+          </div>
+          
+          <div className="Form-group">
+            <label>{app.translator.trans('huseyinfiliz-traderfeedback.forum.form.transaction_id_label')}</label>
+            <input 
+              className="FormControl" 
+              value={this.transactionId} 
+              oninput={e => this.transactionId = e.target.value}
+              placeholder={app.translator.trans('huseyinfiliz-traderfeedback.forum.form.transaction_id_placeholder')}
+            />
+          </div>
+          
+          <div className="Form-group">
+            <label>{app.translator.trans('huseyinfiliz-traderfeedback.forum.form.comment_label')}</label>
+            <textarea 
+              className="FormControl" 
+              value={this.comment} 
+              oninput={e => this.comment = e.target.value}
+              placeholder={app.translator.trans('huseyinfiliz-traderfeedback.forum.form.comment_placeholder')}
+              rows={5}
+            />
+          </div>
+          
+          <div className="Form-group">
+            <Button 
+              type="submit"
+              className="Button Button--primary" 
+              loading={this.loading}
+              disabled={!this.comment.trim()}
+              onclick={() => this.onsubmit()}
+            >
+              {app.translator.trans('huseyinfiliz-traderfeedback.forum.form.submit_button')}
+            </Button>
+          </div>
         </div>
-        
-        <div className="Form-group">
-          <label>{app.translator.trans('huseyinfiliz-traderfeedback.forum.form.role_label')}</label>
-          <Select
-            value={this.role}
-            options={{
-              'buyer': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.role_buyer'),
-              'seller': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.role_seller'),
-              'trader': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.role_trader')
-            }}
-            onchange={this.handleRoleChange.bind(this)}
-          />
-        </div>
-        
-        <div className="Form-group">
-          <label>{app.translator.trans('huseyinfiliz-traderfeedback.forum.form.transaction_id_label')}</label>
-          <input 
-            className="FormControl" 
-            value={this.transactionId} 
-            oninput={e => this.transactionId = e.target.value}
-            placeholder={app.translator.trans('huseyinfiliz-traderfeedback.forum.form.transaction_id_placeholder')}
-          />
-        </div>
-        
-        <div className="Form-group">
-          <label>{app.translator.trans('huseyinfiliz-traderfeedback.forum.form.comment_label')}</label>
-          <textarea 
-            className="FormControl" 
-            value={this.comment} 
-            oninput={e => this.comment = e.target.value}
-            placeholder={app.translator.trans('huseyinfiliz-traderfeedback.forum.form.comment_placeholder')}
-            rows={5}
-          />
-        </div>
-        
-        {this.loading ? (
-          <LoadingIndicator />
-        ) : (
-          <Button 
-            className={`Button Button--primary ${this.type}`} 
-            onclick={this.submit.bind(this)}
-            disabled={!this.comment.trim()}
-          >
-            {app.translator.trans('huseyinfiliz-traderfeedback.forum.form.submit_button')}
-          </Button>
-        )}
       </div>
     );
   }
   
-  handleTypeChange(value) {
-    this.type = value;
-  }
-  
-  handleRoleChange(value) {
-    this.role = value;
-  }
-  
-  submit() {
-    // Validate form
+  onsubmit(e) {
+    if (e) e.preventDefault();
+    
     if (!this.comment.trim()) {
       return;
     }
@@ -112,14 +114,15 @@ export default class FeedbackForm extends Component {
       return;
     }
     
-    // Submit feedback
     this.loading = true;
+    m.redraw();
     
     app.request({
       method: 'POST',
       url: app.forum.attribute('apiUrl') + '/trader/feedback',
-      data: {
+      body: {
         data: {
+          type: 'feedbacks',
           attributes: {
             to_user_id: this.user.id(),
             type: this.type,
@@ -132,18 +135,18 @@ export default class FeedbackForm extends Component {
     })
     .then(response => {
       app.alerts.show({ type: 'success' }, app.translator.trans('huseyinfiliz-traderfeedback.forum.form.success'));
-      this.comment = '';
-      this.transactionId = '';
-      this.type = 'positive';
-      m.redraw();
-      
-      // Refresh the page to show the new feedback
+      this.hide();
       window.location.reload();
     })
     .catch(error => {
       this.loading = false;
       m.redraw();
-      app.alerts.show({ type: 'error' }, error.response.errors[0].detail);
+      
+      if (error.response && error.response.errors) {
+        app.alerts.show({ type: 'error' }, error.response.errors[0].detail);
+      } else {
+        app.alerts.show({ type: 'error' }, 'Error submitting feedback');
+      }
     });
   }
 }

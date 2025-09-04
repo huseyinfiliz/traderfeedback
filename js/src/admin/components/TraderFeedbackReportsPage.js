@@ -5,7 +5,6 @@ import avatar from 'flarum/common/helpers/avatar';
 import username from 'flarum/common/helpers/username';
 import humanTime from 'flarum/common/helpers/humanTime';
 import app from 'flarum/admin/app';
-//import m from 'mithril'; // Import mithril
 
 export default class TraderFeedbackReportsPage extends Component {
   oninit(vnode) {
@@ -37,25 +36,23 @@ export default class TraderFeedbackReportsPage extends Component {
   
   view() {
     if (this.loading) {
-      return <div className="TraderFeedbackReportsPage"><LoadingIndicator /></div>;
+      return m('div', {className: 'TraderFeedbackReportsPage'}, 
+        m(LoadingIndicator)
+      );
     }
     
-    return (
-      <div className="TraderFeedbackReportsPage">
-        <div className="container">
-          <h2>{app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.title')}</h2>
-          
-          {this.reports.length === 0 ? (
-            <div className="TraderFeedbackReportsPage-empty">
-              {app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.no_reports')}
-            </div>
-          ) : (
-            <div className="TraderFeedbackReportsPage-list">
-              {this.reports.map(report => this.reportItem(report))}
-            </div>
-          )}
-        </div>
-      </div>
+    return m('div', {className: 'TraderFeedbackReportsPage'},
+      m('div', {className: 'container'},
+        m('h2', app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.title')),
+        
+        this.reports.length === 0
+          ? m('div', {className: 'TraderFeedbackReportsPage-empty'},
+              app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.no_reports')
+            )
+          : m('div', {className: 'TraderFeedbackReportsPage-list'},
+              this.reports.map(report => this.reportItem(report))
+            )
+      )
     );
   }
   
@@ -63,61 +60,62 @@ export default class TraderFeedbackReportsPage extends Component {
     const feedback = report.feedback;
     const reporter = report.user;
     
-    return (
-      <div className="TraderFeedbackReportsPage-item" key={report.id}>
-        <div className="TraderFeedbackReportsPage-item-header">
-          <div className="TraderFeedbackReportsPage-item-user">
-            {app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.user_reported', {username: username(reporter)})}
-          </div>
-          <div className="TraderFeedbackReportsPage-item-date">
-            {humanTime(report.created_at)}
-          </div>
-        </div>
+    return m('div', {
+      className: 'TraderFeedbackReportsPage-item',
+      key: report.id
+    }, [
+      m('div', {className: 'TraderFeedbackReportsPage-item-header'}, [
+        m('div', {className: 'TraderFeedbackReportsPage-item-user'},
+          app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.user_reported', {
+            username: username(reporter)
+          })
+        ),
+        m('div', {className: 'TraderFeedbackReportsPage-item-date'},
+          humanTime(report.created_at)
+        )
+      ]),
+      
+      m('div', {className: 'TraderFeedbackReportsPage-item-reason'}, [
+        m('strong', app.translator.trans('huseyinfiliz-traderfeedback.forum.report_modal.reason_label') + ':'),
+        ' ',
+        report.reason
+      ]),
+      
+      m('div', {className: 'TraderFeedbackReportsPage-item-feedback'}, [
+        m('div', {className: 'TraderFeedbackReportsPage-item-feedback-header'}, [
+          m('div', {className: 'TraderFeedbackReportsPage-item-feedback-user'}, [
+            avatar(feedback.fromUser),
+            username(feedback.fromUser),
+            ' → ',
+            username(feedback.toUser)
+          ]),
+          m('div', {className: 'TraderFeedbackReportsPage-item-feedback-type'},
+            feedback.type
+          )
+        ]),
         
-        <div className="TraderFeedbackReportsPage-item-reason">
-          <strong>{app.translator.trans('huseyinfiliz-traderfeedback.forum.report_modal.reason_label')}:</strong> {report.reason}
-        </div>
+        m('div', {className: 'TraderFeedbackReportsPage-item-feedback-comment'},
+          feedback.comment
+        )
+      ]),
+      
+      m('div', {className: 'TraderFeedbackReportsPage-item-actions'}, [
+        Button.component({
+          className: 'Button Button--primary',
+          onclick: () => this.approveReport(report)
+        }, app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.approve_button')),
         
-        <div className="TraderFeedbackReportsPage-item-feedback">
-          <div className="TraderFeedbackReportsPage-item-feedback-header">
-            <div className="TraderFeedbackReportsPage-item-feedback-user">
-              {avatar(feedback.fromUser)}
-              {username(feedback.fromUser)} → {username(feedback.toUser)}
-            </div>
-            <div className="TraderFeedbackReportsPage-item-feedback-type">
-              {feedback.type}
-            </div>
-          </div>
-          
-          <div className="TraderFeedbackReportsPage-item-feedback-comment">
-            {feedback.comment}
-          </div>
-        </div>
+        Button.component({
+          className: 'Button Button--danger',
+          onclick: () => this.rejectReport(report)
+        }, app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.reject_button')),
         
-        <div className="TraderFeedbackReportsPage-item-actions">
-          <Button
-            className="Button Button--primary"
-            onclick={() => this.approveReport(report)}
-          >
-            {app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.approve_button')}
-          </Button>
-          
-          <Button
-            className="Button Button--danger"
-            onclick={() => this.rejectReport(report)}
-          >
-            {app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.reject_button')}
-          </Button>
-          
-          <Button
-            className="Button"
-            onclick={() => this.dismissReport(report)}
-          >
-            {app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.dismiss_button')}
-          </Button>
-        </div>
-      </div>
-    );
+        Button.component({
+          className: 'Button',
+          onclick: () => this.dismissReport(report)
+        }, app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.dismiss_button'))
+      ])
+    ]);
   }
   
   approveReport(report) {

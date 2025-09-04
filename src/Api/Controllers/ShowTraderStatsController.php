@@ -9,6 +9,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\TraderStatsSerializer;
 use HuseyinFiliz\TraderFeedback\Models\TraderStats;
+use Carbon\Carbon;
 
 class ShowTraderStatsController extends AbstractShowController
 {
@@ -35,7 +36,7 @@ class ShowTraderStatsController extends AbstractShowController
             $stats->neutral_count = 0;
             $stats->negative_count = 0;
             $stats->score = 0;
-            $stats->last_updated = now();
+            $stats->last_updated = Carbon::now();
         }
         
         return $stats;

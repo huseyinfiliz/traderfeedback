@@ -7,7 +7,7 @@ use Flarum\User\User;
 
 class TraderStats extends AbstractModel
 {
-    protected $table = 'trader_stats';
+    protected $table = 'tfb_stats';
 
     protected $fillable = [
         'user_id',

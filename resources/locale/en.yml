@@ -14,8 +14,6 @@ huseyinfiliz-traderfeedback:
       role_buyer: Buyer
       role_seller: Seller
       role_trader: Trader
-      transaction_id_label: Transaction ID (optional)
-      transaction_id_placeholder: Enter transaction ID or link to discussion
       comment_label: Comment
       comment_placeholder: Describe your trading experience with this user
       submit_button: Submit Feedback

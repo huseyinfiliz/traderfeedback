@@ -29,12 +29,11 @@ use HuseyinFiliz\TraderFeedback\Models\FeedbackReport;
 use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackRejectedBlueprint;
-
 return [
     (new Extend\Frontend('forum'))
         ->js(__DIR__ . '/js/dist/forum.js')
         ->css(__DIR__ . '/resources/less/forum.less')
-        ->route('/u/{username}/feedback', 'user.feedback'),
+        ->route('/u/{username}/feedbacks', 'user.feedbacks'),
 
     (new Extend\Frontend('admin'))
         ->js(__DIR__ . '/js/dist/admin.js')
@@ -56,7 +55,7 @@ return [
         ->post('/trader/reports/{id}/approve', 'trader.reports.approve', ApproveReportController::class)
         ->post('/trader/reports/{id}/reject', 'trader.reports.reject', RejectReportController::class)
         ->post('/trader/reports/{id}/dismiss', 'trader.reports.dismiss', DismissReportController::class)
-        ->get('/trader/stats/{id}', 'trader.stats.show', ShowTraderStatsController::class),
+       ->get('/trader/stats/{id}', 'trader.stats.show', ShowTraderStatsController::class),
 
     (new Extend\Model(User::class))
         ->hasMany('feedbacksReceived', Feedback::class, 'to_user_id')
@@ -68,10 +67,21 @@ return [
         ->hasMany('feedbacksGiven', FeedbackSerializer::class)
         ->hasOne('traderStats', TraderStatsSerializer::class)
         ->attributes(function (UserSerializer $serializer, User $user, array $attributes) {
-            $attributes['canGiveFeedback'] = $serializer->getActor()->can('giveFeedback', $user);
+            $actor = $serializer->getActor();
+            
+            // Give feedback permission check
+            $canGive = $actor->can('huseyinfiliz-traderfeedback.giveFeedback');
+            $isDifferentUser = $actor->id !== $user->id;
+            
+            $attributes['canGiveFeedback'] = $canGive && $isDifferentUser;
+            $attributes['canModerateFeedback'] = $actor->can('huseyinfiliz-traderfeedback.moderateFeedback');
+            
             return $attributes;
         }),
 
+    // Permissions
+    (new Extend\Policy())
+        ->globalPolicy(\HuseyinFiliz\TraderFeedback\Access\GlobalPolicy::class),
 
     (new Extend\Notification())
         ->type(NewFeedbackBlueprint::class, FeedbackSerializer::class, ['alert', 'email'])

@@ -29,7 +29,7 @@ class Feedback extends AbstractModel
     /**
      * {@inheritdoc}
      */
-    protected $table = 'trader_feedbacks';
+    protected $table = 'tfb_feedbacks';
 
     /**
      * The attributes that should be cast to native types.

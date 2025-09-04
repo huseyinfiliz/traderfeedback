@@ -22,8 +22,6 @@ class TraderStatsSerializer extends AbstractSerializer
             'negative_count' => (int) $stats->negative_count,
             'neutral_count' => (int) $stats->neutral_count,
             'score' => (float) $stats->score,
-            'last_updated' =>  $stats->neutral_count,
-            'score' => (float) $stats->score,
             'last_updated' => $this->formatDate($stats->last_updated)
         ];
     }

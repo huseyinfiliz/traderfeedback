@@ -12,19 +12,10 @@ use HuseyinFiliz\TraderFeedback\Models\Feedback;
 
 class ListFeedbacksController extends AbstractListController
 {
-    /**
-     * {@inheritdoc}
-     */
     public $serializer = FeedbackSerializer::class;
-
-    /**
-     * {@inheritdoc}
-     */
+    
     public $include = ['fromUser', 'toUser'];
-
-    /**
-     * {@inheritdoc}
-     */
+    
     protected function data(ServerRequestInterface $request, Document $document)
     {
         $actor = RequestUtil::getActor($request);
@@ -35,10 +26,11 @@ class ListFeedbacksController extends AbstractListController
         $sort = Arr::get($params, 'filter.sort', 'newest');
         
         $query = Feedback::query()
+            ->with(['fromUser', 'toUser'])  // Eager load relationships
             ->where('to_user_id', $userId)
             ->where('is_approved', true);
         
-        if ($type) {
+        if ($type && $type !== 'all') {
             $query->where('type', $type);
         }
         
