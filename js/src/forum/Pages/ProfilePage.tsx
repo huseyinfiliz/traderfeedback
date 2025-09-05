@@ -217,26 +217,33 @@ export default class ProfilePage extends UserPage {
     }
     
     feedbackItem(feedback) {
-        // Access data from the original API response structure
+        // Get relationships from the API response
+        const relationships = feedback.relationships || {};
+        const fromUserData = relationships.fromUser?.data;
         const attrs = feedback.attributes || {};
-        const fromUserId = attrs.from_user_id;
         
-        console.log('Feedback object:', feedback);
-        console.log('Attributes:', attrs);
-        console.log('Looking for user ID:', fromUserId);
+        let fromUser = null;
+        let displayName = 'Unknown User';
+        let avatarColor = '#888';
         
-        // Get user from store
-        let fromUser = fromUserId ? app.store.getById('users', String(fromUserId)) : null;
-        console.log('Found user in store:', fromUser);
+        // Try to get user from the relationship
+        if (fromUserData) {
+            fromUser = app.store.getById('users', fromUserData.id);
+        }
         
-        // Fallback to placeholder if user not found
-        const displayUser = fromUser || {
-            displayName: () => `User #${fromUserId || 'Unknown'}`,
-            username: () => 'anonymous',
-            color: () => '#888'
-        };
+        // If still no user, try from attributes
+        if (!fromUser && attrs.from_user_id) {
+            fromUser = app.store.getById('users', String(attrs.from_user_id));
+        }
         
-        // Fix for created_at being null
+        // If we have a user object
+        if (fromUser) {
+            displayName = fromUser.displayName();
+            avatarColor = fromUser.color() || '#888';
+        } else if (attrs.from_user_id) {
+            displayName = `User #${attrs.from_user_id}`;
+        }
+        
         const feedbackDate = attrs.created_at || new Date().toISOString();
         
         return (
@@ -244,7 +251,7 @@ export default class ProfilePage extends UserPage {
                 <div className="FeedbackItem-header">
                     <div className="FeedbackItem-user">
                         <span className="Avatar" style={{
-                            background: displayUser.color ? displayUser.color() : '#888',
+                            background: avatarColor,
                             width: '32px',
                             height: '32px',
                             borderRadius: '50%',
@@ -256,12 +263,12 @@ export default class ProfilePage extends UserPage {
                             fontSize: '14px',
                             fontWeight: 'bold'
                         }}>
-                            {displayUser.displayName()[0]?.toUpperCase() || '?'}
+                            {displayName[0]?.toUpperCase() || '?'}
                         </span>
-                        <span className="username">{displayUser.displayName()}</span>
+                        <span className="username">{displayName}</span>
                     </div>
                     <div className="FeedbackItem-date">
-                        {feedbackDate ? humanTime(feedbackDate) : 'Unknown date'}
+                        {humanTime(feedbackDate)}
                     </div>
                 </div>
                 
@@ -298,7 +305,99 @@ export default class ProfilePage extends UserPage {
                 }}>
                     {attrs.comment || 'No comment provided'}
                 </div>
+                
+                {this.feedbackActions(feedback, fromUser)}
             </div>
         );
+    }
+    
+    feedbackActions(feedback, fromUser) {
+        const currentUser = app.session.user;
+        if (!currentUser) return null;
+        
+        const canModerate = currentUser.attribute('canModerateFeedback');
+        const isOwn = fromUser && currentUser.id() === fromUser.id();
+        
+        return (
+            <div className="FeedbackItem-actions" style={{
+                marginTop: '10px',
+                paddingTop: '10px',
+                borderTop: '1px solid rgba(0,0,0,0.1)'
+            }}>
+                {!isOwn && (
+                    <Button 
+                        className="Button Button--link"
+                        onclick={() => this.reportFeedback(feedback)}
+                    >
+                        <i className="fas fa-flag" style={{ marginRight: '5px' }}></i>
+                        {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.report_button')}
+                    </Button>
+                )}
+                
+                {(isOwn || canModerate) && (
+                    <Button 
+                        className="Button Button--link Button--danger"
+                        onclick={() => this.deleteFeedback(feedback)}
+                    >
+                        <i className="fas fa-trash" style={{ marginRight: '5px' }}></i>
+                        {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.delete_button')}
+                    </Button>
+                )}
+            </div>
+        );
+    }
+    
+    reportFeedback(feedback) {
+        const reason = prompt('Please provide a reason for reporting this feedback:');
+        if (!reason || !reason.trim()) return;
+        
+        this.loading = true;
+        m.redraw();
+        
+        app.request({
+            method: 'POST',
+            url: app.forum.attribute('apiUrl') + '/trader/feedback/' + feedback.id + '/report',
+            body: {
+                data: {
+                    attributes: {
+                        reason: reason.trim()
+                    }
+                }
+            }
+        }).then(() => {
+            this.loading = false;
+            app.alerts.show({ type: 'success' }, app.translator.trans('huseyinfiliz-traderfeedback.forum.report_modal.success'));
+            m.redraw();
+        }).catch(error => {
+            this.loading = false;
+            app.alerts.show({ type: 'error' }, 'Failed to report feedback');
+            m.redraw();
+        });
+    }
+    
+    deleteFeedback(feedback) {
+        if (!confirm(app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.confirm_delete'))) {
+            return;
+        }
+        
+        this.loading = true;
+        m.redraw();
+        
+        app.request({
+            method: 'DELETE',
+            url: app.forum.attribute('apiUrl') + '/trader/feedback/' + feedback.id
+        }).then(() => {
+            this.loading = false;
+            // Remove the deleted feedback from the list
+            this.feedbacks = this.feedbacks.filter(f => f.id !== feedback.id);
+            // Reload stats as they might have changed
+            this.loadStats();
+            app.alerts.show({ type: 'success' }, 'Feedback deleted successfully');
+            m.redraw();
+        }).catch(error => {
+            this.loading = false;
+            app.alerts.show({ type: 'error' }, 'Failed to delete feedback');
+            m.redraw();
+        });
     }
 }

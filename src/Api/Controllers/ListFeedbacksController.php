@@ -16,6 +16,9 @@ class ListFeedbacksController extends AbstractListController
     
     public $include = ['fromUser', 'toUser'];
     
+    public $limit = 20;
+    public $maxLimit = 50;
+    
     protected function data(ServerRequestInterface $request, Document $document)
     {
         $actor = RequestUtil::getActor($request);
@@ -24,9 +27,10 @@ class ListFeedbacksController extends AbstractListController
         $userId = Arr::get($params, 'filter.user');
         $type = Arr::get($params, 'filter.type');
         $sort = Arr::get($params, 'filter.sort', 'newest');
+        $limit = $this->extractLimit($request);
+        $offset = $this->extractOffset($request);
         
         $query = Feedback::query()
-            ->with(['fromUser', 'toUser'])  // Eager load relationships
             ->where('to_user_id', $userId)
             ->where('is_approved', true);
         
@@ -40,6 +44,26 @@ class ListFeedbacksController extends AbstractListController
             $query->orderBy('created_at', 'asc');
         }
         
-        return $query->get();
+        // Paginate
+        $results = $query->skip($offset)->take($limit + 1)->get();
+        $hasMoreResults = $results->count() > $limit;
+        
+        if ($hasMoreResults) {
+            $results->pop();
+        }
+        
+        // Load relationships
+        $results->load(['fromUser', 'toUser']);
+        
+        // Add pagination info
+        $document->addPaginationLinks(
+            $request->getUri()->getPath(),
+            $request->getQueryParams(),
+            $offset,
+            $limit,
+            $hasMoreResults ? null : 0
+        );
+        
+        return $results;
     }
 }

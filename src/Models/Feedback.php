@@ -17,10 +17,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $comment
  * @property int|null $discussion_id
  * @property bool $is_approved
+ * @property int|null $approved_by_id
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property User $fromUser
  * @property User $toUser
+ * @property User|null $approvedBy
  */
 class Feedback extends AbstractModel
 {
@@ -32,12 +34,18 @@ class Feedback extends AbstractModel
     protected $table = 'tfb_feedbacks';
 
     /**
+     * {@inheritdoc}
+     */
+    protected $dates = ['created_at', 'updated_at'];
+
+    /**
      * The attributes that should be cast to native types.
      *
      * @var array
      */
     protected $casts = [
-        'discussion_id' => 'integer', // add discussion_id to casts
+        'discussion_id' => 'integer',
+        'approved_by_id' => 'integer',
         'is_approved' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -54,8 +62,9 @@ class Feedback extends AbstractModel
         'type',
         'role',
         'comment',
-        'discussion_id', // add discussion_id to fillable
+        'discussion_id',
         'is_approved',
+        'approved_by_id'
     ];
 
     /**
@@ -70,7 +79,32 @@ class Feedback extends AbstractModel
      */
     const ROLE_BUYER = 'buyer';
     const ROLE_SELLER = 'seller';
-    const ROLE_TRADER = 'trader'; // Added ROLE_TRADER constant to match table definition
+    const ROLE_TRADER = 'trader';
+
+    /**
+     * Boot the model.
+     *
+     * @return void
+     */
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($feedback) {
+            // Set timestamps if not set
+            if (!$feedback->created_at) {
+                $feedback->created_at = Carbon::now();
+            }
+            if (!$feedback->updated_at) {
+                $feedback->updated_at = Carbon::now();
+            }
+        });
+
+        static::updating(function ($feedback) {
+            // Update the updated_at timestamp
+            $feedback->updated_at = Carbon::now();
+        });
+    }
 
     /**
      * Get the user who gave the feedback.
@@ -90,6 +124,16 @@ class Feedback extends AbstractModel
     public function toUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'to_user_id');
+    }
+
+    /**
+     * Get the user who approved the feedback.
+     *
+     * @return BelongsTo
+     */
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by_id');
     }
 
     /**

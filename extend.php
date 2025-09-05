@@ -29,6 +29,7 @@ use HuseyinFiliz\TraderFeedback\Models\FeedbackReport;
 use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackRejectedBlueprint;
+use HuseyinFiliz\TraderFeedback\Access\FeedbackPolicy;
 return [
     (new Extend\Frontend('forum'))
         ->js(__DIR__ . '/js/dist/forum.js')
@@ -81,7 +82,8 @@ return [
 
     // Permissions
     (new Extend\Policy())
-        ->globalPolicy(\HuseyinFiliz\TraderFeedback\Access\GlobalPolicy::class),
+        ->globalPolicy(\HuseyinFiliz\TraderFeedback\Access\GlobalPolicy::class)
+		->modelPolicy(Feedback::class, FeedbackPolicy::class),
 
     (new Extend\Notification())
         ->type(NewFeedbackBlueprint::class, FeedbackSerializer::class, ['alert', 'email'])
@@ -91,5 +93,9 @@ return [
     (new Extend\Event())
         ->listen(\Flarum\User\Event\Deleted::class, UserDeletedListener::class)
         ->listen(\HuseyinFiliz\TraderFeedback\Events\FeedbackCreated::class, FeedbackCreatedListener::class)
-        ->listen(\HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated::class, FeedbackUpdatedListener::class),
+        ->listen(\HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated::class, FeedbackUpdatedListener::class)
+	    ->listen(\Flarum\User\Event\Saving::class, AddUserPreferencesListener::class)
+    	->listen(\Flarum\User\Event\Deleted::class, UserDeletedListener::class)
+    	->listen(\HuseyinFiliz\TraderFeedback\Events\FeedbackCreated::class, FeedbackCreatedListener::class)
+    	->listen(\HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated::class, FeedbackUpdatedListener::class),
 ];

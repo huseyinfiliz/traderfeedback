@@ -1,156 +1,180 @@
-import Component from 'flarum/common/Component';
+import ExtensionPage from 'flarum/admin/components/ExtensionPage';
 import Button from 'flarum/common/components/Button';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
-import avatar from 'flarum/common/helpers/avatar';
-import username from 'flarum/common/helpers/username';
 import humanTime from 'flarum/common/helpers/humanTime';
 import app from 'flarum/admin/app';
 
-export default class TraderFeedbackReportsPage extends Component {
+export default class TraderFeedbackReportsPage extends ExtensionPage {
   oninit(vnode) {
     super.oninit(vnode);
     
-    this.loading = true;
+    this.loading = false;
     this.reports = [];
     
     this.loadReports();
   }
   
+  content() {
+    return (
+      <div className="TraderFeedbackReportsPage">
+        <div className="ExtensionPage-header">
+          <div className="container">
+            <h2>{app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.title')}</h2>
+            <Button
+              className="Button Button--primary"
+              onclick={() => this.loadReports()}
+              loading={this.loading}
+            >
+              <i className="fas fa-sync"></i> Refresh
+            </Button>
+          </div>
+        </div>
+        
+        <div className="ExtensionPage-content">
+          <div className="container">
+            {this.reportsList()}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  reportsList() {
+    if (this.loading) {
+      return <LoadingIndicator />;
+    }
+    
+    if (this.reports.length === 0) {
+      return (
+        <div className="TraderFeedbackReportsPage-empty">
+          <i className="fas fa-inbox fa-3x"></i>
+          <p>{app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.no_reports')}</p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="TraderFeedbackReportsList">
+        {this.reports.map(report => this.reportItem(report))}
+      </div>
+    );
+  }
+  
+  reportItem(report) {
+    const feedback = report.attributes || {};
+    const reporter = report.relationships?.user?.data;
+    const feedbackData = report.relationships?.feedback?.data;
+    
+    return (
+      <div className="TraderFeedbackReportItem" key={report.id}>
+        <div className="TraderFeedbackReportItem-header">
+          <div className="TraderFeedbackReportItem-info">
+            <strong>Report #{report.id}</strong>
+            <span className="TraderFeedbackReportItem-date">
+              {humanTime(report.attributes.created_at)}
+            </span>
+          </div>
+        </div>
+        
+        <div className="TraderFeedbackReportItem-content">
+          <div className="TraderFeedbackReportItem-reason">
+            <strong>Reason:</strong>
+            <p>{report.attributes.reason}</p>
+          </div>
+          
+          {feedbackData && (
+            <div className="TraderFeedbackReportItem-feedback">
+              <strong>Reported Feedback:</strong>
+              <div className="TraderFeedbackReportItem-feedback-info">
+                <span className={`feedback-type feedback-type-${feedbackData.attributes?.type || 'neutral'}`}>
+                  {feedbackData.attributes?.type || 'Unknown'}
+                </span>
+                <p>{feedbackData.attributes?.comment || 'No comment'}</p>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="TraderFeedbackReportItem-actions">
+          <Button
+            className="Button Button--success"
+            onclick={() => this.approveReport(report)}
+            loading={this.loading}
+          >
+            <i className="fas fa-check"></i> Dismiss Report
+          </Button>
+          
+          <Button
+            className="Button Button--danger"
+            onclick={() => this.rejectReport(report)}
+            loading={this.loading}
+          >
+            <i className="fas fa-trash"></i> Delete Feedback
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
   loadReports() {
     this.loading = true;
+    m.redraw();
     
     app.request({
       method: 'GET',
       url: app.forum.attribute('apiUrl') + '/trader/reports'
     })
     .then(response => {
-      this.reports = response.data;
+      this.reports = response.data || [];
       this.loading = false;
       m.redraw();
     })
     .catch(error => {
       this.loading = false;
+      app.alerts.show({ type: 'error' }, 'Failed to load reports');
       m.redraw();
     });
   }
   
-  view() {
-    if (this.loading) {
-      return m('div', {className: 'TraderFeedbackReportsPage'}, 
-        m(LoadingIndicator)
-      );
-    }
-    
-    return m('div', {className: 'TraderFeedbackReportsPage'},
-      m('div', {className: 'container'},
-        m('h2', app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.title')),
-        
-        this.reports.length === 0
-          ? m('div', {className: 'TraderFeedbackReportsPage-empty'},
-              app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.no_reports')
-            )
-          : m('div', {className: 'TraderFeedbackReportsPage-list'},
-              this.reports.map(report => this.reportItem(report))
-            )
-      )
-    );
-  }
-  
-  reportItem(report) {
-    const feedback = report.feedback;
-    const reporter = report.user;
-    
-    return m('div', {
-      className: 'TraderFeedbackReportsPage-item',
-      key: report.id
-    }, [
-      m('div', {className: 'TraderFeedbackReportsPage-item-header'}, [
-        m('div', {className: 'TraderFeedbackReportsPage-item-user'},
-          app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.user_reported', {
-            username: username(reporter)
-          })
-        ),
-        m('div', {className: 'TraderFeedbackReportsPage-item-date'},
-          humanTime(report.created_at)
-        )
-      ]),
-      
-      m('div', {className: 'TraderFeedbackReportsPage-item-reason'}, [
-        m('strong', app.translator.trans('huseyinfiliz-traderfeedback.forum.report_modal.reason_label') + ':'),
-        ' ',
-        report.reason
-      ]),
-      
-      m('div', {className: 'TraderFeedbackReportsPage-item-feedback'}, [
-        m('div', {className: 'TraderFeedbackReportsPage-item-feedback-header'}, [
-          m('div', {className: 'TraderFeedbackReportsPage-item-feedback-user'}, [
-            avatar(feedback.fromUser),
-            username(feedback.fromUser),
-            ' → ',
-            username(feedback.toUser)
-          ]),
-          m('div', {className: 'TraderFeedbackReportsPage-item-feedback-type'},
-            feedback.type
-          )
-        ]),
-        
-        m('div', {className: 'TraderFeedbackReportsPage-item-feedback-comment'},
-          feedback.comment
-        )
-      ]),
-      
-      m('div', {className: 'TraderFeedbackReportsPage-item-actions'}, [
-        Button.component({
-          className: 'Button Button--primary',
-          onclick: () => this.approveReport(report)
-        }, app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.approve_button')),
-        
-        Button.component({
-          className: 'Button Button--danger',
-          onclick: () => this.rejectReport(report)
-        }, app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.reject_button')),
-        
-        Button.component({
-          className: 'Button',
-          onclick: () => this.dismissReport(report)
-        }, app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.dismiss_button'))
-      ])
-    ]);
-  }
-  
   approveReport(report) {
-    if (confirm(app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.confirm_approve'))) {
-      app.request({
-        method: 'POST',
-        url: app.forum.attribute('apiUrl') + '/trader/reports/' + report.id + '/approve'
-      })
-      .then(() => {
-        this.loadReports();
-      });
-    }
+    if (!confirm('Dismiss this report without taking action?')) return;
+    
+    this.loading = true;
+    m.redraw();
+    
+    app.request({
+      method: 'POST',
+      url: app.forum.attribute('apiUrl') + '/trader/reports/' + report.id + '/dismiss'
+    })
+    .then(() => {
+      app.alerts.show({ type: 'success' }, 'Report dismissed');
+      this.loadReports();
+    })
+    .catch(error => {
+      this.loading = false;
+      app.alerts.show({ type: 'error' }, 'Failed to dismiss report');
+      m.redraw();
+    });
   }
   
   rejectReport(report) {
-    if (confirm(app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.confirm_reject'))) {
-      app.request({
-        method: 'POST',
-        url: app.forum.attribute('apiUrl') + '/trader/reports/' + report.id + '/reject'
-      })
-      .then(() => {
-        this.loadReports();
-      });
-    }
-  }
-  
-  dismissReport(report) {
-    if (confirm(app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.confirm_dismiss'))) {
-      app.request({
-        method: 'POST',
-        url: app.forum.attribute('apiUrl') + '/trader/reports/' + report.id + '/dismiss'
-      })
-      .then(() => {
-        this.loadReports();
-      });
-    }
+    if (!confirm('Delete the reported feedback? This action cannot be undone.')) return;
+    
+    this.loading = true;
+    m.redraw();
+    
+    app.request({
+      method: 'POST',
+      url: app.forum.attribute('apiUrl') + '/trader/reports/' + report.id + '/reject'
+    })
+    .then(() => {
+      app.alerts.show({ type: 'success' }, 'Feedback deleted and report resolved');
+      this.loadReports();
+    })
+    .catch(error => {
+      this.loading = false;
+      app.alerts.show({ type: 'error' }, 'Failed to process report');
+      m.redraw();
+    });
   }
 }

@@ -4,6 +4,7 @@ namespace HuseyinFiliz\TraderFeedback\Listeners;
 
 use HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated;
 use HuseyinFiliz\TraderFeedback\Models\TraderStats;
+use Carbon\Carbon;
 
 class FeedbackUpdatedListener
 {
@@ -28,7 +29,7 @@ class FeedbackUpdatedListener
         // Calculate score (percentage of positive feedback)
         $total = $positiveCount + $neutralCount + $negativeCount;
         $stats->score = $total > 0 ? ($positiveCount / $total) * 100 : 0;
-        $stats->last_updated = now();
+        $stats->last_updated = Carbon::now();
         $stats->save();
     }
 }

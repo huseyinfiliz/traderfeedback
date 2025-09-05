@@ -12,7 +12,7 @@ class FeedbackSerializer extends AbstractSerializer
 
     protected function getDefaultAttributes($feedback)
     {
-        return [
+        $attributes = [
             'id' => $feedback->id,
             'type' => $feedback->type,
             'comment' => $feedback->comment,
@@ -22,9 +22,34 @@ class FeedbackSerializer extends AbstractSerializer
             'to_user_id' => $feedback->to_user_id,
             'created_at' => $this->formatDate($feedback->created_at),
             'updated_at' => $this->formatDate($feedback->updated_at),
-            'canEdit' => $this->actor->can('edit', $feedback),
-            'canDelete' => $this->actor->can('delete', $feedback)
         ];
+        
+        // Only check permissions if actor exists
+        if ($this->actor) {
+            try {
+                $attributes['canEdit'] = $this->actor->can('edit', $feedback);
+            } catch (\Exception $e) {
+                $attributes['canEdit'] = false;
+            }
+            
+            try {
+                $attributes['canDelete'] = $this->actor->can('delete', $feedback);
+            } catch (\Exception $e) {
+                $attributes['canDelete'] = false;
+            }
+            
+            try {
+                $attributes['canReport'] = $this->actor->can('report', $feedback);
+            } catch (\Exception $e) {
+                $attributes['canReport'] = false;
+            }
+        } else {
+            $attributes['canEdit'] = false;
+            $attributes['canDelete'] = false;
+            $attributes['canReport'] = false;
+        }
+        
+        return $attributes;
     }
 
     protected function fromUser($feedback)
@@ -35,5 +60,13 @@ class FeedbackSerializer extends AbstractSerializer
     protected function toUser($feedback)
     {
         return $this->hasOne($feedback, BasicUserSerializer::class, 'toUser');
+    }
+    
+    protected function approvedBy($feedback)
+    {
+        if ($feedback->approved_by_id) {
+            return $this->hasOne($feedback, BasicUserSerializer::class, 'approvedBy');
+        }
+        return null;
     }
 }
