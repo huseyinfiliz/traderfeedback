@@ -119,16 +119,16 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
         this.buildSettingComponent({
           type: 'number',
           setting: 'huseyinfiliz.traderfeedback.minDays',
-          label: 'Minimum membership days',
-          help: 'Users must be a member for this many days before giving feedback (0 = disabled)',
+          label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_days_label'),
+          help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_days_help'),
           min: 0
         }),
         
         this.buildSettingComponent({
           type: 'number',
           setting: 'huseyinfiliz.traderfeedback.minPosts',
-          label: 'Minimum posts required',
-          help: 'Users must have this many posts before giving feedback (0 = disabled)',
+          label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_posts_label'),
+          help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_posts_help'),
           min: 0
         }),
         

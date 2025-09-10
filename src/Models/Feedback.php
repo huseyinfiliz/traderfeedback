@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Flarum\Database\AbstractModel;
 use Flarum\Database\ScopeVisibilityTrait;
 use Flarum\User\User;
+use Flarum\Discussion\Discussion;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property User $fromUser
  * @property User $toUser
  * @property User|null $approvedBy
+ * @property Discussion|null $discussion
  */
 class Feedback extends AbstractModel
 {
@@ -44,6 +46,8 @@ class Feedback extends AbstractModel
      * @var array
      */
     protected $casts = [
+        'from_user_id' => 'integer',
+        'to_user_id' => 'integer',
         'discussion_id' => 'integer',
         'approved_by_id' => 'integer',
         'is_approved' => 'boolean',
@@ -137,6 +141,24 @@ class Feedback extends AbstractModel
     }
 
     /**
+     * Get the discussion associated with the feedback.
+     *
+     * @return BelongsTo
+     */
+    public function discussion(): BelongsTo
+    {
+        return $this->belongsTo(Discussion::class, 'discussion_id');
+    }
+
+    /**
+     * Get all reports for this feedback.
+     */
+    public function reports()
+    {
+        return $this->hasMany(FeedbackReport::class, 'feedback_id');
+    }
+
+    /**
      * Scope a query to only include approved feedbacks.
      *
      * @param \Illuminate\Database\Eloquent\Builder $query
@@ -204,5 +226,35 @@ class Feedback extends AbstractModel
     public function scopeWithRole($query, $role)
     {
         return $query->where('role', $role);
+    }
+
+    /**
+     * Check if feedback is positive
+     *
+     * @return bool
+     */
+    public function isPositive(): bool
+    {
+        return $this->type === self::TYPE_POSITIVE;
+    }
+
+    /**
+     * Check if feedback is negative
+     *
+     * @return bool
+     */
+    public function isNegative(): bool
+    {
+        return $this->type === self::TYPE_NEGATIVE;
+    }
+
+    /**
+     * Check if feedback is neutral
+     *
+     * @return bool
+     */
+    public function isNeutral(): bool
+    {
+        return $this->type === self::TYPE_NEUTRAL;
     }
 }

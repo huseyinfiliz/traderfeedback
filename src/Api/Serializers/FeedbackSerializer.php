@@ -4,68 +4,96 @@ namespace HuseyinFiliz\TraderFeedback\Api\Serializers;
 
 use Flarum\Api\Serializer\AbstractSerializer;
 use Flarum\Api\Serializer\BasicUserSerializer;
+use Flarum\Api\Serializer\BasicDiscussionSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
+use InvalidArgumentException;
 
 class FeedbackSerializer extends AbstractSerializer
 {
+    /**
+     * {@inheritdoc}
+     */
     protected $type = 'trader-feedbacks';
 
+    /**
+     * {@inheritdoc}
+     */
     protected function getDefaultAttributes($feedback)
     {
+        if (!($feedback instanceof Feedback)) {
+            throw new InvalidArgumentException(
+                get_class($this) . ' can only serialize instances of ' . Feedback::class
+            );
+        }
+
         $attributes = [
-            'id' => $feedback->id,
+            'id' => (int) $feedback->id,
             'type' => $feedback->type,
             'comment' => $feedback->comment,
             'role' => $feedback->role,
-            'is_approved' => (bool) $feedback->is_approved,
-            'from_user_id' => $feedback->from_user_id,
-            'to_user_id' => $feedback->to_user_id,
-            'created_at' => $this->formatDate($feedback->created_at),
-            'updated_at' => $this->formatDate($feedback->updated_at),
+            'isApproved' => (bool) $feedback->is_approved,
+            'fromUserId' => (int) $feedback->from_user_id,
+            'toUserId' => (int) $feedback->to_user_id,
+            'discussionId' => $feedback->discussion_id ? (int) $feedback->discussion_id : null,
+            'approvedById' => $feedback->approved_by_id ? (int) $feedback->approved_by_id : null,
+            'createdAt' => $this->formatDate($feedback->created_at),
+            'updatedAt' => $this->formatDate($feedback->updated_at),
         ];
         
-        // Only check permissions if actor exists
+        // Permission checks - actor varsa kontrol et
         if ($this->actor) {
-            try {
-                $attributes['canEdit'] = $this->actor->can('edit', $feedback);
-            } catch (\Exception $e) {
-                $attributes['canEdit'] = false;
-            }
-            
-            try {
-                $attributes['canDelete'] = $this->actor->can('delete', $feedback);
-            } catch (\Exception $e) {
-                $attributes['canDelete'] = false;
-            }
-            
-            try {
-                $attributes['canReport'] = $this->actor->can('report', $feedback);
-            } catch (\Exception $e) {
-                $attributes['canReport'] = false;
-            }
+            $attributes['canEdit'] = $this->actor->can('edit', $feedback);
+            $attributes['canDelete'] = $this->actor->can('delete', $feedback);
+            $attributes['canReport'] = $this->actor->can('report', $feedback);
+            $attributes['canApprove'] = $this->actor->can('huseyinfiliz-traderfeedback.moderateFeedback');
         } else {
             $attributes['canEdit'] = false;
             $attributes['canDelete'] = false;
             $attributes['canReport'] = false;
+            $attributes['canApprove'] = false;
         }
         
         return $attributes;
     }
 
+    /**
+     * @param Feedback $feedback
+     * @return \Tobscure\JsonApi\Relationship
+     */
     protected function fromUser($feedback)
     {
         return $this->hasOne($feedback, BasicUserSerializer::class, 'fromUser');
     }
 
+    /**
+     * @param Feedback $feedback
+     * @return \Tobscure\JsonApi\Relationship
+     */
     protected function toUser($feedback)
     {
         return $this->hasOne($feedback, BasicUserSerializer::class, 'toUser');
     }
     
+    /**
+     * @param Feedback $feedback
+     * @return \Tobscure\JsonApi\Relationship|null
+     */
     protected function approvedBy($feedback)
     {
         if ($feedback->approved_by_id) {
             return $this->hasOne($feedback, BasicUserSerializer::class, 'approvedBy');
+        }
+        return null;
+    }
+
+    /**
+     * @param Feedback $feedback
+     * @return \Tobscure\JsonApi\Relationship|null
+     */
+    protected function discussion($feedback)
+    {
+        if ($feedback->discussion_id) {
+            return $this->hasOne($feedback, BasicDiscussionSerializer::class, 'discussion');
         }
         return null;
     }

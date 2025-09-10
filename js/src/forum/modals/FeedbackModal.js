@@ -55,7 +55,6 @@ export default class FeedbackModal extends Modal {
           })
         ]),
         
-        
         m('.Form-group', [
           m('label', app.translator.trans('huseyinfiliz-traderfeedback.forum.form.comment_label')),
           m('textarea.FormControl', {

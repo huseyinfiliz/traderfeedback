@@ -1,10 +1,10 @@
-import Modal from 'flarum/common/components/Modal';  // Component yerine Modal
+import Modal from 'flarum/common/components/Modal';
 import Button from 'flarum/common/components/Button';
 import Select from 'flarum/common/components/Select';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import app from 'flarum/forum/app';
 
-export default class FeedbackForm extends Modal {  // Modal'dan extend et
+export default class FeedbackForm extends Modal {
   oninit(vnode) {
     super.oninit(vnode);
     
@@ -14,7 +14,6 @@ export default class FeedbackForm extends Modal {  // Modal'dan extend et
     this.type = 'positive';
     this.role = 'buyer';
     this.comment = '';
-    this.transactionId = '';
   }
   
   className() {
@@ -27,7 +26,7 @@ export default class FeedbackForm extends Modal {  // Modal'dan extend et
     });
   }
   
-  content() {  // view() yerine content()
+  content() {
     return (
       <div className="Modal-body">
         <div className="Form">
@@ -54,16 +53,6 @@ export default class FeedbackForm extends Modal {  // Modal'dan extend et
                 'trader': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.role_trader')
               }}
               onchange={(value) => this.role = value}
-            />
-          </div>
-          
-          <div className="Form-group">
-            <label>{app.translator.trans('huseyinfiliz-traderfeedback.forum.form.transaction_id_label')}</label>
-            <input 
-              className="FormControl" 
-              value={this.transactionId} 
-              oninput={e => this.transactionId = e.target.value}
-              placeholder={app.translator.trans('huseyinfiliz-traderfeedback.forum.form.transaction_id_placeholder')}
             />
           </div>
           
@@ -127,8 +116,7 @@ export default class FeedbackForm extends Modal {  // Modal'dan extend et
             to_user_id: this.user.id(),
             type: this.type,
             role: this.role,
-            comment: this.comment,
-            transaction_id: this.transactionId || null
+            comment: this.comment
           }
         }
       }

@@ -22,6 +22,11 @@ class NewFeedbackBlueprint implements BlueprintInterface
 
     public function getFromUser()
     {
+        // fromUser relationship'ini yükle
+        if (!$this->feedback->relationLoaded('fromUser')) {
+            $this->feedback->load('fromUser');
+        }
+        
         return $this->feedback->fromUser;
     }
 
@@ -29,7 +34,9 @@ class NewFeedbackBlueprint implements BlueprintInterface
     {
         return [
             'feedbackType' => $this->feedback->type,
-            'role' => $this->feedback->role
+            'feedbackRole' => $this->feedback->role,
+            'fromUsername' => $this->feedback->fromUser ? $this->feedback->fromUser->username : null,
+            'fromUserId' => $this->feedback->from_user_id
         ];
     }
 
@@ -45,8 +52,11 @@ class NewFeedbackBlueprint implements BlueprintInterface
 
     public function getRecipients()
     {
-        return [
-            User::find($this->feedback->to_user_id)
-        ];
+        // Feedback alan kullanıcıya bildirim gönder
+        if (!$this->feedback->relationLoaded('toUser')) {
+            $this->feedback->load('toUser');
+        }
+        
+        return $this->feedback->toUser ? [$this->feedback->toUser] : [];
     }
 }

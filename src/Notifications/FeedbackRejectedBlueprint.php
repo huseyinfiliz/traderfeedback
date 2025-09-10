@@ -34,6 +34,16 @@ class FeedbackRejectedBlueprint implements BlueprintInterface
      */
     public function getFromUser()
     {
+        // Eğer approved_by_id yoksa, sistem kullanıcısını döndür
+        if (!$this->feedback->approved_by_id) {
+            return User::find(1) ?: null;
+        }
+        
+        // approvedBy relationship'ini yükle
+        if (!$this->feedback->relationLoaded('approvedBy')) {
+            $this->feedback->load('approvedBy');
+        }
+        
         return $this->feedback->approvedBy;
     }
 
@@ -42,7 +52,17 @@ class FeedbackRejectedBlueprint implements BlueprintInterface
      */
     public function getData()
     {
-        return [];
+        // toUser relationship'ini yükle
+        if (!$this->feedback->relationLoaded('toUser')) {
+            $this->feedback->load('toUser');
+        }
+        
+        return [
+            'feedbackType' => $this->feedback->type,
+            'feedbackRole' => $this->feedback->role,
+            'toUsername' => $this->feedback->toUser ? $this->feedback->toUser->username : null,
+            'toUserId' => $this->feedback->to_user_id
+        ];
     }
 
     /**
@@ -59,5 +79,16 @@ class FeedbackRejectedBlueprint implements BlueprintInterface
     public static function getSubjectModel()
     {
         return Feedback::class;
+    }
+    
+    /**
+     * Get the users that should receive the notification.
+     *
+     * @return array
+     */
+    public function getRecipients()
+    {
+        // Feedback veren kullanıcıya bildirim gönder
+        return $this->feedback->fromUser ? [$this->feedback->fromUser] : [];
     }
 }

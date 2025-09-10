@@ -84,6 +84,10 @@ huseyinfiliz-traderfeedback:
       min_length_label: Minimum comment length
       max_length_label: Maximum comment length
       submit_button: Save Settings
+      min_days_label: Minimum membership days
+      min_days_help: Users must be a member for this many days before giving feedback (0 = disabled)
+      min_posts_label: Minimum posts required  
+      min_posts_help: Users must have this many posts before giving feedback (0 = disabled)
     
     dashboard:
       title: Trader Feedback Statistics

@@ -6,6 +6,9 @@ use Flarum\Foundation\AbstractValidator;
 
 class FeedbackValidator extends AbstractValidator
 {
+    /**
+     * {@inheritdoc}
+     */
     protected $rules = [
         'to_user_id' => [
             'required',
@@ -27,18 +30,28 @@ class FeedbackValidator extends AbstractValidator
             'string',
             'min:10',
             'max:1000'
+        ],
+        'discussion_id' => [
+            'nullable',
+            'integer',
+            'exists:discussions,id'
         ]
-        // transaction_id kaldırıldı
     ];
 
+    /**
+     * {@inheritdoc}
+     */
     protected function getRules()
     {
-        $rules = parent::getRules();
-
-        $minLength = (int) app('flarum.settings')->get('huseyinfiliz.traderfeedback.minLength', 10);
-        $maxLength = (int) app('flarum.settings')->get('huseyinfiliz.traderfeedback.maxLength', 1000);
-
-        if (isset($rules['comment'])) {
+        $rules = $this->rules;
+        
+        // Settings'i app container'dan alalım
+        $settings = app('flarum.settings');
+        
+        if ($settings) {
+            $minLength = (int) $settings->get('huseyinfiliz.traderfeedback.minLength', 10);
+            $maxLength = (int) $settings->get('huseyinfiliz.traderfeedback.maxLength', 1000);
+            
             $rules['comment'] = [
                 'required',
                 'string',
@@ -50,6 +63,9 @@ class FeedbackValidator extends AbstractValidator
         return $rules;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function getMessages()
     {
         return [
@@ -61,8 +77,8 @@ class FeedbackValidator extends AbstractValidator
             'role.in' => 'Invalid role. Must be buyer, seller, or trader.',
             'comment.required' => 'Comment is required.',
             'comment.min' => 'Comment must be at least :min characters.',
-            'comment.max' => 'Comment must not exceed :max characters.'
-            // transaction_id mesajları kaldırıldı
+            'comment.max' => 'Comment must not exceed :max characters.',
+            'discussion_id.exists' => 'Discussion does not exist.'
         ];
     }
 }

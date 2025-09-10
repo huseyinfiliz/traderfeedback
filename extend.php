@@ -30,6 +30,10 @@ use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackRejectedBlueprint;
 use HuseyinFiliz\TraderFeedback\Access\FeedbackPolicy;
+use HuseyinFiliz\TraderFeedback\Access\GlobalPolicy;
+use HuseyinFiliz\TraderFeedback\Events\FeedbackCreated;
+use HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated;
+
 return [
     (new Extend\Frontend('forum'))
         ->js(__DIR__ . '/js/dist/forum.js')
@@ -56,7 +60,7 @@ return [
         ->post('/trader/reports/{id}/approve', 'trader.reports.approve', ApproveReportController::class)
         ->post('/trader/reports/{id}/reject', 'trader.reports.reject', RejectReportController::class)
         ->post('/trader/reports/{id}/dismiss', 'trader.reports.dismiss', DismissReportController::class)
-       ->get('/trader/stats/{id}', 'trader.stats.show', ShowTraderStatsController::class),
+        ->get('/trader/stats/{id}', 'trader.stats.show', ShowTraderStatsController::class),
 
     (new Extend\Model(User::class))
         ->hasMany('feedbacksReceived', Feedback::class, 'to_user_id')
@@ -70,32 +74,29 @@ return [
         ->attributes(function (UserSerializer $serializer, User $user, array $attributes) {
             $actor = $serializer->getActor();
             
-            // Give feedback permission check
-            $canGive = $actor->can('huseyinfiliz-traderfeedback.giveFeedback');
-            $isDifferentUser = $actor->id !== $user->id;
+            $canGive = $actor && $actor->can('huseyinfiliz-traderfeedback.giveFeedback');
+            $isDifferentUser = $actor && $actor->id !== $user->id;
             
             $attributes['canGiveFeedback'] = $canGive && $isDifferentUser;
-            $attributes['canModerateFeedback'] = $actor->can('huseyinfiliz-traderfeedback.moderateFeedback');
+            $attributes['canModerateFeedback'] = $actor && $actor->can('huseyinfiliz-traderfeedback.moderateFeedback');
             
             return $attributes;
         }),
 
     // Permissions
     (new Extend\Policy())
-        ->globalPolicy(\HuseyinFiliz\TraderFeedback\Access\GlobalPolicy::class)
-		->modelPolicy(Feedback::class, FeedbackPolicy::class),
+        ->globalPolicy(GlobalPolicy::class)
+        ->modelPolicy(Feedback::class, FeedbackPolicy::class),
 
     (new Extend\Notification())
         ->type(NewFeedbackBlueprint::class, FeedbackSerializer::class, ['alert', 'email'])
         ->type(FeedbackApprovedBlueprint::class, FeedbackSerializer::class, ['alert', 'email'])
         ->type(FeedbackRejectedBlueprint::class, FeedbackSerializer::class, ['alert', 'email']),
 
+    // Event listeners
     (new Extend\Event())
+        ->listen(\Flarum\User\Event\Saving::class, AddUserPreferencesListener::class)
         ->listen(\Flarum\User\Event\Deleted::class, UserDeletedListener::class)
-        ->listen(\HuseyinFiliz\TraderFeedback\Events\FeedbackCreated::class, FeedbackCreatedListener::class)
-        ->listen(\HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated::class, FeedbackUpdatedListener::class)
-	    ->listen(\Flarum\User\Event\Saving::class, AddUserPreferencesListener::class)
-    	->listen(\Flarum\User\Event\Deleted::class, UserDeletedListener::class)
-    	->listen(\HuseyinFiliz\TraderFeedback\Events\FeedbackCreated::class, FeedbackCreatedListener::class)
-    	->listen(\HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated::class, FeedbackUpdatedListener::class),
+        ->listen(FeedbackCreated::class, FeedbackCreatedListener::class)
+        ->listen(FeedbackUpdated::class, FeedbackUpdatedListener::class),
 ];
