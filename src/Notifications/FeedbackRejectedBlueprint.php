@@ -3,15 +3,17 @@
 namespace HuseyinFiliz\TraderFeedback\Notifications;
 
 use Flarum\Notification\Blueprint\BlueprintInterface;
+use Flarum\Notification\MailableInterface;
 use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
-class FeedbackRejectedBlueprint implements BlueprintInterface
+class FeedbackRejectedBlueprint implements BlueprintInterface, MailableInterface
 {
     /**
      * @var Feedback
      */
-    public $feedback;
+    protected $feedback;
 
     /**
      * @param Feedback $feedback
@@ -23,10 +25,16 @@ class FeedbackRejectedBlueprint implements BlueprintInterface
 
     /**
      * {@inheritdoc}
+     * Get the user who is the subject of this notification (feedback giver)
      */
     public function getSubject()
     {
-        return $this->feedback;
+        // fromUser relationship'ini yükle - feedback veren kullanıcıya bildirim gidecek
+        if (!$this->feedback->relationLoaded('fromUser')) {
+            $this->feedback->load('fromUser');
+        }
+        
+        return $this->feedback->fromUser;
     }
 
     /**
@@ -57,11 +65,19 @@ class FeedbackRejectedBlueprint implements BlueprintInterface
             $this->feedback->load('toUser');
         }
         
+        // fromUser relationship'ini yükle
+        if (!$this->feedback->relationLoaded('fromUser')) {
+            $this->feedback->load('fromUser');
+        }
+        
         return [
+            'feedbackId' => $this->feedback->id,
             'feedbackType' => $this->feedback->type,
             'feedbackRole' => $this->feedback->role,
-            'toUsername' => $this->feedback->toUser ? $this->feedback->toUser->username : null,
-            'toUserId' => $this->feedback->to_user_id
+            'toUserId' => $this->feedback->to_user_id,
+            'toUsername' => $this->feedback->toUser ? $this->feedback->toUser->username : 'Unknown',
+            'toDisplayName' => $this->feedback->toUser ? $this->feedback->toUser->display_name : 'Unknown',
+            'rejectedAt' => $this->feedback->updated_at ? $this->feedback->updated_at->toIso8601String() : null
         ];
     }
 
@@ -78,17 +94,22 @@ class FeedbackRejectedBlueprint implements BlueprintInterface
      */
     public static function getSubjectModel()
     {
-        return Feedback::class;
+        return User::class;
     }
-    
+
     /**
-     * Get the users that should receive the notification.
-     *
-     * @return array
+     * {@inheritdoc}
      */
-    public function getRecipients()
+    public function getEmailView()
     {
-        // Feedback veren kullanıcıya bildirim gönder
-        return $this->feedback->fromUser ? [$this->feedback->fromUser] : [];
+        return ['text' => 'huseyinfiliz-traderfeedback::emails.feedbackRejected'];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getEmailSubject(TranslatorInterface $translator)
+    {
+        return $translator->trans('huseyinfiliz-traderfeedback.email.feedback_rejected_subject');
     }
 }

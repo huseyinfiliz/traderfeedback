@@ -6,9 +6,12 @@ export default function registerNotifications() {
   // New Feedback Notification
   app.notificationComponents.newFeedback = class extends Notification {
     icon() {
-      const type = this.attrs.notification.data().feedbackType;
-      if (type === 'positive') return 'fas fa-thumbs-up';
-      if (type === 'negative') return 'fas fa-thumbs-down';
+      const notification = this.attrs.notification;
+      const data = notification.content() || notification.data || {};
+      const feedbackType = data.feedbackType || 'neutral';
+      
+      if (feedbackType === 'positive') return 'fas fa-thumbs-up';
+      if (feedbackType === 'negative') return 'fas fa-thumbs-down';
       return 'fas fa-exchange-alt';
     }
 
@@ -21,7 +24,7 @@ export default function registerNotifications() {
     content() {
       const notification = this.attrs.notification;
       const user = notification.fromUser();
-      const data = notification.data();
+      const data = notification.content() || notification.data || {};
       
       return app.translator.trans('huseyinfiliz-traderfeedback.forum.notifications.new_feedback_title', {
         username: user ? username(user) : 'Someone',
@@ -44,10 +47,10 @@ export default function registerNotifications() {
 
     content() {
       const notification = this.attrs.notification;
-      const data = notification.data();
+      const data = notification.content() || notification.data || {};
       
       return app.translator.trans('huseyinfiliz-traderfeedback.forum.notifications.feedback_approved_title', {
-        username: data.toUsername || 'a user'
+        username: data.toUsername || data.toDisplayName || 'a user'
       });
     }
   };
@@ -66,10 +69,10 @@ export default function registerNotifications() {
 
     content() {
       const notification = this.attrs.notification;
-      const data = notification.data();
+      const data = notification.content() || notification.data || {};
       
       return app.translator.trans('huseyinfiliz-traderfeedback.forum.notifications.feedback_rejected_title', {
-        username: data.toUsername || 'a user'
+        username: data.toUsername || data.toDisplayName || 'a user'
       });
     }
   };

@@ -40,7 +40,7 @@ return [
                 $table->index('created_at');
                 
                 // Unique constraint: bir kullanıcı bir kullanıcıya bir discussion için tek feedback verebilir
-                $table->unique(['from_user_id', 'to_user_id', 'discussion_id'], 'unique_feedback_per_discussion');
+                $table->index(['from_user_id', 'to_user_id', 'discussion_id'], 'feedback_composite_index');
             });
         }
     },

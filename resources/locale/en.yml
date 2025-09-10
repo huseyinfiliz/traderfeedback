@@ -69,6 +69,11 @@ huseyinfiliz-traderfeedback:
       new_feedback_title: "{username} gave you {type} feedback"
       feedback_approved_title: "Your feedback to {username} was approved"
       feedback_rejected_title: "Your feedback to {username} was rejected"
+    
+    settings:
+      notify_new_feedback_label: "Someone gives me feedback"
+      notify_feedback_approved_label: "My feedback is approved"
+      notify_feedback_rejected_label: "My feedback is rejected"
   
   # Admin translations
   admin:
@@ -116,3 +121,9 @@ huseyinfiliz-traderfeedback:
       reject_button: Reject
       confirm_approve: Are you sure you want to approve this feedback?
       confirm_reject: Are you sure you want to reject this feedback?
+  
+  # Email translations
+  email:
+    new_feedback_subject: "[Feedback] {username} gave you new feedback"
+    feedback_approved_subject: "[Feedback] Your feedback has been approved"
+    feedback_rejected_subject: "[Feedback] Your feedback has been rejected"

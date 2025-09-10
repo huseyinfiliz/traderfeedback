@@ -37,6 +37,12 @@ class Feedback extends AbstractModel
 
     /**
      * {@inheritdoc}
+     * Eloquent'in otomatik tarih yönetimini aktif eder
+     */
+    public $timestamps = true;
+
+    /**
+     * {@inheritdoc}
      */
     protected $dates = ['created_at', 'updated_at'];
 
@@ -84,31 +90,6 @@ class Feedback extends AbstractModel
     const ROLE_BUYER = 'buyer';
     const ROLE_SELLER = 'seller';
     const ROLE_TRADER = 'trader';
-
-    /**
-     * Boot the model.
-     *
-     * @return void
-     */
-    public static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($feedback) {
-            // Set timestamps if not set
-            if (!$feedback->created_at) {
-                $feedback->created_at = Carbon::now();
-            }
-            if (!$feedback->updated_at) {
-                $feedback->updated_at = Carbon::now();
-            }
-        });
-
-        static::updating(function ($feedback) {
-            // Update the updated_at timestamp
-            $feedback->updated_at = Carbon::now();
-        });
-    }
 
     /**
      * Get the user who gave the feedback.

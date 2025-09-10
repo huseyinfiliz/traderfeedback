@@ -2,6 +2,7 @@
 
 use Flarum\Extend;
 use Flarum\Api\Serializer\UserSerializer;
+use Flarum\Api\Serializer\BasicUserSerializer;
 use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\ListFeedbacksController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\CreateFeedbackController;
@@ -83,15 +84,22 @@ return [
             return $attributes;
         }),
 
+    // User Preferences
+    (new Extend\User())
+        ->registerPreference('notifyForNewFeedback', 'boolval', true)
+        ->registerPreference('notifyForFeedbackApproved', 'boolval', true)
+        ->registerPreference('notifyForFeedbackRejected', 'boolval', true),
+
     // Permissions
     (new Extend\Policy())
         ->globalPolicy(GlobalPolicy::class)
         ->modelPolicy(Feedback::class, FeedbackPolicy::class),
 
+    // Notifications - Subject User olduğu için UserSerializer kullanıyoruz
     (new Extend\Notification())
-        ->type(NewFeedbackBlueprint::class, FeedbackSerializer::class, ['alert', 'email'])
-        ->type(FeedbackApprovedBlueprint::class, FeedbackSerializer::class, ['alert', 'email'])
-        ->type(FeedbackRejectedBlueprint::class, FeedbackSerializer::class, ['alert', 'email']),
+        ->type(NewFeedbackBlueprint::class, BasicUserSerializer::class, ['alert'])
+        ->type(FeedbackApprovedBlueprint::class, BasicUserSerializer::class, ['alert'])
+        ->type(FeedbackRejectedBlueprint::class, BasicUserSerializer::class, ['alert']),
 
     // Event listeners
     (new Extend\Event())
@@ -99,4 +107,17 @@ return [
         ->listen(\Flarum\User\Event\Deleted::class, UserDeletedListener::class)
         ->listen(FeedbackCreated::class, FeedbackCreatedListener::class)
         ->listen(FeedbackUpdated::class, FeedbackUpdatedListener::class),
+
+    // Settings
+    (new Extend\Settings())
+        ->default('huseyinfiliz.traderfeedback.requireApproval', false)
+        ->default('huseyinfiliz.traderfeedback.allowNegative', true)
+        ->default('huseyinfiliz.traderfeedback.minLength', 10)
+        ->default('huseyinfiliz.traderfeedback.maxLength', 1000)
+        ->default('huseyinfiliz.traderfeedback.minDays', 0)
+        ->default('huseyinfiliz.traderfeedback.minPosts', 0)
+        ->serializeToForum('huseyinfiliz.traderfeedback.requireApproval', 'huseyinfiliz.traderfeedback.requireApproval', 'boolval')
+        ->serializeToForum('huseyinfiliz.traderfeedback.allowNegative', 'huseyinfiliz.traderfeedback.allowNegative', 'boolval')
+        ->serializeToForum('huseyinfiliz.traderfeedback.minLength', 'huseyinfiliz.traderfeedback.minLength', 'intval')
+        ->serializeToForum('huseyinfiliz.traderfeedback.maxLength', 'huseyinfiliz.traderfeedback.maxLength', 'intval'),
 ];

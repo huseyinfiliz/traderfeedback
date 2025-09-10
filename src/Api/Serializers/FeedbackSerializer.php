@@ -36,8 +36,12 @@ class FeedbackSerializer extends AbstractSerializer
             'toUserId' => (int) $feedback->to_user_id,
             'discussionId' => $feedback->discussion_id ? (int) $feedback->discussion_id : null,
             'approvedById' => $feedback->approved_by_id ? (int) $feedback->approved_by_id : null,
-            'createdAt' => $this->formatDate($feedback->created_at),
-            'updatedAt' => $this->formatDate($feedback->updated_at),
+            // Tarih formatlaması - ISO 8601 formatında gönder
+            'createdAt' => $feedback->created_at ? $feedback->created_at->toIso8601String() : null,
+            'updatedAt' => $feedback->updated_at ? $feedback->updated_at->toIso8601String() : null,
+            // Frontend için ek bilgiler
+            'created_at' => $feedback->created_at ? $feedback->created_at->toIso8601String() : null,
+            'from_user_id' => (int) $feedback->from_user_id,
         ];
         
         // Permission checks - actor varsa kontrol et
