@@ -7,13 +7,23 @@ app.initializers.add('huseyinfiliz-traderfeedback', () => {
     .for('huseyinfiliz-traderfeedback')
     .registerPage(TraderFeedbackSettingsPage)
     .registerPermission({
-      icon: 'fas fa-exchange-alt',
+      icon: 'fas fa-comment',
       label: app.translator.trans('huseyinfiliz-traderfeedback.admin.permissions.give_feedback'),
-      permission: 'huseyinfiliz-traderfeedback.giveFeedback'
-    }, 'reply')
+      permission: 'huseyinfiliz-traderfeedback.give'
+    }, 'reply', true) // true = varsayılan olarak Members grubuna verilir
     .registerPermission({
-      icon: 'fas fa-exchange-alt',
+      icon: 'fas fa-flag',
+      label: app.translator.trans('huseyinfiliz-traderfeedback.admin.permissions.report_feedback'),
+      permission: 'huseyinfiliz-traderfeedback.report'
+    }, 'reply', true) // true = varsayılan olarak Members grubuna verilir
+    .registerPermission({
+      icon: 'fas fa-trash',
+      label: app.translator.trans('huseyinfiliz-traderfeedback.admin.permissions.delete_feedback'),
+      permission: 'huseyinfiliz-traderfeedback.delete'
+    }, 'moderate')
+    .registerPermission({
+      icon: 'fas fa-shield-alt',
       label: app.translator.trans('huseyinfiliz-traderfeedback.admin.permissions.moderate_feedback'),
-      permission: 'huseyinfiliz-traderfeedback.moderateFeedback'
+      permission: 'huseyinfiliz-traderfeedback.moderate'
     }, 'moderate');
 });

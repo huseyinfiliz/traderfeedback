@@ -29,7 +29,7 @@ class ListReportsController extends AbstractListController
         $actor = RequestUtil::getActor($request);
         
         // Check permission
-        $actor->assertCan('huseyinfiliz-traderfeedback.moderateFeedback');
+        $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
         
         // Get only unresolved reports by default
         $query = FeedbackReport::where('resolved', false)

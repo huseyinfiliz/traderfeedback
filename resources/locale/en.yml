@@ -14,11 +14,15 @@ huseyinfiliz-traderfeedback:
       role_buyer: Buyer
       role_seller: Seller
       role_trader: Trader
+      discussion_label: Discussion URL/ID
+      discussion_placeholder: "e.g., https://forum.com/d/155 or 155"
+      discussion_help: "Enter the discussion URL or ID related to this trade"
       comment_label: Comment
       comment_placeholder: Describe your trading experience with this user
       submit_button: Submit Feedback
       error_too_short: Comment must be at least {min} characters
       error_too_long: Comment must be at most {max} characters
+      error_discussion_required: Discussion URL or ID is required
       success: Feedback submitted successfully
     
     user_card:
@@ -57,6 +61,7 @@ huseyinfiliz-traderfeedback:
       delete_button: Delete
       edit_button: Edit
       confirm_delete: Are you sure you want to delete this feedback?
+      discussion_link: View Discussion
     
     report_modal:
       title: Report Feedback
@@ -86,6 +91,10 @@ huseyinfiliz-traderfeedback:
       help_text: Configure the trader feedback system
       allow_negative_label: Allow negative feedback
       require_approval_label: Require approval for feedback
+      require_discussion_label: Require discussion URL/ID
+      require_discussion_help: Users must provide a discussion link when giving feedback
+      one_per_discussion_label: One feedback per discussion
+      one_per_discussion_help: Limit users to one feedback per discussion between same users
       min_length_label: Minimum comment length
       max_length_label: Maximum comment length
       submit_button: Save Settings
@@ -121,9 +130,3 @@ huseyinfiliz-traderfeedback:
       reject_button: Reject
       confirm_approve: Are you sure you want to approve this feedback?
       confirm_reject: Are you sure you want to reject this feedback?
-  
-  # Email translations
-  email:
-    new_feedback_subject: "[Feedback] {username} gave you new feedback"
-    feedback_approved_subject: "[Feedback] Your feedback has been approved"
-    feedback_rejected_subject: "[Feedback] Your feedback has been rejected"

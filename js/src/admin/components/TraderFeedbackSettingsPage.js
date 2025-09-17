@@ -90,6 +90,8 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
   settingsContent() {
     return m('div', {className: 'TraderFeedbackSettings'}, [
       m('.Form', [
+        m('h3', 'General Settings'),
+        
         this.buildSettingComponent({
           type: 'boolean',
           setting: 'huseyinfiliz.traderfeedback.requireApproval',
@@ -101,6 +103,24 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
           setting: 'huseyinfiliz.traderfeedback.allowNegative',
           label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.allow_negative_label')
         }),
+        
+        m('h3', 'Discussion Settings'),
+        
+        this.buildSettingComponent({
+          type: 'boolean',
+          setting: 'huseyinfiliz.traderfeedback.requireDiscussion',
+          label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.require_discussion_label'),
+          help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.require_discussion_help')
+        }),
+        
+        this.buildSettingComponent({
+          type: 'boolean',
+          setting: 'huseyinfiliz.traderfeedback.onePerDiscussion',
+          label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.one_per_discussion_label'),
+          help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.one_per_discussion_help')
+        }),
+        
+        m('h3', 'Comment Settings'),
         
         this.buildSettingComponent({
           type: 'number',
@@ -115,6 +135,8 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
           label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.max_length_label'),
           min: 1
         }),
+        
+        m('h3', 'User Requirements'),
         
         this.buildSettingComponent({
           type: 'number',

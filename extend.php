@@ -4,6 +4,7 @@ use Flarum\Extend;
 use Flarum\Api\Serializer\UserSerializer;
 use Flarum\Api\Serializer\BasicUserSerializer;
 use Flarum\User\User;
+use Flarum\Group\Group;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\ListFeedbacksController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\CreateFeedbackController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\ListPendingFeedbacksController;
@@ -75,11 +76,18 @@ return [
         ->attributes(function (UserSerializer $serializer, User $user, array $attributes) {
             $actor = $serializer->getActor();
             
-            $canGive = $actor && $actor->can('huseyinfiliz-traderfeedback.giveFeedback');
-            $isDifferentUser = $actor && $actor->id !== $user->id;
-            
-            $attributes['canGiveFeedback'] = $canGive && $isDifferentUser;
-            $attributes['canModerateFeedback'] = $actor && $actor->can('huseyinfiliz-traderfeedback.moderateFeedback');
+            $attributes['canGiveFeedback'] = $actor && 
+                $actor->hasPermission('huseyinfiliz-traderfeedback.give') && 
+                $actor->id !== $user->id;
+                
+            $attributes['canReportFeedback'] = $actor && 
+                $actor->hasPermission('huseyinfiliz-traderfeedback.report');
+                
+            $attributes['canDeleteFeedback'] = $actor && 
+                $actor->hasPermission('huseyinfiliz-traderfeedback.delete');
+                
+            $attributes['canModerateFeedback'] = $actor && 
+                $actor->hasPermission('huseyinfiliz-traderfeedback.moderate');
             
             return $attributes;
         }),
@@ -90,12 +98,12 @@ return [
         ->registerPreference('notifyForFeedbackApproved', 'boolval', true)
         ->registerPreference('notifyForFeedbackRejected', 'boolval', true),
 
-    // Permissions
+    // Permissions with defaults
     (new Extend\Policy())
         ->globalPolicy(GlobalPolicy::class)
         ->modelPolicy(Feedback::class, FeedbackPolicy::class),
 
-    // Notifications - Subject User olduğu için UserSerializer kullanıyoruz
+    // Notifications - Only in-app notifications
     (new Extend\Notification())
         ->type(NewFeedbackBlueprint::class, BasicUserSerializer::class, ['alert'])
         ->type(FeedbackApprovedBlueprint::class, BasicUserSerializer::class, ['alert'])
@@ -112,12 +120,16 @@ return [
     (new Extend\Settings())
         ->default('huseyinfiliz.traderfeedback.requireApproval', false)
         ->default('huseyinfiliz.traderfeedback.allowNegative', true)
+        ->default('huseyinfiliz.traderfeedback.requireDiscussion', false)
+        ->default('huseyinfiliz.traderfeedback.onePerDiscussion', true)
         ->default('huseyinfiliz.traderfeedback.minLength', 10)
         ->default('huseyinfiliz.traderfeedback.maxLength', 1000)
         ->default('huseyinfiliz.traderfeedback.minDays', 0)
         ->default('huseyinfiliz.traderfeedback.minPosts', 0)
         ->serializeToForum('huseyinfiliz.traderfeedback.requireApproval', 'huseyinfiliz.traderfeedback.requireApproval', 'boolval')
         ->serializeToForum('huseyinfiliz.traderfeedback.allowNegative', 'huseyinfiliz.traderfeedback.allowNegative', 'boolval')
+        ->serializeToForum('huseyinfiliz.traderfeedback.requireDiscussion', 'huseyinfiliz.traderfeedback.requireDiscussion', 'boolval')
+        ->serializeToForum('huseyinfiliz.traderfeedback.onePerDiscussion', 'huseyinfiliz.traderfeedback.onePerDiscussion', 'boolval')
         ->serializeToForum('huseyinfiliz.traderfeedback.minLength', 'huseyinfiliz.traderfeedback.minLength', 'intval')
         ->serializeToForum('huseyinfiliz.traderfeedback.maxLength', 'huseyinfiliz.traderfeedback.maxLength', 'intval'),
 ];

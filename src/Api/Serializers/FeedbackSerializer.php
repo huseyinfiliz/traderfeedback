@@ -36,7 +36,7 @@ class FeedbackSerializer extends AbstractSerializer
             'toUserId' => (int) $feedback->to_user_id,
             'discussionId' => $feedback->discussion_id ? (int) $feedback->discussion_id : null,
             'approvedById' => $feedback->approved_by_id ? (int) $feedback->approved_by_id : null,
-            // Tarih formatlaması - ISO 8601 formatında gönder
+            // Tarih formatlaması
             'createdAt' => $feedback->created_at ? $feedback->created_at->toIso8601String() : null,
             'updatedAt' => $feedback->updated_at ? $feedback->updated_at->toIso8601String() : null,
             // Frontend için ek bilgiler
@@ -44,17 +44,26 @@ class FeedbackSerializer extends AbstractSerializer
             'from_user_id' => (int) $feedback->from_user_id,
         ];
         
-        // Permission checks - actor varsa kontrol et
+        // Permission checks
         if ($this->actor) {
+            // Edit permission
             $attributes['canEdit'] = $this->actor->can('edit', $feedback);
+            
+            // Delete permission - check both model policy and global permission
             $attributes['canDelete'] = $this->actor->can('delete', $feedback);
+            
+            // Report permission - check if user can report this specific feedback
             $attributes['canReport'] = $this->actor->can('report', $feedback);
-            $attributes['canApprove'] = $this->actor->can('huseyinfiliz-traderfeedback.moderateFeedback');
+            
+            // Moderate permission
+            $attributes['canApprove'] = $this->actor->hasPermission('huseyinfiliz-traderfeedback.moderate');
+            $attributes['canModerate'] = $this->actor->hasPermission('huseyinfiliz-traderfeedback.moderate');
         } else {
             $attributes['canEdit'] = false;
             $attributes['canDelete'] = false;
             $attributes['canReport'] = false;
             $attributes['canApprove'] = false;
+            $attributes['canModerate'] = false;
         }
         
         return $attributes;

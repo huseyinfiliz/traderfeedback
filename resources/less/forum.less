@@ -152,8 +152,26 @@
   &-date {
     color: @muted-color;
     font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   
+  &-discussionLink {
+    margin-left: 10px;
+    font-size: 0.9em;
+    color: @link-color;
+    
+    i {
+      margin-right: 4px;
+      font-size: 0.9em;
+    }
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
   &-meta {
     display: flex;
     gap: 8px;

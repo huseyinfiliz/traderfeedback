@@ -28,7 +28,7 @@ class ListPendingFeedbacksController extends AbstractListController
     {
         $actor = RequestUtil::getActor($request);
         
-        $actor->assertCan('moderateFeedback');
+        $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
         
         return Feedback::where('is_approved', false)
             ->orderBy('created_at', 'desc')

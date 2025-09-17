@@ -31,6 +31,7 @@ class ListFeedbacksController extends AbstractListController
         $offset = $this->extractOffset($request);
         
         $query = Feedback::query()
+            ->with(['fromUser', 'toUser']) // Eager load relationships
             ->where('to_user_id', $userId)
             ->where('is_approved', true);
         
@@ -51,9 +52,6 @@ class ListFeedbacksController extends AbstractListController
         if ($hasMoreResults) {
             $results->pop();
         }
-        
-        // Load relationships
-        $results->load(['fromUser', 'toUser']);
         
         // Add pagination info
         $document->addPaginationLinks(
