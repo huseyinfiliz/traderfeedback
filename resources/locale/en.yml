@@ -1,4 +1,15 @@
 huseyinfiliz-traderfeedback:
+  # API validation messages
+  api:
+    validation:
+      negative_not_allowed: "Negative feedback is not allowed."
+      self_feedback: "You cannot give feedback to yourself."
+      min_days: "You must be a member for at least {days} days to give feedback."
+      min_posts: "You must have at least {posts} posts to give feedback."
+      already_given: "You have already given feedback for this discussion."
+      discussion_not_found: "The specified discussion does not exist."
+      discussion_required: "Discussion URL or ID is required for feedback."
+
   # Forum translations
   forum:
     nav:
@@ -32,7 +43,6 @@ huseyinfiliz-traderfeedback:
       negative_tooltip: Negative Feedbacks
     
     feedback_page:
-      title: "{username}'s Trader Feedback"
       stats:
         score: Score
         total: Total Feedbacks
@@ -62,6 +72,7 @@ huseyinfiliz-traderfeedback:
       edit_button: Edit
       confirm_delete: Are you sure you want to delete this feedback?
       discussion_link: View Discussion
+      no_permission_report: You don't have permission to perform this action
     
     report_modal:
       title: Report Feedback

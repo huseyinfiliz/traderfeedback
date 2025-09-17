@@ -9,6 +9,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\TraderStatsSerializer;
 use HuseyinFiliz\TraderFeedback\Models\TraderStats;
+use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use Carbon\Carbon;
 
 class ShowTraderStatsController extends AbstractShowController
@@ -26,17 +27,35 @@ class ShowTraderStatsController extends AbstractShowController
         $actor = RequestUtil::getActor($request);
         $userId = Arr::get($request->getQueryParams(), 'id');
         
-        $stats = TraderStats::where('user_id', $userId)->first();
+        // Stats'ı yeniden hesapla - sadece onaylı feedbackleri say
+        $stats = TraderStats::firstOrNew(['user_id' => $userId]);
         
-        if (!$stats) {
-            // Create empty stats if none exist
-            $stats = new TraderStats();
-            $stats->user_id = $userId;
-            $stats->positive_count = 0;
-            $stats->neutral_count = 0;
-            $stats->negative_count = 0;
-            $stats->score = 0;
-            $stats->last_updated = Carbon::now();
+        // Sadece onaylanmış feedbackleri say
+        $stats->positive_count = Feedback::where('to_user_id', $userId)
+            ->where('type', 'positive')
+            ->where('is_approved', true)
+            ->count();
+            
+        $stats->neutral_count = Feedback::where('to_user_id', $userId)
+            ->where('type', 'neutral')
+            ->where('is_approved', true)
+            ->count();
+            
+        $stats->negative_count = Feedback::where('to_user_id', $userId)
+            ->where('type', 'negative')
+            ->where('is_approved', true)
+            ->count();
+        
+        // Score'u hesapla (pozitif feedback yüzdesi)
+        $total = $stats->positive_count + $stats->neutral_count + $stats->negative_count;
+        $stats->score = $total > 0 ? ($stats->positive_count / $total) * 100 : 0;
+        $stats->last_updated = Carbon::now();
+        
+        // Eğer yeni kayıtsa kaydet, değilse güncelle
+        if (!$stats->exists) {
+            $stats->save();
+        } else {
+            $stats->update();
         }
         
         return $stats;

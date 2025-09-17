@@ -44,24 +44,33 @@ class UpdateFeedbackController extends AbstractShowController
         
         $actor->assertCan('edit', $feedback);
         
-        // Validate the request data
-        $this->validator->assertValid($data);
+        // Only validate fields that are being updated
+        $validationData = [];
         
-        // Update the feedback
         if (isset($data['type'])) {
+            $validationData['type'] = $data['type'];
             $feedback->type = $data['type'];
         }
         
         if (isset($data['comment'])) {
+            $validationData['comment'] = $data['comment'];
             $feedback->comment = $data['comment'];
         }
         
         if (isset($data['role'])) {
+            $validationData['role'] = $data['role'];
             $feedback->role = $data['role'];
         }
         
         if (isset($data['transaction_id'])) {
+            $validationData['transaction_id'] = $data['transaction_id'];
             $feedback->transaction_id = $data['transaction_id'];
+        }
+        
+        // Only validate if there are fields to validate
+        if (!empty($validationData)) {
+            // For partial updates, only validate the fields being updated
+            $this->validator->assertValid($validationData);
         }
         
         $feedback->save();

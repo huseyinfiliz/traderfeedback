@@ -124,9 +124,7 @@ export default class ProfilePage extends UserPage {
         return (
             <div className="TraderFeedbackPage">
                 <div className="TraderFeedbackPage-header">
-                    <h2>{app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.title', {
-                        username: this.user.displayName()
-                    })}</h2>
+                    {/* Başlık kaldırıldı - sadece istatistikler gösteriliyor */}
                     {this.statsSection()}
                 </div>
                 {this.filterSection()}
@@ -193,16 +191,26 @@ export default class ProfilePage extends UserPage {
     }
     
     filterSection() {
+        // Allow negative feedback kontrolü
+        const allowNegative = app.forum.attribute('huseyinfiliz.traderfeedback.allowNegative') !== false;
+        
+        // Filter seçeneklerini oluştur
+        const filterOptions: any = {
+            all: app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.filter.all'),
+            positive: app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.filter.positive'),
+            neutral: app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.filter.neutral')
+        };
+        
+        // Negative seçeneğini sadece izin veriliyorsa ekle
+        if (allowNegative) {
+            filterOptions.negative = app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.filter.negative');
+        }
+        
         return (
             <div className="TraderFeedbackPage-filters">
                 <Select
                     value={this.filter}
-                    options={{
-                        all: app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.filter.all'),
-                        positive: app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.filter.positive'),
-                        neutral: app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.filter.neutral'),
-                        negative: app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.filter.negative')
-                    }}
+                    options={filterOptions}
                     onchange={(value) => {
                         this.filter = value;
                         this.loadFeedbacks();
@@ -384,57 +392,57 @@ export default class ProfilePage extends UserPage {
         );
     }
     
-feedbackActions(feedback, fromUser) {
-    const currentUser = app.session.user;
-    if (!currentUser) return null;
-    
-    const attrs = feedback.attributes || {};
-    const canReport = attrs.canReport !== false && currentUser.attribute('canReportFeedback') !== false;
-    const canDelete = attrs.canDelete || currentUser.attribute('canDeleteFeedback');
-    const canModerate = currentUser.attribute('canModerateFeedback');
-    const isOwn = fromUser && currentUser.id() === fromUser.id();
-    
-    // Hiç aksiyon yoksa null döndür
-    if (!canReport && !canDelete && !isOwn && !canModerate) {
-        return null;
+    feedbackActions(feedback, fromUser) {
+        const currentUser = app.session.user;
+        if (!currentUser) return null;
+        
+        const attrs = feedback.attributes || {};
+        const canReport = attrs.canReport !== false && currentUser.attribute('canReportFeedback') !== false;
+        const canDelete = attrs.canDelete || currentUser.attribute('canDeleteFeedback');
+        const canModerate = currentUser.attribute('canModerateFeedback');
+        const isOwn = fromUser && currentUser.id() === fromUser.id();
+        
+        // Hiç aksiyon yoksa null döndür
+        if (!canReport && !canDelete && !isOwn && !canModerate) {
+            return null;
+        }
+        
+        return (
+            <div className="FeedbackItem-actions" style={{
+                marginTop: '10px',
+                paddingTop: '10px',
+                borderTop: '1px solid rgba(0,0,0,0.1)'
+            }}>
+                {!isOwn && canReport && (
+                    <Button 
+                        className="Button Button--link"
+                        onclick={() => this.reportFeedback(feedback)}
+                        title={app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.report_button')}
+                    >
+                        <i className="fas fa-flag" style={{ marginRight: '5px' }}></i>
+                        {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.report_button')}
+                    </Button>
+                )}
+                
+                {(isOwn || canDelete || canModerate) && (
+                    <Button 
+                        className="Button Button--link Button--danger"
+                        onclick={() => this.deleteFeedback(feedback)}
+                        title={app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.delete_button')}
+                    >
+                        <i className="fas fa-trash" style={{ marginRight: '5px' }}></i>
+                        {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.delete_button')}
+                    </Button>
+                )}
+                
+                {!canReport && !isOwn && !canDelete && !canModerate && (
+                    <span className="text-muted" style={{ fontSize: '0.9em', fontStyle: 'italic' }}>
+                        {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.no_permission_report')}
+                    </span>
+                )}
+            </div>
+        );
     }
-    
-    return (
-        <div className="FeedbackItem-actions" style={{
-            marginTop: '10px',
-            paddingTop: '10px',
-            borderTop: '1px solid rgba(0,0,0,0.1)'
-        }}>
-            {!isOwn && canReport && (
-                <Button 
-                    className="Button Button--link"
-                    onclick={() => this.reportFeedback(feedback)}
-                    title={app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.report_button')}
-                >
-                    <i className="fas fa-flag" style={{ marginRight: '5px' }}></i>
-                    {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.report_button')}
-                </Button>
-            )}
-            
-            {(isOwn || canDelete || canModerate) && (
-                <Button 
-                    className="Button Button--link Button--danger"
-                    onclick={() => this.deleteFeedback(feedback)}
-                    title={app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.delete_button')}
-                >
-                    <i className="fas fa-trash" style={{ marginRight: '5px' }}></i>
-                    {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.delete_button')}
-                </Button>
-            )}
-            
-            {!canReport && !isOwn && !canDelete && !canModerate && (
-                <span className="text-muted" style={{ fontSize: '0.9em', fontStyle: 'italic' }}>
-                    {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.no_permission_report')}
-                </span>
-            )}
-        </div>
-    );
-}
     
     reportFeedback(feedback) {
         const reason = prompt('Please provide a reason for reporting this feedback:');

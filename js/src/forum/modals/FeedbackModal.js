@@ -30,6 +30,18 @@ export default class FeedbackModal extends Modal {
   
   content() {
     const requireDiscussion = app.forum.attribute('huseyinfiliz.traderfeedback.requireDiscussion') || false;
+    const allowNegative = app.forum.attribute('huseyinfiliz.traderfeedback.allowNegative') !== false;
+    
+    // Feedback type seçeneklerini oluştur
+    const typeOptions = {
+      'positive': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_positive'),
+      'neutral': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_neutral')
+    };
+    
+    // Negative seçeneğini sadece izin veriliyorsa ekle
+    if (allowNegative) {
+      typeOptions['negative'] = app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_negative');
+    }
     
     return m('.Modal-body', [
       m('.Form', [
@@ -37,11 +49,7 @@ export default class FeedbackModal extends Modal {
           m('label', app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_label')),
           Select.component({
             value: this.type(),
-            options: {
-              'positive': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_positive'),
-              'neutral': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_neutral'),
-              'negative': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_negative')
-            },
+            options: typeOptions,
             onchange: this.type
           })
         ]),
@@ -142,6 +150,13 @@ export default class FeedbackModal extends Modal {
     
     if (this.comment().length > maxLength) {
       app.alerts.show({ type: 'error' }, app.translator.trans('huseyinfiliz-traderfeedback.forum.form.error_too_long', {max: maxLength}));
+      return;
+    }
+    
+    // Allow negative kontrolü - form submit edilirken ekstra kontrol
+    const allowNegative = app.forum.attribute('huseyinfiliz.traderfeedback.allowNegative') !== false;
+    if (!allowNegative && this.type() === 'negative') {
+      app.alerts.show({ type: 'error' }, 'Negative feedback is not allowed.');
       return;
     }
     
