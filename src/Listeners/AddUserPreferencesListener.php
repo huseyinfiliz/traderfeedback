@@ -4,11 +4,25 @@ namespace HuseyinFiliz\TraderFeedback\Listeners;
 
 use Flarum\User\Event\Saving;
 use Illuminate\Support\Arr;
+use Flarum\User\User;
+use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
+use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
+use HuseyinFiliz\TraderFeedback\Notifications\FeedbackRejectedBlueprint;
 
+/**
+ * Update user notification preferences when their profile is saved.
+ *
+ * Prior to this update the extension stored preferences under custom keys
+ * (e.g. `notifyForFeedbackApproved`). Flarum 1.8 expects notification
+ * preference keys in the format `notify_{type}_{channel}`; this listener
+ * uses `User::getNotificationPreferenceKey()` to derive the correct key for
+ * each blueprint type and updates the preference if it was included in the
+ * incoming request.
+ */
 class AddUserPreferencesListener
 {
     /**
-     * @param Saving $event
+     * Handle the Saving event for User models.
      */
     public function handle(Saving $event)
     {
@@ -16,31 +30,28 @@ class AddUserPreferencesListener
         $data = $event->data;
         $actor = $event->actor;
 
-        // Check if the user is updating their own preferences
+        // Only allow users to modify their own preferences.
         if ($actor->id !== $user->id) {
             return;
         }
 
-        // Handle notification preferences for trader feedback
-        if (Arr::has($data, 'attributes.preferences.notifyForNewFeedback')) {
-            $user->setPreference(
-                'notifyForNewFeedback',
-                (bool) Arr::get($data, 'attributes.preferences.notifyForNewFeedback')
-            );
-        }
+        // List of our notification blueprints that support alerts.
+        $blueprints = [
+            NewFeedbackBlueprint::class,
+            FeedbackApprovedBlueprint::class,
+            FeedbackRejectedBlueprint::class,
+        ];
 
-        if (Arr::has($data, 'attributes.preferences.notifyForFeedbackApproved')) {
-            $user->setPreference(
-                'notifyForFeedbackApproved',
-                (bool) Arr::get($data, 'attributes.preferences.notifyForFeedbackApproved')
-            );
-        }
-
-        if (Arr::has($data, 'attributes.preferences.notifyForFeedbackRejected')) {
-            $user->setPreference(
-                'notifyForFeedbackRejected',
-                (bool) Arr::get($data, 'attributes.preferences.notifyForFeedbackRejected')
-            );
+        foreach ($blueprints as $blueprint) {
+            $type = $blueprint::getType();
+            $key = User::getNotificationPreferenceKey($type, 'alert');
+            $prefPath = "attributes.preferences." . $key;
+            if (Arr::has($data, $prefPath)) {
+                $user->setPreference(
+                    $key,
+                    (bool) Arr::get($data, $prefPath)
+                );
+            }
         }
     }
 }

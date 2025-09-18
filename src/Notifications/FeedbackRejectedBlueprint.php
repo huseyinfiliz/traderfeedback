@@ -9,6 +9,16 @@ use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Illuminate\Support\Str;
 
+/**
+ * Notification blueprint for rejected feedback.
+ *
+ * This implementation avoids using User::find(1) as a fallback for the
+ * from_user_id. When no approved_by_id is set on the feedback (which
+ * indicates the moderator who rejected it), getFromUser() now returns
+ * null. The rejection controller assigns approved_by_id, so in normal
+ * operation this method will return the moderator who performed the
+ * rejection.
+ */
 class FeedbackRejectedBlueprint implements BlueprintInterface, MailableInterface
 {
     /**
@@ -32,7 +42,7 @@ class FeedbackRejectedBlueprint implements BlueprintInterface, MailableInterface
         if (!$this->feedback->relationLoaded('fromUser')) {
             $this->feedback->load('fromUser');
         }
-        
+
         return $this->feedback->fromUser;
     }
 
@@ -41,31 +51,33 @@ class FeedbackRejectedBlueprint implements BlueprintInterface, MailableInterface
      */
     public function getFromUser()
     {
+        // If no approved_by_id has been recorded, there is no clear
+        // moderator associated with the rejection, so return null. This
+        // prevents Flarum from defaulting to user ID 1.
         if (!$this->feedback->approved_by_id) {
-            return User::find(1) ?: null;
+            return null;
         }
-        
+
         if (!$this->feedback->relationLoaded('approvedBy')) {
             $this->feedback->load('approvedBy');
         }
-        
+
         return $this->feedback->approvedBy;
     }
 
     /**
      * {@inheritdoc}
-     * NotificationHub gibi basit string veriler döndür
+     * NotificationHub compatible data.
      */
     public function getData()
     {
-        // toUser relationship'ini yükle
+        // Ensure the toUser relationship is loaded
         if (!$this->feedback->relationLoaded('toUser')) {
             $this->feedback->load('toUser');
         }
-        
+
         $toUser = $this->feedback->toUser;
-        
-        // NotificationHub formatında veri döndür
+
         return [
             'toUsername' => (string) ($toUser ? $toUser->username : 'Unknown'),
             'toUserId' => (string) $this->feedback->to_user_id,

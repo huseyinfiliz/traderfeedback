@@ -7,7 +7,6 @@ use Flarum\Notification\MailableInterface;
 use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Illuminate\Support\Str;
 
 class FeedbackApprovedBlueprint implements BlueprintInterface, MailableInterface
 {
@@ -70,7 +69,6 @@ class FeedbackApprovedBlueprint implements BlueprintInterface, MailableInterface
             'toUsername' => (string) ($toUser ? $toUser->username : 'Unknown'),
             'toUserId' => (string) $this->feedback->to_user_id,
             'feedbackType' => (string) $this->feedback->type,
-            'unique' => (string) Str::orderedUuid(),
         ];
     }
 

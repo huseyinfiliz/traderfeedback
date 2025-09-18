@@ -40,17 +40,21 @@ use Flarum\Api\Serializer\NotificationSerializer;
 use Flarum\Notification\Event\Sending;
 
 return [
+    // Register assets and routes for the forum frontend
     (new Extend\Frontend('forum'))
         ->js(__DIR__ . '/js/dist/forum.js')
         ->css(__DIR__ . '/resources/less/forum.less')
         ->route('/u/{username}/feedbacks', 'user.feedbacks'),
 
+    // Register assets for the admin frontend
     (new Extend\Frontend('admin'))
         ->js(__DIR__ . '/js/dist/admin.js')
         ->css(__DIR__ . '/resources/less/admin.less'),
 
+    // Register locales
     new Extend\Locales(__DIR__ . '/resources/locale'),
 
+    // API routes
     (new Extend\Routes('api'))
         ->get('/trader/feedback', 'trader.feedback.index', ListFeedbacksController::class)
         ->post('/trader/feedback', 'trader.feedback.create', CreateFeedbackController::class)
@@ -67,60 +71,80 @@ return [
         ->post('/trader/reports/{id}/dismiss', 'trader.reports.dismiss', DismissReportController::class)
         ->get('/trader/stats/{id}', 'trader.stats.show', ShowTraderStatsController::class),
 
+    // Extend the User model with relationships
     (new Extend\Model(User::class))
         ->hasMany('feedbacksReceived', Feedback::class, 'to_user_id')
         ->hasMany('feedbacksGiven', Feedback::class, 'from_user_id')
         ->hasOne('traderStats', TraderStats::class, 'user_id'),
 
+    // Extend the UserSerializer to add permission attributes
     (new Extend\ApiSerializer(UserSerializer::class))
         ->hasMany('feedbacksReceived', FeedbackSerializer::class)
         ->hasMany('feedbacksGiven', FeedbackSerializer::class)
         ->hasOne('traderStats', TraderStatsSerializer::class)
         ->attributes(function (UserSerializer $serializer, User $user, array $attributes) {
             $actor = $serializer->getActor();
-            
-            $attributes['canGiveFeedback'] = $actor && 
-                $actor->hasPermission('huseyinfiliz-traderfeedback.give') && 
+
+            $attributes['canGiveFeedback'] = $actor &&
+                $actor->hasPermission('huseyinfiliz-traderfeedback.give') &&
                 $actor->id !== $user->id;
-                
-            $attributes['canReportFeedback'] = $actor && 
+
+            $attributes['canReportFeedback'] = $actor &&
                 $actor->hasPermission('huseyinfiliz-traderfeedback.report');
-                
-            $attributes['canDeleteFeedback'] = $actor && 
+
+            $attributes['canDeleteFeedback'] = $actor &&
                 $actor->hasPermission('huseyinfiliz-traderfeedback.delete');
-                
-            $attributes['canModerateFeedback'] = $actor && 
+
+            $attributes['canModerateFeedback'] = $actor &&
                 $actor->hasPermission('huseyinfiliz-traderfeedback.moderate');
-            
+
             return $attributes;
         }),
 
-    // Add notification data to serializer
+    // Add the notification data to the serializer. This mirrors Flarum's
+    // behaviour of exposing the `data` payload in a `content` attribute so
+    // that the frontend can call `notification.content()`.
     (new Extend\ApiSerializer(NotificationSerializer::class))
         ->attributes(function (NotificationSerializer $serializer, Notification $notification) {
             $attributes = [];
-            
-            // Check if it's one of our feedback notifications
-            if (in_array($notification->type, ['newFeedback', 'feedbackApproved', 'feedbackRejected'])) {
-                // Add the notification data as content
+
+            if (in_array($notification->type, [
+                NewFeedbackBlueprint::getType(),
+                FeedbackApprovedBlueprint::getType(),
+                FeedbackRejectedBlueprint::getType(),
+            ])) {
                 $attributes['content'] = $notification->data;
             }
-            
+
             return $attributes;
         }),
 
-    // User Preferences
+    // Register notification preferences. Use Flarum's helper to generate
+    // correctly formatted keys (e.g. notify_newFeedback_alert) and set them
+    // to `true` by default so that alerts are enabled out of the box.
     (new Extend\User())
-        ->registerPreference('notifyForNewFeedback', 'boolval', true)
-        ->registerPreference('notifyForFeedbackApproved', 'boolval', true)
-        ->registerPreference('notifyForFeedbackRejected', 'boolval', true),
+        ->registerPreference(
+            User::getNotificationPreferenceKey(NewFeedbackBlueprint::getType(), 'alert'),
+            'boolval',
+            true
+        )
+        ->registerPreference(
+            User::getNotificationPreferenceKey(FeedbackApprovedBlueprint::getType(), 'alert'),
+            'boolval',
+            true
+        )
+        ->registerPreference(
+            User::getNotificationPreferenceKey(FeedbackRejectedBlueprint::getType(), 'alert'),
+            'boolval',
+            true
+        ),
 
     // Permissions with defaults
     (new Extend\Policy())
         ->globalPolicy(GlobalPolicy::class)
         ->modelPolicy(Feedback::class, FeedbackPolicy::class),
 
-    // Notifications - Only in-app notifications
+    // Register our notification types. Only the `alert` channel is enabled.
     (new Extend\Notification())
         ->type(NewFeedbackBlueprint::class, BasicUserSerializer::class, ['alert'])
         ->type(FeedbackApprovedBlueprint::class, BasicUserSerializer::class, ['alert'])
@@ -133,7 +157,7 @@ return [
         ->listen(FeedbackCreated::class, FeedbackCreatedListener::class)
         ->listen(FeedbackUpdated::class, FeedbackUpdatedListener::class),
 
-    // Settings
+    // Settings defaults and forum serialization
     (new Extend\Settings())
         ->default('huseyinfiliz.traderfeedback.requireApproval', false)
         ->default('huseyinfiliz.traderfeedback.allowNegative', true)

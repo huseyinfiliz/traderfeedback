@@ -11,6 +11,13 @@ use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated;
 
+/**
+ * Controller that approves a feedback entry.
+ *
+ * When a moderator approves a feedback, the is_approved flag and
+ * approved_by_id are updated and a FeedbackUpdated event is fired. The
+ * FeedbackUpdatedListener will handle sending the appropriate notification.
+ */
 class ApproveFeedbackController extends AbstractShowController
 {
     /**
@@ -25,20 +32,21 @@ class ApproveFeedbackController extends AbstractShowController
     {
         $actor = RequestUtil::getActor($request);
         $id = Arr::get($request->getQueryParams(), 'id');
-        
+
         $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
-        
-        // Feedback'i relationship'leriyle birlikte yükle
+
+        // Load the feedback with its relationships so we can approve it.
         $feedback = Feedback::with(['fromUser', 'toUser'])->findOrFail($id);
-        
-        // Sadece onayla ve event fırlat
+
+        // Mark as approved and record who approved it.
         $feedback->is_approved = true;
         $feedback->approved_by_id = $actor->id;
         $feedback->save();
-        
-        // Event fırlat - gerisi listener'da halledilecek
+
+        // Fire the event - the listener will handle sending the notification
+        // and updating statistics.
         event(new FeedbackUpdated($feedback, $actor));
-        
+
         return $feedback;
     }
 }
