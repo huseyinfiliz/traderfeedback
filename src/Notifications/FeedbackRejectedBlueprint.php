@@ -7,6 +7,7 @@ use Flarum\Notification\MailableInterface;
 use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Illuminate\Support\Str;
 
 class FeedbackRejectedBlueprint implements BlueprintInterface, MailableInterface
 {
@@ -25,11 +26,9 @@ class FeedbackRejectedBlueprint implements BlueprintInterface, MailableInterface
 
     /**
      * {@inheritdoc}
-     * Get the user who is the subject of this notification (feedback giver)
      */
     public function getSubject()
     {
-        // fromUser relationship'ini yükle - feedback veren kullanıcıya bildirim gidecek
         if (!$this->feedback->relationLoaded('fromUser')) {
             $this->feedback->load('fromUser');
         }
@@ -42,12 +41,10 @@ class FeedbackRejectedBlueprint implements BlueprintInterface, MailableInterface
      */
     public function getFromUser()
     {
-        // Eğer approved_by_id yoksa, sistem kullanıcısını döndür
         if (!$this->feedback->approved_by_id) {
             return User::find(1) ?: null;
         }
         
-        // approvedBy relationship'ini yükle
         if (!$this->feedback->relationLoaded('approvedBy')) {
             $this->feedback->load('approvedBy');
         }
@@ -57,6 +54,7 @@ class FeedbackRejectedBlueprint implements BlueprintInterface, MailableInterface
 
     /**
      * {@inheritdoc}
+     * NotificationHub gibi basit string veriler döndür
      */
     public function getData()
     {
@@ -65,19 +63,14 @@ class FeedbackRejectedBlueprint implements BlueprintInterface, MailableInterface
             $this->feedback->load('toUser');
         }
         
-        // fromUser relationship'ini yükle
-        if (!$this->feedback->relationLoaded('fromUser')) {
-            $this->feedback->load('fromUser');
-        }
+        $toUser = $this->feedback->toUser;
         
+        // NotificationHub formatında veri döndür
         return [
-            'feedbackId' => $this->feedback->id,
-            'feedbackType' => $this->feedback->type,
-            'feedbackRole' => $this->feedback->role,
-            'toUserId' => $this->feedback->to_user_id,
-            'toUsername' => $this->feedback->toUser ? $this->feedback->toUser->username : 'Unknown',
-            'toDisplayName' => $this->feedback->toUser ? $this->feedback->toUser->display_name : 'Unknown',
-            'rejectedAt' => $this->feedback->updated_at ? $this->feedback->updated_at->toIso8601String() : null
+            'toUsername' => (string) ($toUser ? $toUser->username : 'Unknown'),
+            'toUserId' => (string) $this->feedback->to_user_id,
+            'feedbackType' => (string) $this->feedback->type,
+            'unique' => (string) Str::orderedUuid(),
         ];
     }
 

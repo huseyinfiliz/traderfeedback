@@ -10,8 +10,6 @@ use Tobscure\JsonApi\Document;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated;
-use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
-use Flarum\Notification\NotificationSyncer;
 
 class ApproveFeedbackController extends AbstractShowController
 {
@@ -19,19 +17,6 @@ class ApproveFeedbackController extends AbstractShowController
      * {@inheritdoc}
      */
     public $serializer = FeedbackSerializer::class;
-
-    /**
-     * @var NotificationSyncer
-     */
-    protected $notifications;
-
-    /**
-     * @param NotificationSyncer $notifications
-     */
-    public function __construct(NotificationSyncer $notifications)
-    {
-        $this->notifications = $notifications;
-    }
 
     /**
      * {@inheritdoc}
@@ -43,19 +28,16 @@ class ApproveFeedbackController extends AbstractShowController
         
         $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
         
-        $feedback = Feedback::findOrFail($id);
+        // Feedback'i relationship'leriyle birlikte yükle
+        $feedback = Feedback::with(['fromUser', 'toUser'])->findOrFail($id);
+        
+        // Sadece onayla ve event fırlat
         $feedback->is_approved = true;
         $feedback->approved_by_id = $actor->id;
         $feedback->save();
         
-        // Dispatch event
+        // Event fırlat - gerisi listener'da halledilecek
         event(new FeedbackUpdated($feedback, $actor));
-        
-        // Send notification to the feedback author
-        $this->notifications->sync(
-            new FeedbackApprovedBlueprint($feedback),
-            [$feedback->fromUser]
-        );
         
         return $feedback;
     }

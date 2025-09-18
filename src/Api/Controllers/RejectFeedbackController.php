@@ -42,7 +42,8 @@ class RejectFeedbackController extends AbstractShowController
         
         $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
         
-        $feedback = Feedback::findOrFail($id);
+        // ÖNEMLİ: Relationship'leri yükle!
+        $feedback = Feedback::with(['fromUser', 'toUser'])->findOrFail($id);
         
         // Send notification to the feedback author before deleting
         $this->notifications->sync(

@@ -35,6 +35,9 @@ use HuseyinFiliz\TraderFeedback\Access\FeedbackPolicy;
 use HuseyinFiliz\TraderFeedback\Access\GlobalPolicy;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackCreated;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated;
+use Flarum\Notification\Notification;
+use Flarum\Api\Serializer\NotificationSerializer;
+use Flarum\Notification\Event\Sending;
 
 return [
     (new Extend\Frontend('forum'))
@@ -88,6 +91,20 @@ return [
                 
             $attributes['canModerateFeedback'] = $actor && 
                 $actor->hasPermission('huseyinfiliz-traderfeedback.moderate');
+            
+            return $attributes;
+        }),
+
+    // Add notification data to serializer
+    (new Extend\ApiSerializer(NotificationSerializer::class))
+        ->attributes(function (NotificationSerializer $serializer, Notification $notification) {
+            $attributes = [];
+            
+            // Check if it's one of our feedback notifications
+            if (in_array($notification->type, ['newFeedback', 'feedbackApproved', 'feedbackRejected'])) {
+                // Add the notification data as content
+                $attributes['content'] = $notification->data;
+            }
             
             return $attributes;
         }),
