@@ -19,8 +19,10 @@ use HuseyinFiliz\TraderFeedback\Api\Controllers\ApproveReportController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\RejectReportController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\DismissReportController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\ShowTraderStatsController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\TestNotificationController;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\TraderStatsSerializer;
+use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackReportSerializer;
 use HuseyinFiliz\TraderFeedback\Listeners\AddUserPreferencesListener;
 use HuseyinFiliz\TraderFeedback\Listeners\UserDeletedListener;
 use HuseyinFiliz\TraderFeedback\Listeners\FeedbackCreatedListener;
@@ -69,13 +71,20 @@ return [
         ->post('/trader/reports/{id}/approve', 'trader.reports.approve', ApproveReportController::class)
         ->post('/trader/reports/{id}/reject', 'trader.reports.reject', RejectReportController::class)
         ->post('/trader/reports/{id}/dismiss', 'trader.reports.dismiss', DismissReportController::class)
-        ->get('/trader/stats/{id}', 'trader.stats.show', ShowTraderStatsController::class),
+        ->get('/trader/stats/{id}', 'trader.stats.show', ShowTraderStatsController::class)
+        ->get('/trader/test-notification', 'trader.test.notification', TestNotificationController::class),
 
     // Extend the User model with relationships
     (new Extend\Model(User::class))
         ->hasMany('feedbacksReceived', Feedback::class, 'to_user_id')
         ->hasMany('feedbacksGiven', Feedback::class, 'from_user_id')
         ->hasOne('traderStats', TraderStats::class, 'user_id'),
+
+    // Extend the Feedback model with relationships
+    (new Extend\Model(Feedback::class))
+        ->belongsTo('fromUser', User::class, 'from_user_id')
+        ->belongsTo('toUser', User::class, 'to_user_id')
+        ->belongsTo('approvedBy', User::class, 'approved_by_id'),
 
     // Extend the UserSerializer to add permission attributes
     (new Extend\ApiSerializer(UserSerializer::class))
@@ -101,56 +110,41 @@ return [
             return $attributes;
         }),
 
-    // Add the notification data to the serializer. This mirrors Flarum's
-    // behaviour of exposing the `data` payload in a `content` attribute so
-    // that the frontend can call `notification.content()`.
+    // ÖNEMLİ: Notification data'yı frontend için serialize et
     (new Extend\ApiSerializer(NotificationSerializer::class))
         ->attributes(function (NotificationSerializer $serializer, Notification $notification) {
             $attributes = [];
 
+            // Bildirim tipimizse data'yı content olarak ekle
             if (in_array($notification->type, [
-                NewFeedbackBlueprint::getType(),
-                FeedbackApprovedBlueprint::getType(),
-                FeedbackRejectedBlueprint::getType(),
+                'newFeedback',
+                'feedbackApproved',
+                'feedbackRejected',
             ])) {
-                $attributes['content'] = $notification->data;
+                $attributes['content'] = $notification->data ?: [];
             }
 
             return $attributes;
         }),
 
-    // Register notification preferences. Use Flarum's helper to generate
-    // correctly formatted keys (e.g. notify_newFeedback_alert) and set them
-    // to `true` by default so that alerts are enabled out of the box.
+    // Register notification preferences
     (new Extend\User())
-        ->registerPreference(
-            User::getNotificationPreferenceKey(NewFeedbackBlueprint::getType(), 'alert'),
-            'boolval',
-            true
-        )
-        ->registerPreference(
-            User::getNotificationPreferenceKey(FeedbackApprovedBlueprint::getType(), 'alert'),
-            'boolval',
-            true
-        )
-        ->registerPreference(
-            User::getNotificationPreferenceKey(FeedbackRejectedBlueprint::getType(), 'alert'),
-            'boolval',
-            true
-        ),
+        ->registerPreference('notify_newFeedback_alert', 'boolval', true)
+        ->registerPreference('notify_feedbackApproved_alert', 'boolval', true)
+        ->registerPreference('notify_feedbackRejected_alert', 'boolval', true),
 
     // Permissions with defaults
     (new Extend\Policy())
         ->globalPolicy(GlobalPolicy::class)
         ->modelPolicy(Feedback::class, FeedbackPolicy::class),
 
-    // Register our notification types. Only the `alert` channel is enabled.
+    // Register notification types
     (new Extend\Notification())
         ->type(NewFeedbackBlueprint::class, BasicUserSerializer::class, ['alert'])
         ->type(FeedbackApprovedBlueprint::class, BasicUserSerializer::class, ['alert'])
         ->type(FeedbackRejectedBlueprint::class, BasicUserSerializer::class, ['alert']),
 
-    // Event listeners
+    // Event listeners - KRİTİK: Listener'lar aktif olmalı
     (new Extend\Event())
         ->listen(\Flarum\User\Event\Saving::class, AddUserPreferencesListener::class)
         ->listen(\Flarum\User\Event\Deleted::class, UserDeletedListener::class)

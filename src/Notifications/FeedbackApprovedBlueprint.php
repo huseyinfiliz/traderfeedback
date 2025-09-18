@@ -3,104 +3,50 @@
 namespace HuseyinFiliz\TraderFeedback\Notifications;
 
 use Flarum\Notification\Blueprint\BlueprintInterface;
-use Flarum\Notification\MailableInterface;
 use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
-class FeedbackApprovedBlueprint implements BlueprintInterface, MailableInterface
+class FeedbackApprovedBlueprint implements BlueprintInterface
 {
-    /**
-     * @var Feedback
-     */
-    protected $feedback;
+    public $feedback;
 
-    /**
-     * @param Feedback $feedback
-     */
     public function __construct(Feedback $feedback)
     {
         $this->feedback = $feedback;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getSubject()
     {
-        if (!$this->feedback->relationLoaded('fromUser')) {
-            $this->feedback->load('fromUser');
-        }
-        
-        return $this->feedback->fromUser;
+        // Feedback'i veren kişiye bildirim gidecek
+        return User::find($this->feedback->from_user_id);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getFromUser()
     {
-        if (!$this->feedback->approved_by_id) {
-            return User::find(1) ?: null;
-        }
-        
-        if (!$this->feedback->relationLoaded('approvedBy')) {
-            $this->feedback->load('approvedBy');
-        }
-        
-        return $this->feedback->approvedBy;
+        // Onaylayan moderatör
+        $approver = User::find($this->feedback->approved_by_id);
+        return $approver ?: User::find(1); // Admin fallback
     }
 
-    /**
-     * {@inheritdoc}
-     * NotificationHub gibi basit string veriler döndür
-     */
     public function getData()
     {
-        // toUser relationship'ini yükle
-        if (!$this->feedback->relationLoaded('toUser')) {
-            $this->feedback->load('toUser');
-        }
+        $toUser = User::find($this->feedback->to_user_id);
         
-        $toUser = $this->feedback->toUser;
-        
-        // NotificationHub formatında veri döndür
         return [
-            'toUsername' => (string) ($toUser ? $toUser->username : 'Unknown'),
-            'toUserId' => (string) $this->feedback->to_user_id,
-            'feedbackType' => (string) $this->feedback->type,
+            'feedbackId' => $this->feedback->id,
+            'feedbackType' => $this->feedback->type,
+            'toUsername' => $toUser ? $toUser->username : 'Unknown',
+            'toUserId' => $this->feedback->to_user_id
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function getType()
     {
         return 'feedbackApproved';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function getSubjectModel()
     {
         return User::class;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getEmailView()
-    {
-        return ['text' => 'huseyinfiliz-traderfeedback::emails.feedbackApproved'];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getEmailSubject(TranslatorInterface $translator)
-    {
-        return $translator->trans('huseyinfiliz-traderfeedback.email.feedback_approved_subject');
     }
 }

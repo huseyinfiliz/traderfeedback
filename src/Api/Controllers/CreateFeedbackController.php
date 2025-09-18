@@ -14,8 +14,6 @@ use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Models\TraderStats;
 use HuseyinFiliz\TraderFeedback\Validators\FeedbackValidator;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackCreated;
-use Flarum\Notification\NotificationSyncer;
-use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
 use Carbon\Carbon;
 
 class CreateFeedbackController extends AbstractCreateController
@@ -25,16 +23,13 @@ class CreateFeedbackController extends AbstractCreateController
     
     protected $validator;
     protected $settings;
-    protected $notifications;
     
     public function __construct(
         FeedbackValidator $validator,
-        SettingsRepositoryInterface $settings,
-        NotificationSyncer $notifications
+        SettingsRepositoryInterface $settings
     ) {
         $this->validator = $validator;
         $this->settings = $settings;
-        $this->notifications = $notifications;
     }
     
     protected function data(ServerRequestInterface $request, Document $document)
@@ -50,9 +45,8 @@ class CreateFeedbackController extends AbstractCreateController
             ]);
         }
         
-        // Check allow negative setting - FIXED
+        // Check allow negative setting
         $allowNegative = $this->settings->get('huseyinfiliz.traderfeedback.allowNegative');
-        // Eğer ayar false veya "0" string ise negative'e izin verme
         if (($allowNegative === false || $allowNegative === "0" || $allowNegative === 0) && Arr::get($data, 'type') === 'negative') {
             throw new ValidationException([
                 'type' => 'Negative feedback is not allowed.'
@@ -69,42 +63,26 @@ class CreateFeedbackController extends AbstractCreateController
             ]);
         }
         
-        // Check minimum requirements - FIXED
-        $minDays = (int) $this->settings->get('huseyinfiliz.traderfeedback.minDays', 0);
-        $minPosts = (int) $this->settings->get('huseyinfiliz.traderfeedback.minPosts', 0);
-        
-        if ($minDays > 0) {
-            $daysSinceJoined = $actor->joined_at ? $actor->joined_at->diffInDays(Carbon::now()) : 0;
-            if ($daysSinceJoined < $minDays) {
-                // Doğrudan mesaj kullan, translation key kullanma
-                throw new ValidationException([
-                    'user' => "You must be a member for at least {$minDays} days to give feedback."
-                ]);
-            }
-        }
-        
-        if ($minPosts > 0) {
-            $userPostCount = $actor->comment_count ?? 0;
-            if ($userPostCount < $minPosts) {
-                // Doğrudan mesaj kullan, translation key kullanma
-                throw new ValidationException([
-                    'user' => "You must have at least {$minPosts} posts to give feedback."
-                ]);
-            }
-        }
-        
-        // Check for duplicate feedback per discussion if enabled
+        // Parse discussion ID from URL if needed
         $discussionId = Arr::get($data, 'discussion_id');
-        $onePerDiscussion = $this->settings->get('huseyinfiliz.traderfeedback.onePerDiscussion', true);
+        if ($discussionId) {
+            // Check if it's a URL
+            if (preg_match('/\/d\/(\d+)/', $discussionId, $matches)) {
+                $discussionId = $matches[1];
+            }
+        }
         
-        if ($discussionId && $onePerDiscussion) {
+        // Check one per discussion rule
+        $onePerDiscussion = $this->settings->get('huseyinfiliz.traderfeedback.onePerDiscussion', true);
+        if ($onePerDiscussion && $discussionId) {
             $existingFeedback = Feedback::where('from_user_id', $actor->id)
                 ->where('to_user_id', Arr::get($data, 'to_user_id'))
-                ->where('discussion_id', $discussionId);
+                ->where('discussion_id', $discussionId)
+                ->exists();
                 
-            if ($existingFeedback->exists()) {
+            if ($existingFeedback) {
                 throw new ValidationException([
-                    'discussion_id' => 'You have already given feedback for this discussion.'
+                    'discussion_id' => 'You have already given feedback for this user in this discussion.'
                 ]);
             }
         }
@@ -130,22 +108,17 @@ class CreateFeedbackController extends AbstractCreateController
         $feedback->is_approved = !$this->settings->get('huseyinfiliz.traderfeedback.requireApproval', false);
         
         $feedback->save();
+        
+        // Load relationships
         $feedback->load(['fromUser', 'toUser']);
         
-        // Update user stats if feedback is approved
+        // Update stats if feedback is approved
         if ($feedback->is_approved) {
             $this->updateUserStats($feedback->to_user_id);
         }
         
-        // Send notification to the recipient if feedback is approved
-        if ($feedback->is_approved && $feedback->toUser) {
-            $this->notifications->sync(
-                new NewFeedbackBlueprint($feedback),
-                [$feedback->toUser]
-            );
-        }
-        
-        // Dispatch event
+        // Fire the event - listener will handle the notification
+        // Event listener (FeedbackCreatedListener) will send the notification
         event(new FeedbackCreated($feedback, $actor));
         
         return $feedback;

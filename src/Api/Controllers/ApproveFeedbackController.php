@@ -4,30 +4,21 @@ namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
 use Flarum\Api\Controller\AbstractShowController;
 use Flarum\Http\RequestUtil;
+use Flarum\Notification\NotificationSyncer;
 use Illuminate\Support\Arr;
 use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
-use HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated;
+use HuseyinFiliz\TraderFeedback\Models\TraderStats;
+use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
+use Carbon\Carbon;
+use Flarum\User\User;
 
-/**
- * Controller that approves a feedback entry.
- *
- * When a moderator approves a feedback, the is_approved flag and
- * approved_by_id are updated and a FeedbackUpdated event is fired. The
- * FeedbackUpdatedListener will handle sending the appropriate notification.
- */
 class ApproveFeedbackController extends AbstractShowController
 {
-    /**
-     * {@inheritdoc}
-     */
     public $serializer = FeedbackSerializer::class;
-
-    /**
-     * {@inheritdoc}
-     */
+    
     protected function data(ServerRequestInterface $request, Document $document)
     {
         $actor = RequestUtil::getActor($request);
@@ -35,18 +26,64 @@ class ApproveFeedbackController extends AbstractShowController
 
         $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
 
-        // Load the feedback with its relationships so we can approve it.
-        $feedback = Feedback::with(['fromUser', 'toUser'])->findOrFail($id);
-
-        // Mark as approved and record who approved it.
+        $feedback = Feedback::findOrFail($id);
+        
+        // Onaylayan kişiyi kaydet
         $feedback->is_approved = true;
         $feedback->approved_by_id = $actor->id;
         $feedback->save();
+        
+        // İlişkileri yükle
+        $feedback->load(['fromUser', 'toUser']);
 
-        // Fire the event - the listener will handle sending the notification
-        // and updating statistics.
-        event(new FeedbackUpdated($feedback, $actor));
+        // Stats güncelle
+        $this->updateUserStats($feedback->to_user_id);
+
+        // BİLDİRİM GÖNDER - Debug ekleyelim
+        try {
+            $fromUser = User::find($feedback->from_user_id);
+            
+            if ($fromUser && $fromUser->id !== $actor->id) {
+                $notifications = app(NotificationSyncer::class);
+                $blueprint = new FeedbackApprovedBlueprint($feedback);
+                $notifications->sync($blueprint, [$fromUser]);
+                
+                // Debug log
+                app('log')->info('FeedbackApproved notification sent', [
+                    'feedback_id' => $feedback->id,
+                    'to_user' => $fromUser->id,
+                    'from_user' => $actor->id
+                ]);
+            }
+        } catch (\Exception $e) {
+            app('log')->error('FeedbackApproved notification error: ' . $e->getMessage());
+        }
 
         return $feedback;
+    }
+    
+    protected function updateUserStats($userId)
+    {
+        $stats = TraderStats::firstOrNew(['user_id' => $userId]);
+
+        $stats->positive_count = Feedback::where('to_user_id', $userId)
+            ->where('type', 'positive')
+            ->where('is_approved', true)
+            ->count();
+            
+        $stats->neutral_count = Feedback::where('to_user_id', $userId)
+            ->where('type', 'neutral')
+            ->where('is_approved', true)
+            ->count();
+            
+        $stats->negative_count = Feedback::where('to_user_id', $userId)
+            ->where('type', 'negative')
+            ->where('is_approved', true)
+            ->count();
+
+        $total = $stats->positive_count + $stats->neutral_count + $stats->negative_count;
+        $stats->score = $total > 0 ? ($stats->positive_count / $total) * 100 : 0;
+        $stats->last_updated = Carbon::now();
+        $stats->save();
     }
 }
