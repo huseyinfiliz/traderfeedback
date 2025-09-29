@@ -26,17 +26,30 @@ class FeedbackCreatedListener
             $feedback->load('toUser');
         }
         
-        // Stats güncelle (sadece onaylıysa)
+        // SADECE ONAYLI İSE İŞLEM YAP
         if ($feedback->is_approved) {
+            // Stats güncelle
             $this->updateUserStats($feedback->to_user_id);
-        }
-        
-        // Bildirim gönder
-        if ($feedback->toUser && $feedback->toUser->id !== $feedback->from_user_id) {
-            $this->notifications->sync(
-                new NewFeedbackBlueprint($feedback),
-                [$feedback->toUser]
-            );
+            
+            // Bildirim gönder
+            if ($feedback->toUser && $feedback->toUser->id !== $feedback->from_user_id) {
+                app('log')->info('Sending newFeedback notification (approved)', [
+                    'feedback_id' => $feedback->id,
+                    'to_user' => $feedback->toUser->id,
+                    'is_approved' => $feedback->is_approved
+                ]);
+                
+                $this->notifications->sync(
+                    new NewFeedbackBlueprint($feedback),
+                    [$feedback->toUser]
+                );
+            }
+        } else {
+            // ONAYLI DEĞİLSE BİLDİRİM GÖNDERME!
+            app('log')->info('Feedback not approved, skipping notification', [
+                'feedback_id' => $feedback->id,
+                'is_approved' => $feedback->is_approved
+            ]);
         }
     }
     

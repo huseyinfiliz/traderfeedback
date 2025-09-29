@@ -9,33 +9,54 @@ use HuseyinFiliz\TraderFeedback\Models\Feedback;
 class FeedbackApprovedBlueprint implements BlueprintInterface
 {
     public $feedback;
+    private $toUser;
+    private $fromUser;
 
     public function __construct(Feedback $feedback)
     {
         $this->feedback = $feedback;
+        
+        // User'ları önceden yükle
+        $this->fromUser = User::find($feedback->from_user_id);
+        $this->toUser = User::find($feedback->to_user_id);
+        
+        // Debug log
+        app('log')->info('FeedbackApprovedBlueprint created', [
+            'feedback_id' => $feedback->id,
+            'from_user_id' => $feedback->from_user_id,
+            'to_user_id' => $feedback->to_user_id,
+            'fromUser' => $this->fromUser ? $this->fromUser->id : null,
+            'toUser' => $this->toUser ? $this->toUser->id : null
+        ]);
     }
 
     public function getSubject()
     {
-        // Feedback'i veren kişiye bildirim gidecek
-        return User::find($this->feedback->from_user_id);
+        // Bildirimi ALAN kişi (user_id sütununa yazılacak)
+        app('log')->debug('FeedbackApproved getSubject returning', [
+            'user_id' => $this->fromUser ? $this->fromUser->id : null
+        ]);
+        
+        return $this->fromUser; // Feedback'i veren kişi bildirimi alır
     }
 
     public function getFromUser()
     {
-        // Onaylayan moderatör
-        $approver = User::find($this->feedback->approved_by_id);
-        return $approver ?: User::find(1); // Admin fallback
+        // Bildirimin KAYNAĞI (from_user_id sütununa yazılacak)
+        // BU ÖNEMLİ: Frontend'de tıklandığında bu kişinin profiline gidecek
+        app('log')->debug('FeedbackApproved getFromUser returning', [
+            'user_id' => $this->toUser ? $this->toUser->id : null
+        ]);
+        
+        return $this->toUser; // Feedback'in verildiği kişi
     }
 
     public function getData()
     {
-        $toUser = User::find($this->feedback->to_user_id);
-        
         return [
             'feedbackId' => $this->feedback->id,
             'feedbackType' => $this->feedback->type,
-            'toUsername' => $toUser ? $toUser->username : 'Unknown',
+            'toUsername' => $this->toUser ? $this->toUser->username : 'Unknown',
             'toUserId' => $this->feedback->to_user_id
         ];
     }
