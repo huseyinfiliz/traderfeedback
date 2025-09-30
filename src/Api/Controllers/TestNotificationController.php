@@ -21,74 +21,92 @@ class TestNotificationController extends AbstractShowController
     protected function data(ServerRequestInterface $request, Document $document)
     {
         $actor = RequestUtil::getActor($request);
-        $type = Arr::get($request->getQueryParams(), 'type', 'approved'); // approved veya rejected
+        $type = Arr::get($request->getQueryParams(), 'type', 'approved');
         
-        // Test için mevcut bir feedback bul
-        $feedback = Feedback::where('is_approved', true)->first();
+        // İki farklı kullanıcı bul
+        $user1 = User::where('id', '!=', 1)->first();
+        $user2 = User::where('id', '!=', 1)->where('id', '!=', optional($user1)->id)->first();
         
-        if (!$feedback) {
-            // Test feedback oluştur
-            $feedback = new Feedback();
-            $feedback->from_user_id = $actor->id;
-            $feedback->to_user_id = $actor->id === 1 ? 2 : 1;
-            $feedback->type = 'positive';
-            $feedback->comment = 'Test notification - ' . date('Y-m-d H:i:s');
-            $feedback->role = 'buyer';
-            $feedback->is_approved = true;
-            $feedback->approved_by_id = 1; // Admin
-            $feedback->save();
+        if (!$user1 || !$user2) {
+            // Fallback: Mevcut bir feedback bul
+            $feedback = Feedback::where('is_approved', true)->first();
+            
+            if (!$feedback) {
+                $feedback = new Feedback();
+                $feedback->from_user_id = $actor->id;
+                $feedback->to_user_id = $actor->id === 1 ? ($user1 ? $user1->id : $actor->id) : 1;
+                $feedback->type = 'positive';
+                $feedback->comment = 'Test notification - ' . date('Y-m-d H:i:s');
+                $feedback->role = 'buyer';
+                $feedback->is_approved = true;
+                $feedback->approved_by_id = $actor->id;
+                $feedback->save();
+            }
         } else {
-            // Mevcut feedback'i güncelle
-            $feedback->approved_by_id = $actor->id;
-            $feedback->save();
+            // Test feedback oluştur veya bul
+            $feedback = Feedback::where('from_user_id', $user1->id)
+                ->where('to_user_id', $user2->id)
+                ->first();
+            
+            if (!$feedback) {
+                $feedback = new Feedback();
+                $feedback->from_user_id = $user1->id;
+                $feedback->to_user_id = $user2->id;
+                $feedback->type = 'positive';
+                $feedback->comment = 'Test notification - ' . date('Y-m-d H:i:s');
+                $feedback->role = 'buyer';
+                $feedback->is_approved = true;
+                $feedback->approved_by_id = $actor->id;
+                $feedback->save();
+            }
         }
         
         // İlişkileri yükle
         $feedback->load(['fromUser', 'toUser']);
         
-        // Bildirimi gönder
-        $fromUser = User::find($feedback->from_user_id);
-        
-        if (!$fromUser) {
-            throw new \Exception('From user not found: ' . $feedback->from_user_id);
-        }
+        // Bildirimi alacak kişi: feedback veren
+        $recipient = User::find($feedback->from_user_id);
         
         try {
             $notifications = app(NotificationSyncer::class);
             
             if ($type === 'rejected') {
-                app('log')->info('Testing FeedbackRejected notification');
                 $blueprint = new FeedbackRejectedBlueprint($feedback);
             } else {
-                app('log')->info('Testing FeedbackApproved notification');
                 $blueprint = new FeedbackApprovedBlueprint($feedback);
             }
             
-            $result = $notifications->sync($blueprint, [$fromUser]);
+            // NotificationSyncer çağır - NotificationSendingListener otomatik çalışacak
+            $result = $notifications->sync($blueprint, [$recipient]);
             
-            app('log')->info('Test notification result', [
+            app('log')->info('Test notification sent', [
                 'type' => $type,
                 'feedback_id' => $feedback->id,
-                'from_user' => $fromUser->id,
+                'recipient_id' => $recipient->id,
                 'result' => $result
             ]);
             
             // Veritabanını kontrol et
-            $notificationCount = \Flarum\Notification\Notification::where('user_id', $fromUser->id)
-                ->where('type', $type === 'rejected' ? 'feedbackRejected' : 'feedbackApproved')
-                ->count();
+            $notificationType = $type === 'rejected' ? 'feedbackRejected' : 'feedbackApproved';
+            $lastNotification = \Flarum\Notification\Notification::where('user_id', $recipient->id)
+                ->where('type', $notificationType)
+                ->orderBy('created_at', 'desc')
+                ->first();
             
-            app('log')->info('Notifications in database', [
-                'count' => $notificationCount,
-                'type' => $type === 'rejected' ? 'feedbackRejected' : 'feedbackApproved'
-            ]);
+            if ($lastNotification) {
+                app('log')->info('Last notification in database', [
+                    'id' => $lastNotification->id,
+                    'user_id' => $lastNotification->user_id,
+                    'from_user_id' => $lastNotification->from_user_id,
+                    'subject_id' => $lastNotification->subject_id,
+                    'data' => $lastNotification->data
+                ]);
+            }
             
         } catch (\Exception $e) {
             app('log')->error('Test notification error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'error' => $e->getMessage()
             ]);
-            throw $e;
         }
         
         return $feedback;

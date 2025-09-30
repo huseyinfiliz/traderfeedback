@@ -9,55 +9,32 @@ use HuseyinFiliz\TraderFeedback\Models\Feedback;
 class FeedbackRejectedBlueprint implements BlueprintInterface
 {
     public $feedback;
-    private $toUser;
-    private $fromUser;
 
     public function __construct(Feedback $feedback)
     {
         $this->feedback = $feedback;
-        
-        // User'ları önceden yükle
-        $this->fromUser = User::find($feedback->from_user_id);
-        $this->toUser = User::find($feedback->to_user_id);
-        
-        // Debug log
-        app('log')->info('FeedbackRejectedBlueprint created', [
-            'feedback_id' => $feedback->id,
-            'from_user_id' => $feedback->from_user_id,
-            'to_user_id' => $feedback->to_user_id,
-            'fromUser' => $this->fromUser ? $this->fromUser->id : null,
-            'toUser' => $this->toUser ? $this->toUser->id : null
-        ]);
     }
 
     public function getSubject()
     {
-        // Bildirimi ALAN kişi (user_id sütununa yazılacak)
-        app('log')->debug('FeedbackRejected getSubject returning', [
-            'user_id' => $this->fromUser ? $this->fromUser->id : null
-        ]);
-        
-        return $this->fromUser; // Feedback'i veren kişi bildirimi alır
+        // ✅ DÜZELTME: Notification'ın KONUSU olan entity'yi döndür (Feedback modeli)
+        // Bu subject_id'ye yazılır (subject_id = feedback_id olur)
+        return $this->feedback;
     }
 
     public function getFromUser()
     {
         // Bildirimin KAYNAĞI (from_user_id sütununa yazılacak)
-        // BU ÖNEMLİ: Frontend'de tıklandığında bu kişinin profiline gidecek
-        app('log')->debug('FeedbackRejected getFromUser returning', [
-            'user_id' => $this->toUser ? $this->toUser->id : null
-        ]);
-        
-        return $this->toUser; // Feedback'in verildiği kişi
+        // Frontend notification.fromUser() ile bu kişiyi gösterecek
+        return User::find($this->feedback->to_user_id);
     }
 
     public function getData()
     {
+        // Sadeleştirilmiş data - frontend fromUser'dan username'i alacak
         return [
             'feedbackId' => $this->feedback->id,
-            'feedbackType' => $this->feedback->type,
-            'toUsername' => $this->toUser ? $this->toUser->username : 'Unknown',
-            'toUserId' => $this->feedback->to_user_id
+            'feedbackType' => $this->feedback->type
         ];
     }
 
@@ -68,6 +45,7 @@ class FeedbackRejectedBlueprint implements BlueprintInterface
 
     public static function getSubjectModel()
     {
-        return User::class;
+        // ✅ DÜZELTME: Subject model artık Feedback
+        return Feedback::class;
     }
 }

@@ -35,40 +35,17 @@ class RejectFeedbackController extends AbstractShowController
         $feedback->approved_by_id = $actor->id;
         $feedback->save();
         
-        // to_user_id'yi sakla (stats güncelleme ve notification fix için)
+        // to_user_id'yi sakla (stats güncelleme için)
         $toUserId = $feedback->to_user_id;
         $fromUserId = $feedback->from_user_id;
-        $feedbackId = $feedback->id;
         
         // BİLDİRİM GÖNDER - Silmeden önce!
         $fromUser = User::find($fromUserId);
         
         if ($fromUser) {
-            try {
-                app('log')->info('Attempting to send FeedbackRejected notification', [
-                    'feedback_id' => $feedbackId,
-                    'recipient_id' => $fromUser->id,
-                    'sender_id' => $actor->id
-                ]);
-                
-                $notifications = app(NotificationSyncer::class);
-                $blueprint = new FeedbackRejectedBlueprint($feedback);
-                $result = $notifications->sync($blueprint, [$fromUser]);
-                
-                // ÇÖZÜM: subject_id (feedback ID) ile doğru bildirimi bul ve güncelle
-                // Queue'dan dolayı biraz bekle
-                sleep(1); // 1 saniye bekle
-                $this->fixNotificationBySubjectId($feedbackId, 'feedbackRejected', $toUserId);
-                
-                app('log')->info('FeedbackRejected notification sync result', [
-                    'result' => $result
-                ]);
-                
-            } catch (\Exception $e) {
-                app('log')->error('FeedbackRejected notification failed', [
-                    'error' => $e->getMessage()
-                ]);
-            }
+            $notifications = app(NotificationSyncer::class);
+            $blueprint = new FeedbackRejectedBlueprint($feedback);
+            $notifications->sync($blueprint, [$fromUser]);
         }
         
         // Şimdi güvenle silebiliriz
@@ -78,40 +55,6 @@ class RejectFeedbackController extends AbstractShowController
         $this->updateUserStats($toUserId);
         
         return $feedback;
-    }
-    
-    /**
-     * subject_id kullanarak doğru notification'ı bul ve from_user_id'yi düzelt
-     */
-    private function fixNotificationBySubjectId($feedbackId, $notificationType, $correctFromUserId)
-    {
-        try {
-            // subject_id ile notification'ı bul
-            // subject_id feedback ID'sini tutuyor
-            $updated = app('db')->table('notifications')
-                ->where('subject_id', $feedbackId)
-                ->where('type', $notificationType)
-                ->where('from_user_id', '!=', $correctFromUserId)
-                ->update(['from_user_id' => $correctFromUserId]);
-            
-            if ($updated) {
-                app('log')->info('Fixed notification from_user_id using subject_id', [
-                    'subject_id' => $feedbackId,
-                    'type' => $notificationType,
-                    'new_from_user_id' => $correctFromUserId,
-                    'updated_count' => $updated
-                ]);
-            } else {
-                app('log')->info('No notification found to fix or already correct', [
-                    'subject_id' => $feedbackId,
-                    'type' => $notificationType
-                ]);
-            }
-        } catch (\Exception $e) {
-            app('log')->error('Failed to fix notification from_user_id', [
-                'error' => $e->getMessage()
-            ]);
-        }
     }
     
     protected function updateUserStats($userId)

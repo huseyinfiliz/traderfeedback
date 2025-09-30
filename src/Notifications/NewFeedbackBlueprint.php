@@ -17,11 +17,14 @@ class NewFeedbackBlueprint implements BlueprintInterface
 
     public function getSubject()
     {
-        return User::find($this->feedback->to_user_id);
+        // ✅ DÜZELTME: Notification'ın KONUSU olan entity'yi döndür (Feedback modeli)
+        // Bu subject_id'ye yazılır (subject_id = feedback_id olur)
+        return $this->feedback;
     }
 
     public function getFromUser()
     {
+        // Bildirimin KAYNAĞI (from_user_id sütununa yazılacak)
         return User::find($this->feedback->from_user_id);
     }
 
@@ -43,6 +46,7 @@ class NewFeedbackBlueprint implements BlueprintInterface
 
     public static function getSubjectModel()
     {
-        return User::class;
+        // ✅ DÜZELTME: Subject model artık Feedback
+        return Feedback::class;
     }
 }

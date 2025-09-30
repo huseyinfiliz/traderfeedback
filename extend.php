@@ -27,6 +27,7 @@ use HuseyinFiliz\TraderFeedback\Listeners\AddUserPreferencesListener;
 use HuseyinFiliz\TraderFeedback\Listeners\UserDeletedListener;
 use HuseyinFiliz\TraderFeedback\Listeners\FeedbackCreatedListener;
 use HuseyinFiliz\TraderFeedback\Listeners\FeedbackUpdatedListener;
+use HuseyinFiliz\TraderFeedback\Listeners\NotificationSendingListener;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Models\TraderStats;
 use HuseyinFiliz\TraderFeedback\Models\FeedbackReport;
@@ -121,7 +122,14 @@ return [
                 'feedbackApproved',
                 'feedbackRejected',
             ])) {
-                $attributes['content'] = $notification->data ?: [];
+                // TİP KONTROLÜ: Data string ise decode et, array ise olduğu gibi kullan
+                if (is_string($notification->data)) {
+                    $attributes['content'] = json_decode($notification->data, true) ?: [];
+                } elseif (is_array($notification->data)) {
+                    $attributes['content'] = $notification->data;
+                } else {
+                    $attributes['content'] = [];
+                }
             }
 
             return $attributes;
@@ -138,18 +146,19 @@ return [
         ->globalPolicy(GlobalPolicy::class)
         ->modelPolicy(Feedback::class, FeedbackPolicy::class),
 
-    // Register notification types
+    // ✅ DÜZELTME: Subject artık Feedback olduğu için FeedbackSerializer kullan
     (new Extend\Notification())
-        ->type(NewFeedbackBlueprint::class, BasicUserSerializer::class, ['alert'])
-        ->type(FeedbackApprovedBlueprint::class, BasicUserSerializer::class, ['alert'])
-        ->type(FeedbackRejectedBlueprint::class, BasicUserSerializer::class, ['alert']),
+        ->type(NewFeedbackBlueprint::class, FeedbackSerializer::class, ['alert'])
+        ->type(FeedbackApprovedBlueprint::class, FeedbackSerializer::class, ['alert'])
+        ->type(FeedbackRejectedBlueprint::class, FeedbackSerializer::class, ['alert']),
 
-    // Event listeners - KRİTİK: Listener'lar aktif olmalı
+    // Event listeners
     (new Extend\Event())
         ->listen(\Flarum\User\Event\Saving::class, AddUserPreferencesListener::class)
         ->listen(\Flarum\User\Event\Deleted::class, UserDeletedListener::class)
         ->listen(FeedbackCreated::class, FeedbackCreatedListener::class)
-        ->listen(FeedbackUpdated::class, FeedbackUpdatedListener::class),
+        ->listen(FeedbackUpdated::class, FeedbackUpdatedListener::class)
+        ->listen(Sending::class, NotificationSendingListener::class),
 
     // Settings defaults and forum serialization
     (new Extend\Settings())

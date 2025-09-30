@@ -51,91 +51,20 @@ class ApproveFeedbackController extends AbstractShowController
             $fromUser = User::find($feedback->from_user_id);
             
             if ($fromUser) {
-                try {
-                    app('log')->info('Attempting to send FeedbackApproved notification', [
-                        'feedback_id' => $feedback->id,
-                        'recipient_id' => $fromUser->id,
-                        'sender_id' => $actor->id
-                    ]);
-                    
-                    $blueprint = new FeedbackApprovedBlueprint($feedback);
-                    $result = $notifications->sync($blueprint, [$fromUser]);
-                    
-                    // ÇÖZÜM: subject_id (feedback ID) ile doğru bildirimi bul ve güncelle
-                    // Queue'dan dolayı biraz bekle
-                    sleep(1); // 1 saniye bekle
-                    $this->fixNotificationBySubjectId($feedback->id, 'feedbackApproved', $feedback->to_user_id);
-                    
-                    app('log')->info('FeedbackApproved notification sync result', [
-                        'result' => $result
-                    ]);
-                } catch (\Exception $e) {
-                    app('log')->error('FeedbackApproved notification failed', [
-                        'error' => $e->getMessage()
-                    ]);
-                }
+                $blueprint = new FeedbackApprovedBlueprint($feedback);
+                $notifications->sync($blueprint, [$fromUser]);
             }
             
             // 2. Feedback alan kişiye yeni feedback bildirimi
             $toUser = User::find($feedback->to_user_id);
             
             if ($toUser) {
-                try {
-                    app('log')->info('Attempting to send NewFeedback notification', [
-                        'feedback_id' => $feedback->id,
-                        'recipient_id' => $toUser->id,
-                        'sender_id' => $feedback->from_user_id
-                    ]);
-                    
-                    $newFeedbackBlueprint = new NewFeedbackBlueprint($feedback);
-                    $result = $notifications->sync($newFeedbackBlueprint, [$toUser]);
-                    
-                    app('log')->info('NewFeedback notification sync result', [
-                        'result' => $result
-                    ]);
-                } catch (\Exception $e) {
-                    app('log')->error('NewFeedback notification failed', [
-                        'error' => $e->getMessage()
-                    ]);
-                }
+                $newFeedbackBlueprint = new NewFeedbackBlueprint($feedback);
+                $notifications->sync($newFeedbackBlueprint, [$toUser]);
             }
         }
         
         return $feedback;
-    }
-    
-    /**
-     * subject_id kullanarak doğru notification'ı bul ve from_user_id'yi düzelt
-     */
-    private function fixNotificationBySubjectId($feedbackId, $notificationType, $correctFromUserId)
-    {
-        try {
-            // subject_id ile notification'ı bul
-            // subject_id feedback ID'sini tutuyor
-            $updated = app('db')->table('notifications')
-                ->where('subject_id', $feedbackId)
-                ->where('type', $notificationType)
-                ->where('from_user_id', '!=', $correctFromUserId)
-                ->update(['from_user_id' => $correctFromUserId]);
-            
-            if ($updated) {
-                app('log')->info('Fixed notification from_user_id using subject_id', [
-                    'subject_id' => $feedbackId,
-                    'type' => $notificationType,
-                    'new_from_user_id' => $correctFromUserId,
-                    'updated_count' => $updated
-                ]);
-            } else {
-                app('log')->info('No notification found to fix or already correct', [
-                    'subject_id' => $feedbackId,
-                    'type' => $notificationType
-                ]);
-            }
-        } catch (\Exception $e) {
-            app('log')->error('Failed to fix notification from_user_id', [
-                'error' => $e->getMessage()
-            ]);
-        }
     }
     
     protected function updateUserStats($userId)
