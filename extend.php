@@ -114,31 +114,6 @@ return [
 
             return $attributes;
         }),
-
-    // NotificationSerializer - Sadece content attribute ekle
-    // Subject serialization Flarum tarafından otomatik yapılır
-    (new Extend\ApiSerializer(NotificationSerializer::class))
-        ->attributes(function (NotificationSerializer $serializer, Notification $notification) {
-            $attributes = [];
-
-            // Bildirim tipimizse data'yı content olarak ekle
-            if (in_array($notification->type, [
-                'newFeedback',
-                'feedbackApproved',
-                'feedbackRejected',
-            ])) {
-                // TİP KONTROLÜ: Data string ise decode et, array ise olduğu gibi kullan
-                if (is_string($notification->data)) {
-                    $attributes['content'] = json_decode($notification->data, true) ?: [];
-                } elseif (is_array($notification->data)) {
-                    $attributes['content'] = $notification->data;
-                } else {
-                    $attributes['content'] = [];
-                }
-            }
-
-            return $attributes;
-        }),
     
     // NOT: hasOne('subject') EKLEME! 
     // Flarum otomatik serialize eder, manuel ekleme zararlı!

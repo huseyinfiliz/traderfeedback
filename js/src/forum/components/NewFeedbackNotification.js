@@ -3,18 +3,11 @@ import username from 'flarum/common/helpers/username';
 
 export default class NewFeedbackNotification extends Notification {
   icon() {
-    const notification = this.attrs.notification;
-    const subject = notification.subject();
+    const data = this.attrs.notification.data();
+    const feedbackType = data?.feedbackType || 'neutral';
     
-    // Subject varsa type'ına göre icon göster
-    if (subject && subject.type) {
-      const type = subject.type();
-      
-      if (type === 'positive') return 'fas fa-thumbs-up';
-      if (type === 'negative') return 'fas fa-thumbs-down';
-    }
-    
-    // Fallback: Genel feedback icon
+    if (feedbackType === 'positive') return 'fas fa-thumbs-up';
+    if (feedbackType === 'negative') return 'fas fa-thumbs-down';
     return 'fas fa-exchange-alt';
   }
 
@@ -22,12 +15,8 @@ export default class NewFeedbackNotification extends Notification {
     const notification = this.attrs.notification;
     const fromUser = notification.fromUser();
     
-    // GUARD: fromUser yoksa ana sayfaya git
-    if (!fromUser) {
-      return app.route('index');
-    }
+    if (!fromUser) return app.route('index');
     
-    // Feedback veren kişinin profiline git
     return app.route('user.feedbacks', {
       username: fromUser.slug()
     });
@@ -36,23 +25,17 @@ export default class NewFeedbackNotification extends Notification {
   content() {
     const notification = this.attrs.notification;
     const fromUser = notification.fromUser();
-    const subject = notification.subject();
+    const data = notification.data();
     
-    // Subject'ten type ve role al
-    let feedbackType = 'neutral';
-    let role = 'buyer';
+    if (!fromUser) return 'Someone gave you feedback';
     
-    if (subject) {
-      if (subject.type) feedbackType = subject.type();
-      if (subject.role) role = subject.role();
-    }
+    const feedbackType = data?.feedbackType || 'neutral';
+    const role = data?.role || 'buyer';
     
-    // Role text'ini translate et
     const roleText = role === 'seller' 
       ? app.translator.trans('huseyinfiliz-traderfeedback.forum.form.role_seller')
       : app.translator.trans('huseyinfiliz-traderfeedback.forum.form.role_buyer');
     
-    // Type text'ini translate et
     const typeText = app.translator.trans(
       `huseyinfiliz-traderfeedback.forum.form.type_${feedbackType}`
     );
@@ -60,7 +43,7 @@ export default class NewFeedbackNotification extends Notification {
     return app.translator.trans(
       'huseyinfiliz-traderfeedback.forum.notifications.new_feedback_title',
       {
-        username: fromUser ? username(fromUser) : 'Someone',
+        username: username(fromUser),
         type: typeText,
         role: roleText
       }
@@ -68,14 +51,7 @@ export default class NewFeedbackNotification extends Notification {
   }
 
   excerpt() {
-    const notification = this.attrs.notification;
-    const subject = notification.subject();
-    
-    // Subject varsa comment'ini göster
-    if (subject && subject.comment) {
-      return subject.comment();
-    }
-    
-    return '';
+    const data = this.attrs.notification.data();
+    return data?.comment || '';
   }
 }

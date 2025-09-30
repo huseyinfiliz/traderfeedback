@@ -31,6 +31,12 @@ export default class ProfilePage extends UserPage {
     }
     
     loadFeedbacks() {
+        // ✅ NULL KONTROLÜ - User henüz yüklenmediyse bekle
+        if (!this.user) {
+            setTimeout(() => this.loadFeedbacks(), 100);
+            return;
+        }
+        
         this.loading = true;
         
         app.request({
@@ -43,19 +49,15 @@ export default class ProfilePage extends UserPage {
                 }
             }
         }).then(response => {
-            // Process included users first
             if (response.included) {
                 response.included.forEach(item => {
                     if (item.type === 'users') {
-                        // Store user data in map for quick access
                         this.includedUsers.set(item.id, item.attributes);
                         
-                        // Also update the store if it exists
                         const storeUser = app.store.getById('users', item.id);
                         if (storeUser) {
                             storeUser.pushData(item.attributes);
                         } else {
-                            // Create user in store if doesn't exist
                             app.store.pushPayload({
                                 data: item
                             });
@@ -64,7 +66,6 @@ export default class ProfilePage extends UserPage {
                 });
             }
             
-            // Process feedbacks
             this.feedbacks = Array.isArray(response.data) ? response.data : [];
             this.loading = false;
             m.redraw();
@@ -76,6 +77,12 @@ export default class ProfilePage extends UserPage {
     }
     
     loadStats() {
+        // ✅ NULL KONTROLÜ - User henüz yüklenmediyse bekle
+        if (!this.user) {
+            setTimeout(() => this.loadStats(), 100);
+            return;
+        }
+        
         this.statsLoading = true;
         
         app.request({
@@ -124,7 +131,6 @@ export default class ProfilePage extends UserPage {
         return (
             <div className="TraderFeedbackPage">
                 <div className="TraderFeedbackPage-header">
-                    {/* Başlık kaldırıldı - sadece istatistikler gösteriliyor */}
                     {this.statsSection()}
                 </div>
                 {this.filterSection()}
@@ -191,17 +197,14 @@ export default class ProfilePage extends UserPage {
     }
     
     filterSection() {
-        // Allow negative feedback kontrolü
         const allowNegative = app.forum.attribute('huseyinfiliz.traderfeedback.allowNegative') !== false;
         
-        // Filter seçeneklerini oluştur
         const filterOptions: any = {
             all: app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.filter.all'),
             positive: app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.filter.positive'),
             neutral: app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.filter.neutral')
         };
         
-        // Negative seçeneğini sadece izin veriliyorsa ekle
         if (allowNegative) {
             filterOptions.negative = app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.filter.negative');
         }
@@ -250,30 +253,25 @@ export default class ProfilePage extends UserPage {
     feedbackItem(feedback) {
         const attrs = feedback.attributes || {};
         
-        // Get user from multiple sources
         let fromUser = null;
         let displayName = 'Unknown User';
         let avatarColor = '#888';
         let avatarUrl = null;
         
-        // 1. Try to get from relationships
         const fromUserRelationship = feedback.relationships?.fromUser?.data;
         if (fromUserRelationship) {
             const userId = fromUserRelationship.id;
             
-            // First check our included users map
             const userData = this.includedUsers.get(userId);
             if (userData) {
                 displayName = userData.displayName || userData.username || `User #${userId}`;
                 avatarUrl = userData.avatarUrl;
                 
-                // Try to get user from store for color
                 fromUser = app.store.getById('users', userId);
                 if (fromUser) {
                     avatarColor = fromUser.color() || '#888';
                 }
             } else {
-                // Try store as fallback
                 fromUser = app.store.getById('users', userId);
                 if (fromUser) {
                     displayName = fromUser.displayName();
@@ -283,7 +281,6 @@ export default class ProfilePage extends UserPage {
             }
         }
         
-        // 2. Fallback to attributes
         if (!displayName || displayName === 'Unknown User') {
             if (attrs.fromUserId || attrs.from_user_id) {
                 const userId = attrs.fromUserId || attrs.from_user_id;
@@ -307,7 +304,6 @@ export default class ProfilePage extends UserPage {
         
         const feedbackDate = attrs.createdAt || attrs.created_at || new Date().toISOString();
         
-        // Show discussion link if available
         const discussionLink = attrs.discussionId || attrs.discussion_id ? (
             <a href={app.route('discussion', { id: attrs.discussionId || attrs.discussion_id })} 
                className="FeedbackItem-discussionLink"
@@ -402,7 +398,6 @@ export default class ProfilePage extends UserPage {
         const canModerate = currentUser.attribute('canModerateFeedback');
         const isOwn = fromUser && currentUser.id() === fromUser.id();
         
-        // Hiç aksiyon yoksa null döndür
         if (!canReport && !canDelete && !isOwn && !canModerate) {
             return null;
         }
@@ -485,9 +480,7 @@ export default class ProfilePage extends UserPage {
             url: app.forum.attribute('apiUrl') + '/trader/feedback/' + feedback.id
         }).then(() => {
             this.loading = false;
-            // Remove the deleted feedback from the list
             this.feedbacks = this.feedbacks.filter(f => f.id !== feedback.id);
-            // Reload stats as they might have changed
             this.loadStats();
             app.alerts.show({ type: 'success' }, 'Feedback deleted successfully');
             m.redraw();

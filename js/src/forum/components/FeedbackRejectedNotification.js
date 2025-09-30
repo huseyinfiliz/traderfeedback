@@ -8,24 +8,12 @@ export default class FeedbackRejectedNotification extends Notification {
 
   href() {
     const notification = this.attrs.notification;
-    const subject = notification.subject();
-    
-    // GUARD: Subject silinmişse ana sayfaya git
-    if (!subject) {
-      return app.route('index');
-    }
-    
-    // fromUser varsa onun feedback sayfasına git
     const fromUser = notification.fromUser();
-    if (fromUser) {
-      return app.route('user.feedbacks', {
-        username: fromUser.slug()
-      });
-    }
     
-    // Fallback: Kendi profilime git
+    if (!fromUser) return app.route('index');
+    
     return app.route('user.feedbacks', {
-      username: app.session.user?.slug()
+      username: fromUser.slug()
     });
   }
 
@@ -33,21 +21,15 @@ export default class FeedbackRejectedNotification extends Notification {
     const notification = this.attrs.notification;
     const fromUser = notification.fromUser();
     
+    if (!fromUser) return 'Your feedback was rejected';
+    
     return app.translator.trans(
       'huseyinfiliz-traderfeedback.forum.notifications.feedback_rejected_title',
-      { username: fromUser ? username(fromUser) : 'Someone' }
+      { username: username(fromUser) }
     );
   }
 
   excerpt() {
-    const notification = this.attrs.notification;
-    const subject = notification.subject();
-    
-    // Subject varsa comment'ini göster
-    if (subject && subject.comment) {
-      return subject.comment();
-    }
-    
     return '';
   }
 }
