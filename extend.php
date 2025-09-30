@@ -87,6 +87,10 @@ return [
         ->belongsTo('toUser', User::class, 'to_user_id')
         ->belongsTo('approvedBy', User::class, 'approved_by_id'),
 
+    // NOT: Notification model'e relationship EKLEME!
+    // Flarum otomatik olarak Blueprint'teki getSubject() ve getSubjectModel() 
+    // kullanarak subject'i yükler. Manuel relationship gereksiz ve zararlı!
+
     // Extend the UserSerializer to add permission attributes
     (new Extend\ApiSerializer(UserSerializer::class))
         ->hasMany('feedbacksReceived', FeedbackSerializer::class)
@@ -111,7 +115,8 @@ return [
             return $attributes;
         }),
 
-    // ÖNEMLİ: Notification data'yı frontend için serialize et
+    // NotificationSerializer - Sadece content attribute ekle
+    // Subject serialization Flarum tarafından otomatik yapılır
     (new Extend\ApiSerializer(NotificationSerializer::class))
         ->attributes(function (NotificationSerializer $serializer, Notification $notification) {
             $attributes = [];
@@ -134,6 +139,9 @@ return [
 
             return $attributes;
         }),
+    
+    // NOT: hasOne('subject') EKLEME! 
+    // Flarum otomatik serialize eder, manuel ekleme zararlı!
 
     // Register notification preferences
     (new Extend\User())
@@ -146,7 +154,7 @@ return [
         ->globalPolicy(GlobalPolicy::class)
         ->modelPolicy(Feedback::class, FeedbackPolicy::class),
 
-    // ✅ DÜZELTME: Subject artık Feedback olduğu için FeedbackSerializer kullan
+    // ✅ Notification type registration - FeedbackSerializer subject için kullanılır
     (new Extend\Notification())
         ->type(NewFeedbackBlueprint::class, FeedbackSerializer::class, ['alert'])
         ->type(FeedbackApprovedBlueprint::class, FeedbackSerializer::class, ['alert'])

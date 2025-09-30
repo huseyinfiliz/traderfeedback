@@ -7,13 +7,18 @@ import registerNotifications from './notifications';
 export {default as extend} from './extend';
 
 app.initializers.add('huseyinfiliz-traderfeedback', () => {
-  // Modal'ı global olarak kaydet
+  // 1. Modal'ı global olarak kaydet
   app.feedbackModal = FeedbackModal;
   
-  // Bildirim komponentlerini kaydet
+  // 2. BİLDİRİM KOMPONENTLERİNİ İLK SIRADA KAYDET
+  // Bu çok kritik - Flarum'un bildirim sistemini başlatmadan önce olmalı
   registerNotifications();
   
-  // Sayfaları ve kontrolleri ekle
+  // 3. Sayfaları ve kontrolleri ekle (bunlar extend kullanıyor, boot sonrası çalışır)
   addUserProfilePage();
   addUserControls();
+  
+  // Debug log
+  console.log('✅ Trader feedback extension initialized');
+  console.log('Registered notification components:', Object.keys(app.notificationComponents));
 });
