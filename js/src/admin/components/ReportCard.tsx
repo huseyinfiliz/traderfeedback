@@ -10,7 +10,6 @@ export default class ReportCard extends Component {
     
     const reporterId = report.relationships?.reporter?.data?.id || report.relationships?.user?.data?.id;
     
-    // Get or push to store
     let reporter = reporterId ? app.store.getById('users', reporterId) : null;
     if (!reporter && reporterId) {
       const reporterData = included?.find((item: any) => item.type === 'users' && item.id === reporterId);
@@ -27,7 +26,6 @@ export default class ReportCard extends Component {
     const fromUserId = feedback?.relationships?.fromUser?.data?.id || feedback?.relationships?.from?.data?.id;
     const toUserId = feedback?.relationships?.toUser?.data?.id || feedback?.relationships?.to?.data?.id;
     
-    // Get or push to store
     let fromUser = fromUserId ? app.store.getById('users', fromUserId) : null;
     let toUser = toUserId ? app.store.getById('users', toUserId) : null;
     
@@ -45,29 +43,27 @@ export default class ReportCard extends Component {
       }
     }
 
-    const typeClass = feedback?.attributes.type === 'positive' ? 'success' : 
-                     feedback?.attributes.type === 'negative' ? 'danger' : 'warning';
+    // Flarum Badge classes
+    const badgeClass = feedback?.attributes.type === 'positive' ? 'Badge--success' : 
+                      feedback?.attributes.type === 'negative' ? 'Badge--danger' : 'Badge--warning';
+
+    const typeIcon = feedback?.attributes.type === 'positive' ? 'thumbs-up' : 
+                    feedback?.attributes.type === 'negative' ? 'thumbs-down' : 'minus';
 
     return (
       <div className="ReportCard">
         <div className="ReportCard-header">
           <div className="ReportCard-reporter">
-            {reporter && avatar(reporter, { className: 'Avatar--small' })}
-            <div className="ReportCard-reporterInfo">
-              <span className="ReportCard-label">Reported by:</span>
-              <strong>{reporter ? reporter.displayName() : (reporterId ? `User #${reporterId}` : 'Unknown')}</strong>
-              {report.attributes.created_at && (
-                <span className="ReportCard-date">
-                  {humanTime(new Date(report.attributes.created_at))}
-                </span>
-              )}
-            </div>
+            {reporter && avatar(reporter)}
+            <strong>{reporter ? reporter.displayName() : (reporterId ? `User #${reporterId}` : 'Unknown')}</strong>
           </div>
           
-          <span className="Badge Badge--danger">
-            <i className="fas fa-flag"></i>
-            Report
-          </span>
+          {(report.attributes.created_at || report.attributes.updated_at) && (
+            <span className="ReportCard-dateBadge">
+              <i className="far fa-clock"></i>
+              <span>{humanTime(new Date(report.attributes.created_at || report.attributes.updated_at))}</span>
+            </span>
+          )}
         </div>
 
         {report.attributes.reason && (
@@ -80,27 +76,25 @@ export default class ReportCard extends Component {
         {feedback && (
           <div className="ReportCard-feedback">
             <div className="ReportCard-feedbackHeader">
-              <span>Reported Feedback:</span>
-              <span className={`Badge Badge--${typeClass}`}>
-                {feedback.attributes.type}
-              </span>
+              <div className="ReportCard-feedbackHeader-left">
+                <span>Reported Feedback</span>
+                {/* Using Flarum's Badge */}
+                <span className={`Badge ${badgeClass}`}>
+                  <i className={`fas fa-${typeIcon}`}></i>
+                </span>
+              </div>
             </div>
             
             <div className="ReportCard-feedbackUsers">
-              <div className="ReportCard-user">
-                {fromUser && avatar(fromUser, { className: 'Avatar--small' })}
-                <span>{fromUser ? fromUser.displayName() : `User #${fromUserId}`}</span>
-              </div>
+              {fromUser && avatar(fromUser)}
+              <span>{fromUser ? fromUser.displayName() : `User #${fromUserId}`}</span>
               <i className="fas fa-arrow-right"></i>
-              <div className="ReportCard-user">
-                {toUser && avatar(toUser, { className: 'Avatar--small' })}
-                <span>{toUser ? toUser.displayName() : `User #${toUserId}`}</span>
-              </div>
+              {toUser && avatar(toUser)}
+              <span>{toUser ? toUser.displayName() : `User #${toUserId}`}</span>
             </div>
 
             {feedback.attributes.comment && (
               <div className="ReportCard-feedbackComment">
-                <i className="fas fa-quote-left"></i>
                 <p>{feedback.attributes.comment}</p>
               </div>
             )}
@@ -116,7 +110,7 @@ export default class ReportCard extends Component {
             Dismiss Report
           </Button>
           <Button
-            className="Button Button--danger"
+            className="Button"
             icon="fas fa-trash"
             onclick={() => onDelete(report)}
           >
