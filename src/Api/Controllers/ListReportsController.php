@@ -11,31 +11,36 @@ use HuseyinFiliz\TraderFeedback\Models\FeedbackReport;
 
 class ListReportsController extends AbstractListController
 {
-    /**
-     * {@inheritdoc}
-     */
     public $serializer = FeedbackReportSerializer::class;
-
-    /**
-     * {@inheritdoc}
-     */
-    public $include = ['user', 'feedback', 'feedback.fromUser', 'feedback.toUser', 'resolvedBy'];
-
-    /**
-     * {@inheritdoc}
-     */
+    
+    // ÖNEMLİ: Nested relationships
+    public $include = [
+        'reporter',
+        'feedback',
+        'feedback.fromUser',
+        'feedback.toUser'
+    ];
+    
     protected function data(ServerRequestInterface $request, Document $document)
     {
         $actor = RequestUtil::getActor($request);
         
-        // Check permission
+        // Permission check
         $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
         
-        // Get only unresolved reports by default
-        $query = FeedbackReport::where('resolved', false)
-            ->with(['user', 'feedback', 'feedback.fromUser', 'feedback.toUser'])
-            ->orderBy('created_at', 'desc');
-        
-        return $query->get();
+        // Query with eager loading - NULL check ekle
+        return FeedbackReport::where('resolved', false)
+            ->with([
+                'reporter',
+                'feedback' => function($query) {
+                    // Sadece silinmemiş feedbackleri yükle
+                    $query->whereNotNull('id');
+                },
+                'feedback.fromUser',
+                'feedback.toUser'
+            ])
+            ->whereHas('feedback') // Sadece feedback'i olan report'ları getir
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 }

@@ -1,0 +1,519 @@
+import app from 'flarum/admin/app';
+import ExtensionPage from 'flarum/admin/components/ExtensionPage';
+import Button from 'flarum/common/components/Button';
+import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
+import Switch from 'flarum/common/components/Switch';
+import humanTime from 'flarum/common/helpers/humanTime';
+import ItemList from 'flarum/common/utils/ItemList';
+
+export default class TraderFeedbackSettingsPage extends ExtensionPage {
+  activeTab: string = 'settings';
+  loading: boolean = false;
+  reports: any[] = [];
+  pendingFeedbacks: any[] = [];
+  stats: any = null;
+
+  oninit(vnode: any) {
+    super.oninit(vnode);
+    this.loadStats();
+  }
+
+  content() {
+    return (
+      <div className="TraderFeedbackPage">
+        {this.statsCards()}
+        {this.tabs()}
+        <div className="TraderFeedbackPage-content">
+          {this.activeTabContent()}
+        </div>
+      </div>
+    );
+  }
+
+  /**
+   * İstatistik Kartları
+   */
+  statsCards() {
+    const stats = this.stats || {
+      total: 0,
+      positive: 0,
+      neutral: 0,
+      negative: 0,
+    };
+
+    return (
+      <div className="TraderFeedbackStats">
+        <div className="StatsCard StatsCard--total">
+          <div className="StatsCard-icon">
+            <i className="fas fa-exchange-alt"></i>
+          </div>
+          <div className="StatsCard-content">
+            <div className="StatsCard-value">{stats.total}</div>
+            <div className="StatsCard-label">Total Feedbacks</div>
+          </div>
+        </div>
+
+        <div className="StatsCard StatsCard--positive">
+          <div className="StatsCard-icon">
+            <i className="fas fa-thumbs-up"></i>
+          </div>
+          <div className="StatsCard-content">
+            <div className="StatsCard-value">{stats.positive}</div>
+            <div className="StatsCard-label">Positive</div>
+            <div className="StatsCard-percentage">
+              {stats.total > 0 ? Math.round((stats.positive / stats.total) * 100) : 0}%
+            </div>
+          </div>
+        </div>
+
+        <div className="StatsCard StatsCard--neutral">
+          <div className="StatsCard-icon">
+            <i className="fas fa-minus-circle"></i>
+          </div>
+          <div className="StatsCard-content">
+            <div className="StatsCard-value">{stats.neutral}</div>
+            <div className="StatsCard-label">Neutral</div>
+            <div className="StatsCard-percentage">
+              {stats.total > 0 ? Math.round((stats.neutral / stats.total) * 100) : 0}%
+            </div>
+          </div>
+        </div>
+
+        <div className="StatsCard StatsCard--negative">
+          <div className="StatsCard-icon">
+            <i className="fas fa-thumbs-down"></i>
+          </div>
+          <div className="StatsCard-content">
+            <div className="StatsCard-value">{stats.negative}</div>
+            <div className="StatsCard-label">Negative</div>
+            <div className="StatsCard-percentage">
+              {stats.total > 0 ? Math.round((stats.negative / stats.total) * 100) : 0}%
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /**
+   * Tab Navigation
+   */
+  tabs() {
+    return (
+      <div className="TraderFeedbackTabs">
+        <button
+          className={'TabButton' + (this.activeTab === 'settings' ? ' active' : '')}
+          onclick={() => {
+            this.activeTab = 'settings';
+          }}
+        >
+          <i className="fas fa-cog"></i>
+          <span>Settings</span>
+        </button>
+
+        <button
+          className={'TabButton' + (this.activeTab === 'approvals' ? ' active' : '')}
+          onclick={() => {
+            this.activeTab = 'approvals';
+            if (this.pendingFeedbacks.length === 0) this.loadPendingFeedbacks();
+          }}
+        >
+          <i className="fas fa-check-circle"></i>
+          <span>Pending Approvals</span>
+          {this.pendingFeedbacks.length > 0 && (
+            <span className="TabButton-badge">{this.pendingFeedbacks.length}</span>
+          )}
+        </button>
+
+        <button
+          className={'TabButton' + (this.activeTab === 'reports' ? ' active' : '')}
+          onclick={() => {
+            this.activeTab = 'reports';
+            if (this.reports.length === 0) this.loadReports();
+          }}
+        >
+          <i className="fas fa-flag"></i>
+          <span>Reports</span>
+          {this.reports.length > 0 && (
+            <span className="TabButton-badge TabButton-badge--warning">{this.reports.length}</span>
+          )}
+        </button>
+      </div>
+    );
+  }
+
+  /**
+   * Active Tab Content
+   */
+  activeTabContent() {
+    switch (this.activeTab) {
+      case 'settings':
+        return this.settingsContent();
+      case 'approvals':
+        return this.approvalsContent();
+      case 'reports':
+        return this.reportsContent();
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * SETTINGS TAB
+   */
+  settingsContent() {
+    return (
+      <div className="TraderFeedbackSettings">
+        <form onsubmit={(e: Event) => {
+          e.preventDefault();
+          this.saveSettings();
+        }}>
+          <div className="SettingsSection">
+            <h3>General Settings</h3>
+
+            <div className="Form-group">
+              {this.buildSettingComponent({
+                type: 'boolean',
+                setting: 'huseyinfiliz.traderfeedback.requireApproval',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.require_approval_label'),
+              })}
+            </div>
+
+            <div className="Form-group">
+              {this.buildSettingComponent({
+                type: 'boolean',
+                setting: 'huseyinfiliz.traderfeedback.allowNegative',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.allow_negative_label'),
+              })}
+            </div>
+          </div>
+
+          <div className="SettingsSection">
+            <h3>Discussion Settings</h3>
+
+            <div className="Form-group">
+              {this.buildSettingComponent({
+                type: 'boolean',
+                setting: 'huseyinfiliz.traderfeedback.requireDiscussion',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.require_discussion_label'),
+                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.require_discussion_help'),
+              })}
+            </div>
+
+            <div className="Form-group">
+              {this.buildSettingComponent({
+                type: 'boolean',
+                setting: 'huseyinfiliz.traderfeedback.onePerDiscussion',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.one_per_discussion_label'),
+                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.one_per_discussion_help'),
+              })}
+            </div>
+          </div>
+
+          <div className="SettingsSection">
+            <h3>Comment Settings</h3>
+
+            <div className="Form-group">
+              {this.buildSettingComponent({
+                type: 'number',
+                setting: 'huseyinfiliz.traderfeedback.minLength',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_length_label'),
+                min: 1,
+              })}
+            </div>
+
+            <div className="Form-group">
+              {this.buildSettingComponent({
+                type: 'number',
+                setting: 'huseyinfiliz.traderfeedback.maxLength',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.max_length_label'),
+                min: 1,
+              })}
+            </div>
+          </div>
+
+          <div className="SettingsSection">
+            <h3>User Requirements</h3>
+
+            <div className="Form-group">
+              {this.buildSettingComponent({
+                type: 'number',
+                setting: 'huseyinfiliz.traderfeedback.minDays',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_days_label'),
+                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_days_help'),
+                min: 0,
+              })}
+            </div>
+
+            <div className="Form-group">
+              {this.buildSettingComponent({
+                type: 'number',
+                setting: 'huseyinfiliz.traderfeedback.minPosts',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_posts_label'),
+                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_posts_help'),
+                min: 0,
+              })}
+            </div>
+          </div>
+
+          <div className="SettingsSection">
+            {this.submitButton()}
+          </div>
+        </form>
+      </div>
+    );
+  }
+
+  /**
+   * APPROVALS TAB
+   */
+  approvalsContent() {
+    if (this.loading) {
+      return <LoadingIndicator />;
+    }
+
+    if (this.pendingFeedbacks.length === 0) {
+      return (
+        <div className="EmptyState">
+          <div className="EmptyState-icon">
+            <i className="fas fa-check-circle"></i>
+          </div>
+          <h3>No Pending Approvals</h3>
+          <p>All feedbacks have been reviewed</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="FeedbackList">
+        {this.pendingFeedbacks.map((feedback) => this.feedbackCard(feedback))}
+      </div>
+    );
+  }
+
+  /**
+   * REPORTS TAB
+   */
+  reportsContent() {
+    if (this.loading) {
+      return <LoadingIndicator />;
+    }
+
+    if (this.reports.length === 0) {
+      return (
+        <div className="EmptyState">
+          <div className="EmptyState-icon">
+            <i className="fas fa-shield-alt"></i>
+          </div>
+          <h3>No Active Reports</h3>
+          <p>Your community is safe and clean</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="ReportList">
+        {this.reports.map((report) => this.reportCard(report))}
+      </div>
+    );
+  }
+
+  /**
+   * Feedback Card Component
+   */
+  feedbackCard(feedback: any) {
+    const attrs = feedback.attributes || {};
+    const fromUser = feedback.relationships?.fromUser?.data?.attributes;
+    const toUser = feedback.relationships?.toUser?.data?.attributes;
+
+    return (
+      <div className={'FeedbackCard FeedbackCard--' + attrs.type}>
+        <div className="FeedbackCard-header">
+          <div className="FeedbackCard-users">
+            <span className="username">{fromUser?.displayName || 'Unknown'}</span>
+            <i className="fas fa-arrow-right"></i>
+            <span className="username">{toUser?.displayName || 'Unknown'}</span>
+          </div>
+          <div className="FeedbackCard-meta">
+            <span className={'FeedbackBadge FeedbackBadge--' + attrs.type}>
+              {attrs.type?.toUpperCase()}
+            </span>
+            <span className="time">{humanTime(attrs.created_at)}</span>
+          </div>
+        </div>
+
+        <div className="FeedbackCard-content">
+          <p>{attrs.comment}</p>
+          {attrs.role && (
+            <div className="FeedbackCard-role">
+              <i className="fas fa-user"></i> Role: {attrs.role}
+            </div>
+          )}
+        </div>
+
+        <div className="FeedbackCard-actions">
+          <Button
+            className="Button Button--success"
+            onclick={() => this.approveFeedback(feedback)}
+          >
+            <i className="fas fa-check"></i> Approve
+          </Button>
+          <Button
+            className="Button Button--danger"
+            onclick={() => this.rejectFeedback(feedback)}
+          >
+            <i className="fas fa-times"></i> Reject
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  /**
+   * Report Card Component
+   */
+  reportCard(report: any) {
+    const attrs = report.attributes || {};
+    const feedback = report.relationships?.feedback?.data;
+    const reporter = report.relationships?.reporter?.data?.attributes;
+
+    return (
+      <div className="ReportCard">
+        <div className="ReportCard-header">
+          <div className="ReportCard-reporter">
+            <i className="fas fa-flag"></i>
+            Reported by <strong>{reporter?.displayName || 'Unknown'}</strong>
+          </div>
+          <span className="time">{humanTime(attrs.created_at)}</span>
+        </div>
+
+        <div className="ReportCard-reason">
+          <strong>Reason:</strong> {attrs.reason}
+        </div>
+
+        {feedback && (
+          <div className="ReportCard-feedback">
+            <div className="ReportCard-feedback-label">Original Feedback:</div>
+            {this.feedbackCard(feedback)}
+          </div>
+        )}
+
+        <div className="ReportCard-actions">
+          <Button
+            className="Button Button--primary"
+            onclick={() => this.dismissReport(report)}
+          >
+            <i className="fas fa-check"></i> Dismiss Report
+          </Button>
+          <Button
+            className="Button Button--danger"
+            onclick={() => this.deleteReportedFeedback(report)}
+          >
+            <i className="fas fa-trash"></i> Delete Feedback
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  /**
+   * API Calls
+   */
+  loadStats() {
+    app.request({
+      method: 'GET',
+      url: app.forum.attribute('apiUrl') + '/trader/stats/summary',
+    }).then((response: any) => {
+      this.stats = response.data || { total: 0, positive: 0, neutral: 0, negative: 0 };
+      m.redraw();
+    }).catch(() => {
+      this.stats = { total: 0, positive: 0, neutral: 0, negative: 0 };
+      m.redraw();
+    });
+  }
+
+  loadPendingFeedbacks() {
+    this.loading = true;
+    m.redraw();
+
+    app.request({
+      method: 'GET',
+      url: app.forum.attribute('apiUrl') + '/trader/feedback/pending',
+    }).then((response: any) => {
+      this.pendingFeedbacks = response.data || [];
+      this.loading = false;
+      m.redraw();
+    }).catch(() => {
+      this.loading = false;
+      m.redraw();
+    });
+  }
+
+  loadReports() {
+    this.loading = true;
+    m.redraw();
+
+    app.request({
+      method: 'GET',
+      url: app.forum.attribute('apiUrl') + '/trader/reports',
+    }).then((response: any) => {
+      this.reports = response.data || [];
+      this.loading = false;
+      m.redraw();
+    }).catch(() => {
+      this.loading = false;
+      m.redraw();
+    });
+  }
+
+  approveFeedback(feedback: any) {
+    if (!confirm('Approve this feedback?')) return;
+
+    app.request({
+      method: 'POST',
+      url: app.forum.attribute('apiUrl') + '/trader/feedback/' + feedback.id + '/approve',
+    }).then(() => {
+      app.alerts.show({ type: 'success' }, 'Feedback approved');
+      this.loadPendingFeedbacks();
+      this.loadStats();
+    });
+  }
+
+  rejectFeedback(feedback: any) {
+    if (!confirm('Reject this feedback?')) return;
+
+    app.request({
+      method: 'POST',
+      url: app.forum.attribute('apiUrl') + '/trader/feedback/' + feedback.id + '/reject',
+    }).then(() => {
+      app.alerts.show({ type: 'success' }, 'Feedback rejected');
+      this.loadPendingFeedbacks();
+      this.loadStats();
+    });
+  }
+
+  dismissReport(report: any) {
+    if (!confirm('Dismiss this report?')) return;
+
+    app.request({
+      method: 'POST',
+      url: app.forum.attribute('apiUrl') + '/trader/reports/' + report.id + '/dismiss',
+    }).then(() => {
+      app.alerts.show({ type: 'success' }, 'Report dismissed');
+      this.loadReports();
+    });
+  }
+
+  deleteReportedFeedback(report: any) {
+    if (!confirm('Delete the reported feedback? This action cannot be undone.')) return;
+
+    app.request({
+      method: 'POST',
+      url: app.forum.attribute('apiUrl') + '/trader/reports/' + report.id + '/reject',
+    }).then(() => {
+      app.alerts.show({ type: 'success' }, 'Feedback deleted');
+      this.loadReports();
+      this.loadStats();
+    });
+  }
+}

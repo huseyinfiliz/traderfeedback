@@ -20,6 +20,8 @@ use HuseyinFiliz\TraderFeedback\Api\Controllers\RejectReportController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\DismissReportController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\ShowTraderStatsController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\TestNotificationController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\StatsSummaryController;
+use HuseyinFiliz\TraderFeedback\Api\Serializers\StatsSummarySerializer;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\TraderStatsSerializer;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackReportSerializer;
@@ -72,6 +74,7 @@ return [
         ->post('/trader/reports/{id}/approve', 'trader.reports.approve', ApproveReportController::class)
         ->post('/trader/reports/{id}/reject', 'trader.reports.reject', RejectReportController::class)
         ->post('/trader/reports/{id}/dismiss', 'trader.reports.dismiss', DismissReportController::class)
+        ->get('/trader/stats/summary', 'trader.stats.summary', StatsSummaryController::class)
         ->get('/trader/stats/{id}', 'trader.stats.show', ShowTraderStatsController::class)
         ->get('/trader/test-notification', 'trader.test.notification', TestNotificationController::class),
 
@@ -148,7 +151,7 @@ return [
         ->default('huseyinfiliz.traderfeedback.requireApproval', false)
         ->default('huseyinfiliz.traderfeedback.allowNegative', true)
         ->default('huseyinfiliz.traderfeedback.requireDiscussion', false)
-        ->default('huseyinfiliz.traderfeedback.onePerDiscussion', true)
+        ->default('huseyinfiliz.traderfeedback.onePerDiscussion', false)
         ->default('huseyinfiliz.traderfeedback.minLength', 10)
         ->default('huseyinfiliz.traderfeedback.maxLength', 1000)
         ->default('huseyinfiliz.traderfeedback.minDays', 0)

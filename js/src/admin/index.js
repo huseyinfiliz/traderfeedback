@@ -1,5 +1,5 @@
 import app from 'flarum/admin/app';
-import TraderFeedbackSettingsPage from './components/TraderFeedbackSettingsPage';
+import TraderFeedbackSettingsPage from './TraderFeedbackSettingsPage';
 
 app.initializers.add('huseyinfiliz-traderfeedback', () => {
   // Register the main settings page with tabs
