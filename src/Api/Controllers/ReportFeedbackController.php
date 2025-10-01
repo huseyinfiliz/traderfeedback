@@ -13,14 +13,11 @@ use HuseyinFiliz\TraderFeedback\Models\FeedbackReport;
 
 class ReportFeedbackController extends AbstractCreateController
 {
-    /**
-     * {@inheritdoc}
-     */
     public $serializer = FeedbackReportSerializer::class;
+    
+    // ✅ Include relationships
+    public $include = ['reporter', 'feedback', 'feedback.fromUser', 'feedback.toUser'];
 
-    /**
-     * {@inheritdoc}
-     */
     protected function data(ServerRequestInterface $request, Document $document)
     {
         $actor = RequestUtil::getActor($request);
@@ -34,7 +31,7 @@ class ReportFeedbackController extends AbstractCreateController
         
         // Check if already reported by this user
         $existingReport = FeedbackReport::where('feedback_id', $feedback->id)
-            ->where('user_id', $actor->id)
+            ->where('user_id', $actor->id)  // ✅ user_id kullan
             ->where('resolved', false)
             ->first();
             
@@ -44,11 +41,14 @@ class ReportFeedbackController extends AbstractCreateController
         
         // Create the report
         $report = new FeedbackReport();
-        $report->user_id = $actor->id;
+        $report->user_id = $actor->id;  // ✅ user_id kullan
         $report->feedback_id = $feedback->id;
         $report->reason = Arr::get($data, 'attributes.reason', 'No reason provided');
         $report->resolved = false;
         $report->save();
+        
+        // ✅ Load relationships
+        $report->load(['reporter', 'feedback', 'feedback.fromUser', 'feedback.toUser']);
         
         return $report;
     }

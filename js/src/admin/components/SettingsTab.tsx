@@ -1,62 +1,126 @@
+import app from 'flarum/admin/app';
 import Component from 'flarum/common/Component';
 
-export default class StatsCards extends Component {
+export default class SettingsTab extends Component {
   view() {
-    const stats = this.attrs.stats || {
-      total: 0,
-      positive: 0,
-      neutral: 0,
-      negative: 0,
-    };
+    const { buildSettingComponent, submitButton } = this.attrs;
 
     return (
-      <div className="TraderFeedbackStats">
-        {this.card({
-          icon: 'fas fa-exchange-alt',
-          value: stats.total,
-          label: 'Total Feedbacks',
-          type: 'total'
-        })}
+      <div className="TraderFeedbackSettings">
+        <div className="SettingsSection">
+          <h3>
+            <i className="fas fa-cog"></i>
+            General Settings
+          </h3>
+          
+          <div className="SettingsSection-content">
+            <div className="Form-group">
+              {buildSettingComponent({
+                type: 'boolean',
+                setting: 'huseyinfiliz.traderfeedback.requireApproval',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.require_approval_label'),
+              })}
+            </div>
 
-        {this.card({
-          icon: 'fas fa-thumbs-up',
-          value: stats.positive,
-          label: 'Positive',
-          percentage: stats.total > 0 ? Math.round((stats.positive / stats.total) * 100) : 0,
-          type: 'positive'
-        })}
-
-        {this.card({
-          icon: 'fas fa-minus-circle',
-          value: stats.neutral,
-          label: 'Neutral',
-          percentage: stats.total > 0 ? Math.round((stats.neutral / stats.total) * 100) : 0,
-          type: 'neutral'
-        })}
-
-        {this.card({
-          icon: 'fas fa-thumbs-down',
-          value: stats.negative,
-          label: 'Negative',
-          percentage: stats.total > 0 ? Math.round((stats.negative / stats.total) * 100) : 0,
-          type: 'negative'
-        })}
-      </div>
-    );
-  }
-
-  card(data: any) {
-    return (
-      <div className={'StatsCard StatsCard--' + data.type}>
-        <div className="StatsCard-icon">
-          <i className={data.icon}></i>
+            <div className="Form-group">
+              {buildSettingComponent({
+                type: 'boolean',
+                setting: 'huseyinfiliz.traderfeedback.allowNegative',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.allow_negative_label'),
+              })}
+            </div>
+          </div>
         </div>
-        <div className="StatsCard-content">
-          <div className="StatsCard-value">{data.value}</div>
-          <div className="StatsCard-label">{data.label}</div>
-          {data.percentage !== undefined && (
-            <div className="StatsCard-percentage">{data.percentage}%</div>
-          )}
+
+        <div className="SettingsSection">
+          <h3>
+            <i className="fas fa-comments"></i>
+            Discussion Settings
+          </h3>
+          
+          <div className="SettingsSection-content">
+            <div className="Form-group">
+              {buildSettingComponent({
+                type: 'boolean',
+                setting: 'huseyinfiliz.traderfeedback.requireDiscussion',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.require_discussion_label'),
+                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.require_discussion_help'),
+              })}
+            </div>
+
+            <div className="Form-group">
+              {buildSettingComponent({
+                type: 'boolean',
+                setting: 'huseyinfiliz.traderfeedback.onePerDiscussion',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.one_per_discussion_label'),
+                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.one_per_discussion_help'),
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="SettingsSection">
+          <h3>
+            <i className="fas fa-comment-dots"></i>
+            Comment Settings
+          </h3>
+          
+          <div className="SettingsSection-content">
+            <div className="Form-group">
+              {buildSettingComponent({
+                type: 'number',
+                setting: 'huseyinfiliz.traderfeedback.minLength',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_length_label'),
+                placeholder: '10',
+                min: 1,
+              })}
+            </div>
+
+            <div className="Form-group">
+              {buildSettingComponent({
+                type: 'number',
+                setting: 'huseyinfiliz.traderfeedback.maxLength',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.max_length_label'),
+                placeholder: '1000',
+                min: 1,
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="SettingsSection">
+          <h3>
+            <i className="fas fa-user-check"></i>
+            User Requirements
+          </h3>
+          
+          <div className="SettingsSection-content">
+            <div className="Form-group">
+              {buildSettingComponent({
+                type: 'number',
+                setting: 'huseyinfiliz.traderfeedback.minDays',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_days_label'),
+                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_days_help'),
+                placeholder: '0',
+                min: 0,
+              })}
+            </div>
+
+            <div className="Form-group">
+              {buildSettingComponent({
+                type: 'number',
+                setting: 'huseyinfiliz.traderfeedback.minPosts',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_posts_label'),
+                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_posts_help'),
+                placeholder: '0',
+                min: 0,
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="Form-group">
+          {submitButton()}
         </div>
       </div>
     );

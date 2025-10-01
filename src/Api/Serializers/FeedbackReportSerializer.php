@@ -8,14 +8,8 @@ use HuseyinFiliz\TraderFeedback\Models\FeedbackReport;
 
 class FeedbackReportSerializer extends AbstractSerializer
 {
-    /**
-     * {@inheritdoc}
-     */
     protected $type = 'feedback-reports';
 
-    /**
-     * {@inheritdoc}
-     */
     protected function getDefaultAttributes($report)
     {
         return [
@@ -28,9 +22,9 @@ class FeedbackReportSerializer extends AbstractSerializer
     }
 
     /**
-     * Get the user who reported
+     * ✅ Reporter relationship
      */
-    protected function user($report)
+    protected function reporter($report)
     {
         return $this->hasOne($report, BasicUserSerializer::class);
     }

@@ -196,16 +196,16 @@
 // SETTINGS TAB
 // ==========================================
 .TraderFeedbackSettings {
-  max-width: 700px;
-  
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-  }
+  max-width: 800px;
 }
 
 .SettingsSection {
+  margin-bottom: 40px;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
   h3 {
     font-size: 16px;
     font-weight: 600;
@@ -213,10 +213,22 @@
     margin-bottom: 20px;
     padding-bottom: 10px;
     border-bottom: 2px solid @control-bg;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    
+    i {
+      color: @primary-color;
+      font-size: 18px;
+    }
+  }
+  
+  &-content {
+    padding-left: 28px;
   }
   
   .Form-group {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     
     &:last-child {
       margin-bottom: 0;
@@ -236,17 +248,23 @@
       line-height: 1.5;
     }
     
+    input[type="text"],
     input[type="number"] {
-      max-width: 200px;
+      max-width: 400px;
       padding: 8px 12px;
       border: 2px solid @control-bg;
       border-radius: 6px;
       font-size: 14px;
+      transition: border-color @transition-speed ease;
       
       &:focus {
         border-color: @primary-color;
         outline: none;
       }
+    }
+    
+    input[type="number"] {
+      max-width: 150px;
     }
   }
 }
@@ -290,57 +308,115 @@
     margin-bottom: 15px;
     padding-bottom: 15px;
     border-bottom: 1px solid @control-bg;
+    flex-wrap: wrap;
+    gap: 15px;
   }
   
   &-users {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-weight: 500;
+    gap: 15px;
+  }
+  
+  &-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     
-    .username {
-      color: @text-color;
+    .Avatar {
+      flex-shrink: 0;
     }
-    
-    i {
-      color: @muted-color;
-      font-size: 12px;
-    }
+  }
+  
+  &-userInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  &-label {
+    font-size: 11px;
+    color: @muted-color;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  &-arrow {
+    color: @muted-color;
+    font-size: 14px;
   }
   
   &-meta {
     display: flex;
     align-items: center;
     gap: 12px;
-    
-    .time {
-      font-size: 13px;
-      color: @muted-color;
-    }
   }
   
-  &-content {
-    margin-bottom: 15px;
-    
-    p {
-      color: @text-color;
-      line-height: 1.6;
-      margin: 0 0 10px 0;
-      padding: 12px;
-      background: @control-bg;
-      border-radius: 8px;
-    }
+  &-type {
+    text-transform: capitalize;
   }
   
-  &-role {
+  &-date {
     font-size: 13px;
     color: @muted-color;
+  }
+  
+  &-body {
+    margin-bottom: 15px;
+  }
+  
+  &-details {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 12px;
+  }
+  
+  &-detail {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    
+    &Label {
+      font-size: 12px;
+      color: @muted-color;
+      font-weight: 500;
+    }
+    
+    &Value {
+      font-size: 14px;
+      color: @text-color;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      
+      i {
+        font-size: 12px;
+        color: @muted-color;
+      }
+    }
+  }
+  
+  &-comment {
+    background: fade(@control-bg, 50%);
+    padding: 12px 15px;
+    border-radius: 8px;
+    position: relative;
     
     i {
-      font-size: 12px;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 10px;
+      color: @muted-color;
+      opacity: 0.5;
+    }
+    
+    p {
+      margin: 0;
+      padding-left: 15px;
+      color: @text-color;
+      line-height: 1.6;
+      font-size: 14px;
     }
   }
   
@@ -350,62 +426,8 @@
     
     .Button {
       flex: 1;
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      transition: all @transition-speed ease;
-      
-      i {
-        margin-right: 6px;
-      }
-      
-      &--success {
-        background: #22c55e;
-        color: #fff;
-        border: none;
-        
-        &:hover {
-          background: darken(#22c55e, 8%);
-        }
-      }
-      
-      &--danger {
-        background: transparent;
-        color: #ef4444;
-        border: 2px solid #ef4444;
-        
-        &:hover {
-          background: #ef4444;
-          color: #fff;
-        }
-      }
+      justify-content: center;
     }
-  }
-}
-
-.FeedbackBadge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  
-  &--positive {
-    background: fade(#22c55e, 15%);
-    color: #22c55e;
-  }
-  
-  &--neutral {
-    background: fade(#f59e0b, 15%);
-    color: #f59e0b;
-  }
-  
-  &--negative {
-    background: fade(#ef4444, 15%);
-    color: #ef4444;
   }
 }
 
@@ -432,54 +454,130 @@
     margin-bottom: 15px;
     padding-bottom: 15px;
     border-bottom: 1px solid @control-bg;
+    flex-wrap: wrap;
+    gap: 10px;
   }
   
   &-reporter {
     display: flex;
     align-items: center;
-    gap: 8px;
-    color: @text-color;
+    gap: 10px;
     
-    i {
-      color: #ef4444;
-    }
-    
-    strong {
-      font-weight: 600;
+    .Avatar {
+      flex-shrink: 0;
     }
   }
   
-  .time {
-    font-size: 13px;
+  &-reporterInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    
+    strong {
+      font-weight: 600;
+      color: @text-color;
+    }
+  }
+  
+  &-label {
+    font-size: 11px;
+    color: @muted-color;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  &-date {
+    font-size: 12px;
     color: @muted-color;
   }
   
   &-reason {
-    background: fade(#ef4444, 8%);
-    padding: 12px;
-    border-radius: 8px;
+    background: fade(#ef4444, 10%);
+    border-left: 3px solid #ef4444;
+    padding: 12px 15px;
+    border-radius: 6px;
     margin-bottom: 15px;
     
     strong {
       color: #ef4444;
       font-weight: 600;
+      font-size: 13px;
+      display: block;
+      margin-bottom: 6px;
+    }
+    
+    p {
+      margin: 0;
+      color: @text-color;
+      line-height: 1.6;
+      font-size: 14px;
     }
   }
   
   &-feedback {
+    background: fade(@control-bg, 30%);
+    border-radius: 8px;
+    padding: 15px;
     margin-bottom: 15px;
+  }
+  
+  &-feedbackHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
     
-    &-label {
-      font-size: 13px;
-      font-weight: 600;
+    span:first-child {
+      font-size: 12px;
       color: @muted-color;
-      margin-bottom: 10px;
+      font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
+  }
+  
+  &-feedbackUsers {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  &-user {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: @text-color;
     
-    .FeedbackCard {
-      margin-top: 10px;
+    .Avatar--small {
+      width: 24px;
+      height: 24px;
+      font-size: 1rem;
+    }
+  }
+  
+  &-feedbackComment {
+    background: @body-bg;
+    padding: 10px 12px;
+    border-radius: 6px;
+    position: relative;
+    
+    i {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      font-size: 8px;
+      color: @muted-color;
+      opacity: 0.5;
+    }
+    
+    p {
+      margin: 0;
+      padding-left: 12px;
+      color: @text-color;
+      line-height: 1.5;
+      font-size: 13px;
     }
   }
   
@@ -489,34 +587,7 @@
     
     .Button {
       flex: 1;
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      
-      i {
-        margin-right: 6px;
-      }
-      
-      &--primary {
-        background: @primary-color;
-        color: #fff;
-        border: none;
-        
-        &:hover {
-          background: darken(@primary-color, 8%);
-        }
-      }
-      
-      &--danger {
-        background: #ef4444;
-        color: #fff;
-        border: none;
-        
-        &:hover {
-          background: darken(#ef4444, 8%);
-        }
-      }
+      justify-content: center;
     }
   }
 }
@@ -548,6 +619,41 @@
   p {
     font-size: 14px;
     color: @muted-color;
+  }
+}
+
+// ==========================================
+// BADGES
+// ==========================================
+.Badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  
+  &--success {
+    background: fade(#22c55e, 15%);
+    color: #22c55e;
+  }
+  
+  &--warning {
+    background: fade(#f59e0b, 15%);
+    color: #f59e0b;
+  }
+  
+  &--danger {
+    background: fade(#ef4444, 15%);
+    color: #ef4444;
+  }
+  
+  &--primary {
+    background: fade(@primary-color, 15%);
+    color: @primary-color;
   }
 }
 
@@ -587,21 +693,47 @@
     padding: 10px 15px;
     font-size: 13px;
     white-space: nowrap;
-    
-    span:not(.TabButton-badge) {
-      display: none;
-    }
   }
   
   .TraderFeedbackPage-content {
     padding: 20px 15px;
   }
   
+  .SettingsSection {
+    &-content {
+      padding-left: 0;
+    }
+    
+    .Form-group {
+      input[type="text"],
+      input[type="number"] {
+        max-width: 100%;
+      }
+    }
+  }
+  
   .FeedbackCard,
   .ReportCard {
+    padding: 15px;
+    
     &-header {
       flex-direction: column;
       align-items: flex-start;
+    }
+    
+    &-users {
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+      gap: 10px;
+    }
+    
+    &-arrow {
+      transform: rotate(90deg);
+    }
+    
+    &-details {
+      flex-direction: column;
       gap: 10px;
     }
     

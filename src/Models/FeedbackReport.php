@@ -9,7 +9,7 @@ use Carbon\Carbon;
 /**
  * @property int $id
  * @property int $feedback_id
- * @property int $reporter_id
+ * @property int $user_id
  * @property string $reason
  * @property bool $resolved
  * @property int|null $resolved_by_id
@@ -20,9 +20,12 @@ class FeedbackReport extends AbstractModel
 {
     protected $table = 'tfb_reports';
 
+    // ✅ Timestamps enabled
+    public $timestamps = true;
+
     protected $fillable = [
         'feedback_id',
-        'reporter_id',
+        'user_id',  // ✅ user_id (migration'daki gibi)
         'reason',
         'resolved',
         'resolved_by_id',
@@ -44,10 +47,11 @@ class FeedbackReport extends AbstractModel
 
     /**
      * Reporter relationship
+     * ✅ 'user_id' foreign key belirt
      */
     public function reporter()
     {
-        return $this->belongsTo(User::class, 'reporter_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     /**
