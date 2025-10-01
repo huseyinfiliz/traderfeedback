@@ -1,6 +1,10 @@
 <?php
 
 use Flarum\Extend;
+use Flarum\Api\Controller\ShowUserController;
+use Flarum\Api\Controller\ListUsersController;
+use Flarum\Api\Controller\ShowDiscussionController;  // ✅ YENİ
+use Flarum\Api\Controller\ListPostsController;      // ✅ YENİ
 use Flarum\Api\Serializer\UserSerializer;
 use Flarum\Api\Serializer\BasicUserSerializer;
 use Flarum\User\User;
@@ -118,6 +122,23 @@ return [
             return $attributes;
         }),
     
+    // ✅ API Controller includes - Profil ve kullanıcı listeleri için
+    (new Extend\ApiController(ShowUserController::class))
+        ->addInclude('traderStats'),
+
+    (new Extend\ApiController(ListUsersController::class))
+        ->addInclude('traderStats'),
+    
+    // ✅ YENİ - Tartışma sayfalarındaki post user cards için
+    (new Extend\ApiController(ShowDiscussionController::class))
+        ->addInclude('posts.user.traderStats')
+        ->load(['posts.user.traderStats']),  // N+1 sorguları önle
+    
+    // ✅ YENİ - Post listelerindeki user cards için
+    (new Extend\ApiController(ListPostsController::class))
+        ->addInclude('user.traderStats')
+        ->load(['user.traderStats']),  // N+1 sorguları önle
+    
     // NOT: hasOne('subject') EKLEME! 
     // Flarum otomatik serialize eder, manuel ekleme zararlı!
 
@@ -156,10 +177,12 @@ return [
         ->default('huseyinfiliz.traderfeedback.maxLength', 1000)
         ->default('huseyinfiliz.traderfeedback.minDays', 0)
         ->default('huseyinfiliz.traderfeedback.minPosts', 0)
+        ->default('huseyinfiliz.traderfeedback.showBadgeInPosts', true)
         ->serializeToForum('huseyinfiliz.traderfeedback.requireApproval', 'huseyinfiliz.traderfeedback.requireApproval', 'boolval')
         ->serializeToForum('huseyinfiliz.traderfeedback.allowNegative', 'huseyinfiliz.traderfeedback.allowNegative', 'boolval')
         ->serializeToForum('huseyinfiliz.traderfeedback.requireDiscussion', 'huseyinfiliz.traderfeedback.requireDiscussion', 'boolval')
         ->serializeToForum('huseyinfiliz.traderfeedback.onePerDiscussion', 'huseyinfiliz.traderfeedback.onePerDiscussion', 'boolval')
         ->serializeToForum('huseyinfiliz.traderfeedback.minLength', 'huseyinfiliz.traderfeedback.minLength', 'intval')
-        ->serializeToForum('huseyinfiliz.traderfeedback.maxLength', 'huseyinfiliz.traderfeedback.maxLength', 'intval'),
+        ->serializeToForum('huseyinfiliz.traderfeedback.maxLength', 'huseyinfiliz.traderfeedback.maxLength', 'intval')
+        ->serializeToForum('huseyinfiliz.traderfeedback.showBadgeInPosts', 'huseyinfiliz.traderfeedback.showBadgeInPosts', 'boolval'),  // ✅ YENİ ayar için serialize
 ];

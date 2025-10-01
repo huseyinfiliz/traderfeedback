@@ -29,6 +29,16 @@ export default class SettingsTab extends Component {
                 label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.allow_negative_label'),
               })}
             </div>
+
+            {/* ✅ YENİ AYAR */}
+            <div className="Form-group">
+              {buildSettingComponent({
+                type: 'boolean',
+                setting: 'huseyinfiliz.traderfeedback.showBadgeInPosts',
+                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_badge_in_posts_label'),
+                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_badge_in_posts_help'),
+              })}
+            </div>
           </div>
         </div>
 

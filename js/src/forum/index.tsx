@@ -2,6 +2,8 @@ import app from 'flarum/forum/app';
 import { extend } from 'flarum/common/extend';
 import addUserProfilePage from './addUserProfilePage';
 import addUserControls from './addUserControls';
+import addUserCardStats from './addUserCardStats';
+import addPostBadge from './addPostBadge'; // ✅ YENİ
 import FeedbackModal from './modals/FeedbackModal';
 import registerNotifications from './notifications';
 import Feedback from '../common/models/Feedback';
@@ -21,6 +23,8 @@ app.initializers.add('huseyinfiliz-traderfeedback', () => {
   // Sayfaları ve kontrolleri ekle
   addUserProfilePage();
   addUserControls();
+  addUserCardStats();
+  addPostBadge(); // ✅ YENİ
   
   // Debug log
   console.log('✅ Trader feedback extension initialized');
