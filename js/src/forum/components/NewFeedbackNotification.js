@@ -3,8 +3,9 @@ import username from 'flarum/common/helpers/username';
 
 export default class NewFeedbackNotification extends Notification {
   icon() {
-    const data = this.attrs.notification.data();
-    const feedbackType = data?.feedbackType || 'neutral';
+    const notification = this.attrs.notification;
+    const data = notification.data || {};
+    const feedbackType = data.feedbackType || 'neutral';
     
     if (feedbackType === 'positive') return 'fas fa-thumbs-up';
     if (feedbackType === 'negative') return 'fas fa-thumbs-down';
@@ -25,12 +26,12 @@ export default class NewFeedbackNotification extends Notification {
   content() {
     const notification = this.attrs.notification;
     const fromUser = notification.fromUser();
-    const data = notification.data();
+    const data = notification.data || {};
     
     if (!fromUser) return 'Someone gave you feedback';
     
-    const feedbackType = data?.feedbackType || 'neutral';
-    const role = data?.role || 'buyer';
+    const feedbackType = data.feedbackType || 'neutral';
+    const role = data.role || 'buyer';
     
     const roleText = role === 'seller' 
       ? app.translator.trans('huseyinfiliz-traderfeedback.forum.form.role_seller')
@@ -51,7 +52,8 @@ export default class NewFeedbackNotification extends Notification {
   }
 
   excerpt() {
-    const data = this.attrs.notification.data();
-    return data?.comment || '';
+    const notification = this.attrs.notification;
+    const data = notification.data || {};
+    return data.comment || '';
   }
 }

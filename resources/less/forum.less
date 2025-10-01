@@ -1,6 +1,8 @@
 // Trader Feedback Forum Styles - Flarum Design Language
 
+// ============================================
 // Profile Page
+// ============================================
 .TraderFeedbackPage {
   &-header {
     margin-bottom: 20px;
@@ -34,6 +36,7 @@
     
     @media @phone {
       flex: 1 1 calc(50% - 5px);
+      padding: 12px 8px;
     }
     
     &-value {
@@ -41,6 +44,10 @@
       font-weight: bold;
       margin-bottom: 5px;
       color: @text-color;
+      
+      @media @phone {
+        font-size: 20px;
+      }
     }
     
     &-label {
@@ -48,21 +55,26 @@
       text-transform: uppercase;
       color: @muted-color;
       letter-spacing: 0.02em;
+      
+      @media @phone {
+        font-size: 9px;
+      }
     }
     
-    &.score &-value {
+    // Stat type colors
+    &--score &-value {
       color: @primary-color;
     }
     
-    &.positive &-value {
+    &--positive &-value {
       color: #4CAF50;
     }
     
-    &.neutral &-value {
+    &--neutral &-value {
       color: #FF9800;
     }
     
-    &.negative &-value {
+    &--negative &-value {
       color: #f44336;
     }
   }
@@ -75,16 +87,52 @@
     gap: 15px;
     
     @media @phone {
-      flex-direction: column;
-      align-items: stretch;
+      gap: 10px;
+    }
+  }
+  
+  &-filterSelect {
+    flex: 1;
+    min-width: 180px;
+    
+    @media @phone {
+      min-width: 0;
+      flex: 1;
     }
     
     .Select {
-      min-width: 180px;
-      
-      @media @phone {
-        width: 100%;
-      }
+      width: 100%;
+    }
+  }
+  
+  &-giveBtn {
+    white-space: nowrap;
+    
+    @media @phone {
+      padding: 8px 12px;
+      min-width: 80px;
+    }
+  }
+  
+  &-giveBtnIcon {
+    margin-right: 6px;
+    
+    @media @phone {
+      margin-right: 4px;
+    }
+  }
+  
+  &-giveBtnText {
+    @media @phone {
+      display: none;
+    }
+  }
+  
+  &-giveBtnTextShort {
+    display: none;
+    
+    @media @phone {
+      display: inline;
     }
   }
   
@@ -95,45 +143,111 @@
       &:last-child {
         margin-bottom: 0;
       }
+      
+      @media @phone {
+        margin-bottom: 12px;
+      }
     }
   }
 }
 
+// ============================================
 // Feedback Items
+// ============================================
 .FeedbackItem {
   background: @body-bg;
   border: 1px solid @control-bg;
   border-radius: 4px;
   padding: 15px;
+  transition: box-shadow 0.2s ease;
   
-  &.feedback-positive {
+  @media @phone {
+    padding: 12px 10px;
+  }
+  
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  // Feedback type indicators
+  &--positive {
     border-left: 3px solid #4CAF50;
   }
   
-  &.feedback-neutral {
+  &--neutral {
     border-left: 3px solid #FF9800;
   }
   
-  &.feedback-negative {
+  &--negative {
     border-left: 3px solid #f44336;
   }
   
+  // Header section
   &-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    gap: 10px;
+    
+    @media @phone {
+      gap: 8px;
+      margin-bottom: 10px;
+    }
   }
   
+  &-headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
+    
+    @media @phone {
+      gap: 6px;
+    }
+  }
+  
+  &-headerRight {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: @muted-color;
+    font-size: 13px;
+    flex-shrink: 0;
+    
+    @media @phone {
+      gap: 6px;
+      font-size: 12px;
+    }
+  }
+  
+  // User display
   &-user {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    min-width: 0;
     
-    .Avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
+    @media @phone {
+      gap: 6px;
+    }
+  }
+  
+  &-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    
+    @media @phone {
+      width: 28px;
+      height: 28px;
+    }
+    
+    &--placeholder {
       background: @primary-color;
       color: #fff;
       display: inline-flex;
@@ -141,67 +255,95 @@
       justify-content: center;
       font-weight: bold;
       font-size: 14px;
-    }
-    
-    .username {
-      color: @text-color;
-      font-weight: 600;
+      
+      @media @phone {
+        font-size: 12px;
+      }
     }
   }
   
-  &-date {
-    color: @muted-color;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  &-username {
+    color: @text-color;
+    font-weight: 600;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    
+    @media @phone {
+      font-size: 13px;
+      max-width: 100px;
+    }
   }
   
-  &-discussionLink {
-    margin-left: 10px;
-    font-size: 0.9em;
-    color: @link-color;
-    
-    i {
-      margin-right: 4px;
-      font-size: 0.9em;
-    }
+  &-userLink {
+    color: inherit;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+    min-width: 0;
     
     &:hover {
-      text-decoration: underline;
+      .FeedbackItem-avatar {
+        opacity: 0.85;
+      }
+      
+      .FeedbackItem-username {
+        color: @primary-color;
+      }
     }
   }
-
-  &-meta {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 10px;
-    align-items: center;
-  }
   
+  // Badges (type and role)
   &-type,
   &-role {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    flex-shrink: 0;
+    
+    @media @phone {
+      padding: 3px 6px;
+      font-size: 9px;
+      gap: 3px;
+    }
+  }
+  
+  &-typeIcon,
+  &-roleIcon {
+    font-size: 10px;
+    
+    @media @phone {
+      font-size: 11px;
+    }
+  }
+  
+  &-typeText,
+  &-roleText {
+    @media @phone {
+      display: none;
+    }
   }
   
   &-type {
-    &.feedback-type-positive {
-      background: rgba(76, 175, 80, 0.1);
+    &--positive {
+      background: rgba(76, 175, 80, 0.12);
       color: #4CAF50;
     }
     
-    &.feedback-type-neutral {
-      background: rgba(255, 152, 0, 0.1);
+    &--neutral {
+      background: rgba(255, 152, 0, 0.12);
       color: #FF9800;
     }
     
-    &.feedback-type-negative {
-      background: rgba(244, 67, 54, 0.1);
+    &--negative {
+      background: rgba(244, 67, 54, 0.12);
       color: #f44336;
     }
   }
@@ -211,71 +353,156 @@
     color: @muted-color;
   }
   
-  &-comment {
-    color: @text-color;
-    line-height: 1.5;
-    padding: 10px;
-    background: @control-bg;
-    border-radius: 4px;
-    margin-top: 10px;
+  // Date
+  &-date {
+    white-space: nowrap;
   }
   
+  // Discussion link
+  &-discussionLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85em;
+    color: @link-color;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    white-space: nowrap;
+    
+    @media @phone {
+      font-size: 0.8em;
+      gap: 3px;
+    }
+    
+    i {
+      font-size: 0.9em;
+    }
+    
+    &:hover {
+      color: @primary-color;
+      text-decoration: underline;
+    }
+    
+    &--deleted,
+    &--locked {
+      color: @muted-color;
+      opacity: 0.6;
+      cursor: not-allowed;
+      
+      &:hover {
+        text-decoration: none;
+        color: @muted-color;
+      }
+    }
+  }
+  
+  &-discussionLinkText {
+    @media @phone {
+      display: none;
+    }
+  }
+  
+  &-discussionLinkTextShort {
+    display: none;
+    
+    @media @phone {
+      display: inline;
+    }
+  }
+  
+  // Comment section
+  &-comment {
+    color: @text-color;
+    line-height: 1.6;
+    padding: 12px;
+    background: @control-bg;
+    border-radius: 4px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    
+    @media @phone {
+      padding: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  }
+  
+  // Actions section
   &-actions {
     margin-top: 10px;
     padding-top: 10px;
     border-top: 1px solid @control-bg;
     display: flex;
-    gap: 10px;
+    gap: 12px;
+    flex-wrap: wrap;
     
-    .Button {
-      &--link {
-        padding: 4px 8px;
-        font-size: 13px;
-        color: @muted-color;
+    @media @phone {
+      gap: 8px;
+      margin-top: 8px;
+      padding-top: 8px;
+    }
+    
+    .Button--link {
+      padding: 4px 8px;
+      font-size: 13px;
+      color: @muted-color;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      
+      @media @phone {
+        padding: 4px 6px;
+        font-size: 12px;
+        gap: 4px;
+      }
+      
+      &:hover {
+        color: @text-color;
+        background: @control-bg;
+      }
+      
+      i {
+        font-size: 11px;
         
-        &:hover {
-          color: @text-color;
-        }
-        
-        i {
-          margin-right: 4px;
-          font-size: 11px;
+        @media @phone {
+          font-size: 12px;
         }
       }
       
-      &--danger:hover {
+      &.Button--danger:hover {
         color: #f44336;
+        background: rgba(244, 67, 54, 0.08);
       }
     }
   }
-}
-
-// Modal
-.Modal.Modal--medium {
-  .Modal-header {
-    background: @primary-color;
-    color: #fff;
-    
-    .Modal-close {
-      color: #fff;
+  
+  &-actionText {
+	padding-left: 4px;
+    @media @phone {
+      display: none;
     }
   }
 }
 
-// Empty State
-.Placeholder {
-  padding: 40px 20px;
-  text-align: center;
-  color: @muted-color;
-  
-  &::before {
-    content: '\f15c';
-    font-family: 'Font Awesome 5 Free';
-    font-weight: 400;
-    font-size: 32px;
-    display: block;
-    margin-bottom: 15px;
-    opacity: 0.5;
+// ============================================
+// Modal Styles
+// ============================================
+.Modal {
+  &.Modal--medium {
+    .Modal-header {
+      background: @primary-color;
+      color: #fff;
+      
+      .Modal-close {
+        color: #fff;
+        opacity: 0.8;
+        
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
   }
 }
 
@@ -283,31 +510,110 @@
 .ReportModal {
   .Modal-body {
     padding: 20px;
+    
+    @media @phone {
+      padding: 15px;
+    }
   }
   
-  .Form {
-    &-group {
+  .Form-group {
+    margin-bottom: 15px;
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: @text-color;
+    }
+    
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      border: 2px solid @control-bg;
+      border-radius: 4px;
+      padding: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      transition: border-color 0.2s ease;
+      
+      &:focus {
+        border-color: @primary-color;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(red(@primary-color), green(@primary-color), blue(@primary-color), 0.1);
+      }
+    }
+  }
+}
+
+// ============================================
+// Empty State
+// ============================================
+.Placeholder {
+  padding: 60px 20px;
+  text-align: center;
+  color: @muted-color;
+  
+  @media @phone {
+    padding: 40px 15px;
+  }
+  
+  &::before {
+    content: '\f15c';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 400;
+    font-size: 48px;
+    display: block;
+    margin-bottom: 20px;
+    opacity: 0.3;
+    
+    @media @phone {
+      font-size: 36px;
       margin-bottom: 15px;
-      
-      label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: 600;
-        color: @text-color;
-      }
-      
-      textarea {
-        width: 100%;
-        min-height: 100px;
-        border: 2px solid @control-bg;
-        border-radius: 4px;
-        padding: 8px;
-        
-        &:focus {
-          border-color: @primary-color;
-          outline: none;
-        }
-      }
+    }
+  }
+}
+
+// ============================================
+// Loading State
+// ============================================
+.TraderFeedbackPage {
+  .LoadingIndicator {
+    padding: 40px;
+    text-align: center;
+    
+    @media @phone {
+      padding: 30px;
+    }
+  }
+}
+
+// ============================================
+// Accessibility
+// ============================================
+.FeedbackItem {
+  &-userLink,
+  &-discussionLink {
+    &:focus {
+      outline: 2px solid @primary-color;
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+  }
+  
+  .Button--link:focus {
+    outline: 2px solid @primary-color;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+// ============================================
+// Dark Mode Support
+// ============================================
+.dark-mode {
+  .FeedbackItem {
+    &:hover {
+      box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
     }
   }
 }

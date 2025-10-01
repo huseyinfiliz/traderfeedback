@@ -58,12 +58,34 @@ class FeedbackSerializer extends AbstractSerializer
             // Moderate permission
             $attributes['canApprove'] = $this->actor->hasPermission('huseyinfiliz-traderfeedback.moderate');
             $attributes['canModerate'] = $this->actor->hasPermission('huseyinfiliz-traderfeedback.moderate');
+            
+            // Discussion visibility check - kullanıcı bazlı kontrol
+            if ($feedback->discussion_id) {
+                $discussion = \Flarum\Discussion\Discussion::find($feedback->discussion_id);
+                
+                if ($discussion) {
+                    // Tartışma var ve kullanıcı görebiliyor mu?
+                    $attributes['discussionExists'] = true;
+                    $attributes['canViewDiscussion'] = $this->actor->can('view', $discussion);
+                } else {
+                    // Tartışma silinmiş
+                    $attributes['discussionExists'] = false;
+                    $attributes['canViewDiscussion'] = false;
+                }
+            } else {
+                // Hiç tartışma yok
+                $attributes['discussionExists'] = false;
+                $attributes['canViewDiscussion'] = false;
+            }
         } else {
+            // Guest kullanıcı
             $attributes['canEdit'] = false;
             $attributes['canDelete'] = false;
             $attributes['canReport'] = false;
             $attributes['canApprove'] = false;
             $attributes['canModerate'] = false;
+            $attributes['discussionExists'] = false;
+            $attributes['canViewDiscussion'] = false;
         }
         
         return $attributes;

@@ -11,5 +11,5 @@ export default class Feedback extends Model {
   // Relationships
   fromUser = Model.hasOne('fromUser');
   toUser = Model.hasOne('toUser');
-  discussion = Model.hasOne('discussion');
+  //discussion = Model.hasOne('discussion');
 }
