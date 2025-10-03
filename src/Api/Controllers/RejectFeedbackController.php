@@ -1,18 +1,14 @@
 <?php
-
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
 use Flarum\Api\Controller\AbstractShowController;
 use Flarum\Http\RequestUtil;
-use Flarum\Notification\NotificationSyncer;
 use Illuminate\Support\Arr;
 use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Models\TraderStats;
-use HuseyinFiliz\TraderFeedback\Notifications\FeedbackRejectedBlueprint;
-use Flarum\User\User;
 use Carbon\Carbon;
 
 class RejectFeedbackController extends AbstractShowController
@@ -26,29 +22,40 @@ class RejectFeedbackController extends AbstractShowController
         
         $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
         
-        $feedback = Feedback::findOrFail($id);
+        $feedback = Feedback::with(['fromUser', 'toUser'])->findOrFail($id);
         
-        // İlişkileri yükle
-        $feedback->load(['fromUser', 'toUser']);
-        
-        // Reddeden kişiyi kaydet
-        $feedback->approved_by_id = $actor->id;
-        $feedback->save();
-        
-        // to_user_id'yi sakla (stats güncelleme için)
+        // Değerleri sakla (silmeden önce)
         $toUserId = $feedback->to_user_id;
         $fromUserId = $feedback->from_user_id;
+        $feedbackId = $feedback->id;
+        $feedbackType = $feedback->type;
         
-        // BİLDİRİM GÖNDER - Silmeden önce!
-        $fromUser = User::find($fromUserId);
-        
-        if ($fromUser) {
-            $notifications = app(NotificationSyncer::class);
-            $blueprint = new FeedbackRejectedBlueprint($feedback);
-            $notifications->sync($blueprint, [$fromUser]);
+        // RAW QUERY ile bildirim oluştur (feedback silinmeden önce)
+        if ($fromUserId) {
+            $now = Carbon::now();
+            
+            app('db')->table('notifications')->insert([
+                'user_id' => $fromUserId,
+                'from_user_id' => $toUserId,
+                'type' => 'feedbackRejected',
+                'subject_id' => $feedbackId,
+                'data' => json_encode([
+                    'feedbackId' => $feedbackId,
+                    'feedbackType' => $feedbackType
+                ]),
+                'created_at' => $now,
+                'read_at' => null,
+                'is_deleted' => 0
+            ]);
+            
+            app('log')->info('Raw inserted FeedbackRejected notification', [
+                'user_id' => $fromUserId,
+                'from_user_id' => $toUserId,
+                'subject_id' => $feedbackId
+            ]);
         }
         
-        // Şimdi güvenle silebiliriz
+        // Feedback'i sil
         $feedback->delete();
         
         // Stats güncelle

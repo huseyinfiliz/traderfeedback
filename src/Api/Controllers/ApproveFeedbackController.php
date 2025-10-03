@@ -1,10 +1,10 @@
 <?php
-
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
 use Flarum\Api\Controller\AbstractShowController;
 use Flarum\Http\RequestUtil;
 use Flarum\Notification\NotificationSyncer;
+use Flarum\Notification\Notification;
 use Illuminate\Support\Arr;
 use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
@@ -29,9 +29,6 @@ class ApproveFeedbackController extends AbstractShowController
         
         $feedback = Feedback::findOrFail($id);
         
-        // İlişkileri yükle
-        $feedback->load(['fromUser', 'toUser']);
-        
         // Önceden onaylı mıydı kontrol et
         $wasApproved = $feedback->is_approved;
         
@@ -40,27 +37,45 @@ class ApproveFeedbackController extends AbstractShowController
         $feedback->approved_by_id = $actor->id;
         $feedback->save();
         
+        // ✅ Database'den FRESH olarak yeniden çek
+        $feedback = Feedback::with(['fromUser', 'toUser'])->findOrFail($id);
+        
         // Stats güncelle
         $this->updateUserStats($feedback->to_user_id);
         
         // İlk kez onaylanıyorsa bildirimleri gönder
         if (!$wasApproved) {
-            $notifications = app(NotificationSyncer::class);
-            
-            // 1. Feedback sahibine onay bildirimi
-            $fromUser = User::find($feedback->from_user_id);
-            
-            if ($fromUser) {
-                $blueprint = new FeedbackApprovedBlueprint($feedback);
-                $notifications->sync($blueprint, [$fromUser]);
+            // 1. Feedback sahibine onay bildirimi - RAW QUERY
+            if ($feedback->fromUser) {
+                $now = Carbon::now();
+                
+                // ✅ app('db') kullan, facade değil
+                app('db')->table('notifications')->insert([
+                    'user_id' => $feedback->fromUser->id,
+                    'from_user_id' => $feedback->to_user_id,
+                    'type' => 'feedbackApproved',
+                    'subject_id' => $feedback->id,
+                    'data' => json_encode([
+                        'feedbackId' => $feedback->id,
+                        'feedbackType' => $feedback->type
+                    ]),
+                    'created_at' => $now,
+                    'read_at' => null,
+                    'is_deleted' => 0
+                ]);
+                
+                app('log')->info('Raw inserted FeedbackApproved notification', [
+                    'user_id' => $feedback->fromUser->id,
+                    'from_user_id' => $feedback->to_user_id,
+                    'subject_id' => $feedback->id
+                ]);
             }
             
-            // 2. Feedback alan kişiye yeni feedback bildirimi
-            $toUser = User::find($feedback->to_user_id);
-            
-            if ($toUser) {
+            // 2. Feedback alan kişiye yeni feedback bildirimi - Normal sync (çalışıyor)
+            if ($feedback->toUser) {
+                $notifications = app(NotificationSyncer::class);
                 $newFeedbackBlueprint = new NewFeedbackBlueprint($feedback);
-                $notifications->sync($newFeedbackBlueprint, [$toUser]);
+                $notifications->sync($newFeedbackBlueprint, [$feedback->toUser]);
             }
         }
         

@@ -1,5 +1,4 @@
 <?php
-
 namespace HuseyinFiliz\TraderFeedback\Notifications;
 
 use Flarum\Notification\Blueprint\BlueprintInterface;
@@ -17,21 +16,16 @@ class FeedbackApprovedBlueprint implements BlueprintInterface
 
     public function getSubject()
     {
-        // ✅ DÜZELTME: Notification'ın KONUSU olan entity'yi döndür (Feedback modeli)
-        // Bu subject_id'ye yazılır (subject_id = feedback_id olur)
         return $this->feedback;
     }
 
     public function getFromUser()
     {
-        // Bildirimin KAYNAĞI (from_user_id sütununa yazılacak)
-        // Frontend notification.fromUser() ile bu kişiyi gösterecek
         return User::find($this->feedback->to_user_id);
     }
 
     public function getData()
     {
-        // Sadeleştirilmiş data - frontend fromUser'dan username'i alacak
         return [
             'feedbackId' => $this->feedback->id,
             'feedbackType' => $this->feedback->type
@@ -45,7 +39,6 @@ class FeedbackApprovedBlueprint implements BlueprintInterface
 
     public static function getSubjectModel()
     {
-        // ✅ DÜZELTME: Subject model artık Feedback
         return Feedback::class;
     }
 }

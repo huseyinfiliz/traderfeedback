@@ -82,7 +82,6 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
           <SettingsTab
             buildSettingComponent={this.buildSettingComponent.bind(this)}
             submitButton={this.submitButton.bind(this)}
-            onSave={() => this.saveSettings()}
           />
         );
       case 'approvals':
@@ -323,17 +322,6 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
     }).catch((error) => {
       console.error('Delete error:', error);
       app.alerts.show({ type: 'error' }, 'Failed to delete feedback');
-    });
-  }
-
-  saveSettings() {
-    this.loading = true;
-    this.settings().then(() => {
-      this.loading = false;
-      app.alerts.show({ type: 'success' }, 'Settings saved');
-    }).catch(() => {
-      this.loading = false;
-      app.alerts.show({ type: 'error' }, 'Failed to save settings');
     });
   }
 }

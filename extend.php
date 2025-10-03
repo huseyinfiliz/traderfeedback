@@ -3,12 +3,10 @@
 use Flarum\Extend;
 use Flarum\Api\Controller\ShowUserController;
 use Flarum\Api\Controller\ListUsersController;
-use Flarum\Api\Controller\ShowDiscussionController;  // ✅ YENİ
-use Flarum\Api\Controller\ListPostsController;      // ✅ YENİ
+use Flarum\Api\Controller\ShowDiscussionController;
+use Flarum\Api\Controller\ListPostsController;
 use Flarum\Api\Serializer\UserSerializer;
-use Flarum\Api\Serializer\BasicUserSerializer;
 use Flarum\User\User;
-use Flarum\Group\Group;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\ListFeedbacksController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\CreateFeedbackController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\ListPendingFeedbacksController;
@@ -25,10 +23,8 @@ use HuseyinFiliz\TraderFeedback\Api\Controllers\DismissReportController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\ShowTraderStatsController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\TestNotificationController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\StatsSummaryController;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\StatsSummarySerializer;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\TraderStatsSerializer;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackReportSerializer;
 use HuseyinFiliz\TraderFeedback\Listeners\AddUserPreferencesListener;
 use HuseyinFiliz\TraderFeedback\Listeners\UserDeletedListener;
 use HuseyinFiliz\TraderFeedback\Listeners\FeedbackCreatedListener;
@@ -36,7 +32,6 @@ use HuseyinFiliz\TraderFeedback\Listeners\FeedbackUpdatedListener;
 use HuseyinFiliz\TraderFeedback\Listeners\NotificationSendingListener;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Models\TraderStats;
-use HuseyinFiliz\TraderFeedback\Models\FeedbackReport;
 use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackRejectedBlueprint;
@@ -44,8 +39,6 @@ use HuseyinFiliz\TraderFeedback\Access\FeedbackPolicy;
 use HuseyinFiliz\TraderFeedback\Access\GlobalPolicy;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackCreated;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated;
-use Flarum\Notification\Notification;
-use Flarum\Api\Serializer\NotificationSerializer;
 use Flarum\Notification\Event\Sending;
 
 return [
@@ -94,10 +87,6 @@ return [
         ->belongsTo('toUser', User::class, 'to_user_id')
         ->belongsTo('approvedBy', User::class, 'approved_by_id'),
 
-    // NOT: Notification model'e relationship EKLEME!
-    // Flarum otomatik olarak Blueprint'teki getSubject() ve getSubjectModel() 
-    // kullanarak subject'i yükler. Manuel relationship gereksiz ve zararlı!
-
     // Extend the UserSerializer to add permission attributes
     (new Extend\ApiSerializer(UserSerializer::class))
         ->hasMany('feedbacksReceived', FeedbackSerializer::class)
@@ -122,25 +111,20 @@ return [
             return $attributes;
         }),
     
-    // ✅ API Controller includes - Profil ve kullanıcı listeleri için
+    // API Controller includes
     (new Extend\ApiController(ShowUserController::class))
         ->addInclude('traderStats'),
 
     (new Extend\ApiController(ListUsersController::class))
         ->addInclude('traderStats'),
     
-    // ✅ YENİ - Tartışma sayfalarındaki post user cards için
     (new Extend\ApiController(ShowDiscussionController::class))
         ->addInclude('posts.user.traderStats')
-        ->load(['posts.user.traderStats']),  // N+1 sorguları önle
+        ->load(['posts.user.traderStats']),
     
-    // ✅ YENİ - Post listelerindeki user cards için
     (new Extend\ApiController(ListPostsController::class))
         ->addInclude('user.traderStats')
-        ->load(['user.traderStats']),  // N+1 sorguları önle
-    
-    // NOT: hasOne('subject') EKLEME! 
-    // Flarum otomatik serialize eder, manuel ekleme zararlı!
+        ->load(['user.traderStats']),
 
     // Register notification preferences
     (new Extend\User())
@@ -153,7 +137,7 @@ return [
         ->globalPolicy(GlobalPolicy::class)
         ->modelPolicy(Feedback::class, FeedbackPolicy::class),
 
-    // ✅ Notification type registration - FeedbackSerializer subject için kullanılır
+    // Notification type registration
     (new Extend\Notification())
         ->type(NewFeedbackBlueprint::class, FeedbackSerializer::class, ['alert'])
         ->type(FeedbackApprovedBlueprint::class, FeedbackSerializer::class, ['alert'])
@@ -184,5 +168,5 @@ return [
         ->serializeToForum('huseyinfiliz.traderfeedback.onePerDiscussion', 'huseyinfiliz.traderfeedback.onePerDiscussion', 'boolval')
         ->serializeToForum('huseyinfiliz.traderfeedback.minLength', 'huseyinfiliz.traderfeedback.minLength', 'intval')
         ->serializeToForum('huseyinfiliz.traderfeedback.maxLength', 'huseyinfiliz.traderfeedback.maxLength', 'intval')
-        ->serializeToForum('huseyinfiliz.traderfeedback.showBadgeInPosts', 'huseyinfiliz.traderfeedback.showBadgeInPosts', 'boolval'),  // ✅ YENİ ayar için serialize
+        ->serializeToForum('huseyinfiliz.traderfeedback.showBadgeInPosts', 'huseyinfiliz.traderfeedback.showBadgeInPosts', 'boolval'),
 ];
