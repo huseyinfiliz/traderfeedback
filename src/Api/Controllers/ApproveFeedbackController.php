@@ -12,11 +12,17 @@ use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
 use HuseyinFiliz\TraderFeedback\Services\StatsService;
-use Carbon\Carbon;
 
 class ApproveFeedbackController extends AbstractShowController
 {
     public $serializer = FeedbackSerializer::class;
+    
+    protected $notifications;
+    
+    public function __construct(NotificationSyncer $notifications)
+    {
+        $this->notifications = $notifications;
+    }
     
     protected function data(ServerRequestInterface $request, Document $document)
     {
@@ -25,9 +31,8 @@ class ApproveFeedbackController extends AbstractShowController
         
         $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
         
-        $feedback = Feedback::findOrFail($id);
+        $feedback = Feedback::with(['fromUser', 'toUser'])->findOrFail($id);
         
-        // Check if already approved
         $wasApproved = $feedback->is_approved;
         
         // Approve feedback
@@ -35,46 +40,28 @@ class ApproveFeedbackController extends AbstractShowController
         $feedback->approved_by_id = $actor->id;
         $feedback->save();
         
-        // Reload with relationships
-        $feedback = Feedback::with(['fromUser', 'toUser'])->findOrFail($id);
-        
-        // Update stats using service
+        // Update stats
         StatsService::updateUserStats($feedback->to_user_id);
         
         // Send notifications if newly approved
         if (!$wasApproved) {
-            // 1. Notify feedback author about approval
-            if ($feedback->fromUser) {
-                $now = Carbon::now();
+            try {
+                // 1. Notify feedback author about approval
+                if ($feedback->fromUser) {
+                    $approvalBlueprint = new FeedbackApprovedBlueprint($feedback);
+                    $this->notifications->sync($approvalBlueprint, [$feedback->fromUser]);
+                }
                 
-                try {
-                    app('db')->table('notifications')->insert([
-                        'user_id' => (int)$feedback->fromUser->id,
-                        'from_user_id' => (int)$feedback->to_user_id,
-                        'type' => 'feedbackApproved',
-                        'subject_id' => (int)$feedback->id,
-                        'data' => json_encode([
-                            'feedbackId' => (int)$feedback->id,
-                            'feedbackType' => $feedback->type
-                        ], JSON_THROW_ON_ERROR),
-                        'created_at' => $now,
-                        'read_at' => null,
-                        'is_deleted' => 0
-                    ]);
-                } catch (\Exception $e) {
-                    // Silently fail - notification is not critical
-                }
-            }
-            
-            // 2. Notify feedback recipient about new feedback
-            if ($feedback->toUser) {
-                try {
-                    $notifications = app(NotificationSyncer::class);
+                // 2. Notify feedback recipient about new feedback
+                if ($feedback->toUser) {
                     $newFeedbackBlueprint = new NewFeedbackBlueprint($feedback);
-                    $notifications->sync($newFeedbackBlueprint, [$feedback->toUser]);
-                } catch (\Exception $e) {
-                    // Silently fail - notification is not critical
+                    $this->notifications->sync($newFeedbackBlueprint, [$feedback->toUser]);
                 }
+            } catch (\Exception $e) {
+                app('log')->error('Failed to send approval notifications', [
+                    'feedback_id' => $feedback->id,
+                    'error' => $e->getMessage()
+                ]);
             }
         }
         

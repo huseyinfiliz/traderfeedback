@@ -3,17 +3,25 @@ namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
 use Flarum\Api\Controller\AbstractShowController;
 use Flarum\Http\RequestUtil;
+use Flarum\Notification\NotificationSyncer;
 use Illuminate\Support\Arr;
 use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
+use HuseyinFiliz\TraderFeedback\Notifications\FeedbackRejectedBlueprint;
 use HuseyinFiliz\TraderFeedback\Services\StatsService;
-use Carbon\Carbon;
 
 class RejectFeedbackController extends AbstractShowController
 {
     public $serializer = FeedbackSerializer::class;
+    
+    protected $notifications;
+    
+    public function __construct(NotificationSyncer $notifications)
+    {
+        $this->notifications = $notifications;
+    }
     
     protected function data(ServerRequestInterface $request, Document $document)
     {
@@ -24,41 +32,25 @@ class RejectFeedbackController extends AbstractShowController
         
         $feedback = Feedback::with(['fromUser', 'toUser'])->findOrFail($id);
         
-        // Store values before soft delete
-        $toUserId = (int)$feedback->to_user_id;
-        $fromUserId = (int)$feedback->from_user_id;
-        $feedbackId = (int)$feedback->id;
-        $feedbackType = $feedback->type;
-        
-        // Create notification before soft deleting feedback
-        if ($fromUserId) {
-            $now = Carbon::now();
-            
+        // Notify feedback author about rejection BEFORE deleting
+        if ($feedback->fromUser) {
             try {
-                app('db')->table('notifications')->insert([
-                    'user_id' => $fromUserId,
-                    'from_user_id' => $toUserId,
-                    'type' => 'feedbackRejected',
-                    'subject_id' => $feedbackId,
-                    'data' => json_encode([
-                        'feedbackId' => $feedbackId,
-                        'feedbackType' => $feedbackType
-                    ], JSON_THROW_ON_ERROR),
-                    'created_at' => $now,
-                    'read_at' => null,
-                    'is_deleted' => 0
-                ]);
+                $blueprint = new FeedbackRejectedBlueprint($feedback);
+                $this->notifications->sync($blueprint, [$feedback->fromUser]);
             } catch (\Exception $e) {
-                // Silently fail - notification is not critical
+                app('log')->error('Failed to send rejection notification', [
+                    'feedback_id' => $feedback->id,
+                    'error' => $e->getMessage()
+                ]);
             }
         }
         
-        // Soft delete the feedback (sets deleted_at timestamp)
+        // Soft delete the feedback
         $feedback->is_approved = false;
         $feedback->delete();
         
-        // Update stats using service
-        StatsService::updateUserStats($toUserId);
+        // Update stats
+        StatsService::updateUserStats($feedback->to_user_id);
         
         return $feedback;
     }
