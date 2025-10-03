@@ -14,6 +14,7 @@ use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Validators\FeedbackValidator;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackCreated;
 use HuseyinFiliz\TraderFeedback\Services\StatsService;
+use Carbon\Carbon;
 
 class CreateFeedbackController extends AbstractCreateController
 {
@@ -35,6 +36,20 @@ class CreateFeedbackController extends AbstractCreateController
     {
         $actor = RequestUtil::getActor($request);
         $data = Arr::get($request->getParsedBody(), 'data.attributes', []);
+        
+        // Rate Limit Check: Max 1 feedback per minute
+        $recentFeedback = Feedback::where('from_user_id', $actor->id)
+            ->where('created_at', '>', Carbon::now()->subMinute())
+            ->exists();
+        
+        if ($recentFeedback) {
+            throw new ValidationException([
+                'rate_limit' => app('translator')->trans(
+                    'huseyinfiliz-traderfeedback.api.validation.rate_limit_feedback',
+                    ['seconds' => 60]
+                )
+            ]);
+        }
         
         // Check if discussion is required
         $requireDiscussion = $this->settings->get('huseyinfiliz.traderfeedback.requireDiscussion', false);

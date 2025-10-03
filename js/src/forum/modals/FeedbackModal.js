@@ -10,6 +10,7 @@ export default class FeedbackModal extends Modal {
     
     this.user = this.attrs.user;
     this.loading = false;
+    this.isSubmitting = false;
     
     this.type = Stream('positive');
     this.role = Stream('buyer');
@@ -32,13 +33,11 @@ export default class FeedbackModal extends Modal {
     const requireDiscussion = app.forum.attribute('huseyinfiliz.traderfeedback.requireDiscussion') || false;
     const allowNegative = app.forum.attribute('huseyinfiliz.traderfeedback.allowNegative') !== false;
     
-    // Feedback type seçeneklerini oluştur
     const typeOptions = {
       'positive': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_positive'),
       'neutral': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_neutral')
     };
     
-    // Negative seçeneğini sadece izin veriliyorsa ekle
     if (allowNegative) {
       typeOptions['negative'] = app.translator.trans('huseyinfiliz-traderfeedback.forum.form.type_negative');
     }
@@ -50,7 +49,8 @@ export default class FeedbackModal extends Modal {
           Select.component({
             value: this.type(),
             options: typeOptions,
-            onchange: this.type
+            onchange: this.type,
+            disabled: this.isSubmitting
           })
         ]),
         
@@ -63,7 +63,8 @@ export default class FeedbackModal extends Modal {
               'seller': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.role_seller'),
               'trader': app.translator.trans('huseyinfiliz-traderfeedback.forum.form.role_trader')
             },
-            onchange: this.role
+            onchange: this.role,
+            disabled: this.isSubmitting
           })
         ]),
         
@@ -79,7 +80,8 @@ export default class FeedbackModal extends Modal {
               this.parseDiscussionId(e.target.value);
             },
             placeholder: app.translator.trans('huseyinfiliz-traderfeedback.forum.form.discussion_placeholder'),
-            required: requireDiscussion
+            required: requireDiscussion,
+            disabled: this.isSubmitting
           }),
           m('.helpText', app.translator.trans('huseyinfiliz-traderfeedback.forum.form.discussion_help'))
         ]),
@@ -90,7 +92,8 @@ export default class FeedbackModal extends Modal {
             value: this.comment(),
             oninput: (e) => this.comment(e.target.value),
             placeholder: app.translator.trans('huseyinfiliz-traderfeedback.forum.form.comment_placeholder'),
-            rows: 5
+            rows: 5,
+            disabled: this.isSubmitting
           })
         ]),
         
@@ -99,7 +102,7 @@ export default class FeedbackModal extends Modal {
             type: 'submit',
             className: 'Button Button--primary',
             loading: this.loading,
-            disabled: !this.comment().trim() || (requireDiscussion && !this.discussionId)
+            disabled: this.isSubmitting || !this.comment().trim() || (requireDiscussion && !this.discussionId)
           }, app.translator.trans('huseyinfiliz-traderfeedback.forum.form.submit_button'))
         ])
       ])
@@ -132,6 +135,10 @@ export default class FeedbackModal extends Modal {
   onsubmit(e) {
     e.preventDefault();
     
+    if (this.isSubmitting) {
+      return;
+    }
+    
     if (!this.comment().trim()) return;
     
     const requireDiscussion = app.forum.attribute('huseyinfiliz.traderfeedback.requireDiscussion') || false;
@@ -160,8 +167,9 @@ export default class FeedbackModal extends Modal {
       return;
     }
     
+    this.isSubmitting = true;
     this.loading = true;
-    m.redraw();
+    m.redraw(); // UI'ı hemen güncelle
     
     const data = {
       to_user_id: this.user.id(),
@@ -191,6 +199,7 @@ export default class FeedbackModal extends Modal {
       window.location.reload();
     })
     .catch(error => {
+      this.isSubmitting = false;
       this.loading = false;
       m.redraw();
       

@@ -10,6 +10,8 @@ huseyinfiliz-traderfeedback:
       discussion_not_found: "The specified discussion does not exist."
       discussion_required: "Discussion URL or ID is required for feedback."
       already_reported: "You have already reported this feedback."
+      rate_limit_feedback: "Please wait {seconds} seconds before submitting another feedback."
+      rate_limit_report: "Please wait {seconds} seconds before submitting another report."
 
   # Forum translations
   forum:
