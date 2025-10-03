@@ -11,10 +11,9 @@ use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
-use HuseyinFiliz\TraderFeedback\Models\TraderStats;
 use HuseyinFiliz\TraderFeedback\Validators\FeedbackValidator;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackCreated;
-use Carbon\Carbon;
+use HuseyinFiliz\TraderFeedback\Services\StatsService;
 
 class CreateFeedbackController extends AbstractCreateController
 {
@@ -47,7 +46,7 @@ class CreateFeedbackController extends AbstractCreateController
         
         // Check allow negative setting
         $allowNegative = $this->settings->get('huseyinfiliz.traderfeedback.allowNegative');
-        if (($allowNegative === false || $allowNegative === "0" || $allowNegative === 0) && Arr::get($data, 'type') === 'negative') {
+        if (($allowNegative === false || $allowNegative === "0" || $allowNegative === 0) && Arr::get($data, 'type') === Feedback::TYPE_NEGATIVE) {
             throw new ValidationException([
                 'type' => 'Negative feedback is not allowed.'
             ]);
@@ -57,7 +56,8 @@ class CreateFeedbackController extends AbstractCreateController
         $this->validator->assertValid($data);
         
         // Check if user is trying to give feedback to themselves
-        if ($actor->id == Arr::get($data, 'to_user_id')) {
+        $toUserId = (int) Arr::get($data, 'to_user_id');
+        if ($actor->id == $toUserId) {
             throw new ValidationException([
                 'to_user_id' => 'You cannot give feedback to yourself.'
             ]);
@@ -68,7 +68,9 @@ class CreateFeedbackController extends AbstractCreateController
         if ($discussionId) {
             // Check if it's a URL
             if (preg_match('/\/d\/(\d+)/', $discussionId, $matches)) {
-                $discussionId = $matches[1];
+                $discussionId = (int) $matches[1];
+            } else {
+                $discussionId = (int) $discussionId;
             }
         }
         
@@ -76,7 +78,7 @@ class CreateFeedbackController extends AbstractCreateController
         $onePerDiscussion = $this->settings->get('huseyinfiliz.traderfeedback.onePerDiscussion', true);
         if ($onePerDiscussion && $discussionId) {
             $existingFeedback = Feedback::where('from_user_id', $actor->id)
-                ->where('to_user_id', Arr::get($data, 'to_user_id'))
+                ->where('to_user_id', $toUserId)
                 ->where('discussion_id', $discussionId)
                 ->exists();
                 
@@ -95,14 +97,25 @@ class CreateFeedbackController extends AbstractCreateController
                     'discussion_id' => 'The specified discussion does not exist.'
                 ]);
             }
+            
+            // Check if discussion is deleted/hidden
+            if ($discussionExists->hidden_at !== null) {
+                throw new ValidationException([
+                    'discussion_id' => 'The specified discussion is not available.'
+                ]);
+            }
         }
+        
+        // XSS Protection: Strip HTML tags from comment
+        $rawComment = Arr::get($data, 'comment', '');
+        $sanitizedComment = strip_tags($rawComment);
         
         // Create the feedback
         $feedback = new Feedback();
         $feedback->from_user_id = $actor->id;
-        $feedback->to_user_id = Arr::get($data, 'to_user_id');
+        $feedback->to_user_id = $toUserId;
         $feedback->type = Arr::get($data, 'type');
-        $feedback->comment = Arr::get($data, 'comment');
+        $feedback->comment = $sanitizedComment;
         $feedback->role = Arr::get($data, 'role');
         $feedback->discussion_id = $discussionId;
         $feedback->is_approved = !$this->settings->get('huseyinfiliz.traderfeedback.requireApproval', false);
@@ -114,38 +127,12 @@ class CreateFeedbackController extends AbstractCreateController
         
         // Update stats if feedback is approved
         if ($feedback->is_approved) {
-            $this->updateUserStats($feedback->to_user_id);
+            StatsService::updateUserStats($feedback->to_user_id);
         }
         
         // Fire the event - listener will handle the notification
-        // Event listener (FeedbackCreatedListener) will send the notification
         event(new FeedbackCreated($feedback, $actor));
         
         return $feedback;
-    }
-    
-    protected function updateUserStats($userId)
-    {
-        $stats = TraderStats::firstOrNew(['user_id' => $userId]);
-        
-        $stats->positive_count = Feedback::where('to_user_id', $userId)
-            ->where('type', 'positive')
-            ->where('is_approved', true)
-            ->count();
-            
-        $stats->neutral_count = Feedback::where('to_user_id', $userId)
-            ->where('type', 'neutral')
-            ->where('is_approved', true)
-            ->count();
-            
-        $stats->negative_count = Feedback::where('to_user_id', $userId)
-            ->where('type', 'negative')
-            ->where('is_approved', true)
-            ->count();
-        
-        $total = $stats->positive_count + $stats->neutral_count + $stats->negative_count;
-        $stats->score = $total > 0 ? ($stats->positive_count / $total) * 100 : 0;
-        $stats->last_updated = Carbon::now();
-        $stats->save();
     }
 }

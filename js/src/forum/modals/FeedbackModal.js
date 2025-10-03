@@ -156,7 +156,7 @@ export default class FeedbackModal extends Modal {
     // Allow negative kontrolü - form submit edilirken ekstra kontrol
     const allowNegative = app.forum.attribute('huseyinfiliz.traderfeedback.allowNegative') !== false;
     if (!allowNegative && this.type() === 'negative') {
-      app.alerts.show({ type: 'error' }, 'Negative feedback is not allowed.');
+      app.alerts.show({ type: 'error' }, app.translator.trans('huseyinfiliz-traderfeedback.api.validation.negative_not_allowed'));
       return;
     }
     
@@ -197,7 +197,7 @@ export default class FeedbackModal extends Modal {
       if (error.response && error.response.errors) {
         app.alerts.show({ type: 'error' }, error.response.errors[0].detail);
       } else {
-        app.alerts.show({ type: 'error' }, 'Error submitting feedback');
+        app.alerts.show({ type: 'error' }, app.translator.trans('huseyinfiliz-traderfeedback.forum.form.error_submit'));
       }
     });
   }

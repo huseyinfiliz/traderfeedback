@@ -10,5 +10,4 @@ export default function registerNotifications() {
   app.notificationComponents.feedbackRejected = FeedbackRejectedNotification;
   app.notificationComponents.newFeedback = NewFeedbackNotification;
   
-  console.log('✅ Trader feedback notification components registered');
 }

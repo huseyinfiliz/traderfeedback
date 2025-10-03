@@ -24,10 +24,10 @@ export default function addPostBadge() {
     items.add(
       'traderBadge',
       <span className="TraderBadge TraderBadge--inline">
-        <i className="fas fa-balance-scale"></i>
+        <i className="fas fa-shopping-cart"></i>
         <span className="TraderBadge-score">{score}%</span>
       </span>,
-      -5 // Kullanıcı adından sonra gelmesi için negatif priority
+      0
     );
   });
 }

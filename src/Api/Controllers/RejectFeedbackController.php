@@ -8,7 +8,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
-use HuseyinFiliz\TraderFeedback\Models\TraderStats;
+use HuseyinFiliz\TraderFeedback\Services\StatsService;
 use Carbon\Carbon;
 
 class RejectFeedbackController extends AbstractShowController
@@ -24,68 +24,42 @@ class RejectFeedbackController extends AbstractShowController
         
         $feedback = Feedback::with(['fromUser', 'toUser'])->findOrFail($id);
         
-        // Değerleri sakla (silmeden önce)
-        $toUserId = $feedback->to_user_id;
-        $fromUserId = $feedback->from_user_id;
-        $feedbackId = $feedback->id;
+        // Store values before soft delete
+        $toUserId = (int)$feedback->to_user_id;
+        $fromUserId = (int)$feedback->from_user_id;
+        $feedbackId = (int)$feedback->id;
         $feedbackType = $feedback->type;
         
-        // RAW QUERY ile bildirim oluştur (feedback silinmeden önce)
+        // Create notification before soft deleting feedback
         if ($fromUserId) {
             $now = Carbon::now();
             
-            app('db')->table('notifications')->insert([
-                'user_id' => $fromUserId,
-                'from_user_id' => $toUserId,
-                'type' => 'feedbackRejected',
-                'subject_id' => $feedbackId,
-                'data' => json_encode([
-                    'feedbackId' => $feedbackId,
-                    'feedbackType' => $feedbackType
-                ]),
-                'created_at' => $now,
-                'read_at' => null,
-                'is_deleted' => 0
-            ]);
-            
-            app('log')->info('Raw inserted FeedbackRejected notification', [
-                'user_id' => $fromUserId,
-                'from_user_id' => $toUserId,
-                'subject_id' => $feedbackId
-            ]);
+            try {
+                app('db')->table('notifications')->insert([
+                    'user_id' => $fromUserId,
+                    'from_user_id' => $toUserId,
+                    'type' => 'feedbackRejected',
+                    'subject_id' => $feedbackId,
+                    'data' => json_encode([
+                        'feedbackId' => $feedbackId,
+                        'feedbackType' => $feedbackType
+                    ], JSON_THROW_ON_ERROR),
+                    'created_at' => $now,
+                    'read_at' => null,
+                    'is_deleted' => 0
+                ]);
+            } catch (\Exception $e) {
+                // Silently fail - notification is not critical
+            }
         }
         
-        // Feedback'i sil
+        // Soft delete the feedback (sets deleted_at timestamp)
+        $feedback->is_approved = false;
         $feedback->delete();
         
-        // Stats güncelle
-        $this->updateUserStats($toUserId);
+        // Update stats using service
+        StatsService::updateUserStats($toUserId);
         
         return $feedback;
-    }
-    
-    protected function updateUserStats($userId)
-    {
-        $stats = TraderStats::firstOrNew(['user_id' => $userId]);
-        
-        $stats->positive_count = Feedback::where('to_user_id', $userId)
-            ->where('type', 'positive')
-            ->where('is_approved', true)
-            ->count();
-            
-        $stats->neutral_count = Feedback::where('to_user_id', $userId)
-            ->where('type', 'neutral')
-            ->where('is_approved', true)
-            ->count();
-            
-        $stats->negative_count = Feedback::where('to_user_id', $userId)
-            ->where('type', 'negative')
-            ->where('is_approved', true)
-            ->count();
-        
-        $total = $stats->positive_count + $stats->neutral_count + $stats->negative_count;
-        $stats->score = $total > 0 ? ($stats->positive_count / $total) * 100 : 0;
-        $stats->last_updated = Carbon::now();
-        $stats->save();
     }
 }

@@ -38,7 +38,7 @@ export default class FeedbackItem extends Component {
                 </div>
 
                 <div className="FeedbackItem-comment">
-                    {attrs.comment || 'No comment provided'}
+                    {attrs.comment || app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.no_comment')}
                 </div>
 
                 {this.renderActions(feedback, fromUserId)}
@@ -113,7 +113,7 @@ export default class FeedbackItem extends Component {
                     {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.discussion_link')}
                 </span>
                 <span className="FeedbackItem-discussionLinkTextShort">
-                    View
+                    {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.discussion_link_short')}
                 </span>
             </a>
         );

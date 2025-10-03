@@ -26,8 +26,8 @@ export default function addUserCardStats() {
       items.add(
         'traderScore',
         <div className="TraderScore">
-          <i className="fas fa-balance-scale"></i>
-          <span className="TraderScore-value">{score}%</span>
+          <i className="fas fa-shopping-cart"></i>
+          <span className="TraderScore-value"> {score}%</span>
         </div>,
         10
       );

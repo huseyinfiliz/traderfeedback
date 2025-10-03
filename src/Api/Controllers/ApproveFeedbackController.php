@@ -4,17 +4,15 @@ namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 use Flarum\Api\Controller\AbstractShowController;
 use Flarum\Http\RequestUtil;
 use Flarum\Notification\NotificationSyncer;
-use Flarum\Notification\Notification;
 use Illuminate\Support\Arr;
 use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
-use HuseyinFiliz\TraderFeedback\Models\TraderStats;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
+use HuseyinFiliz\TraderFeedback\Services\StatsService;
 use Carbon\Carbon;
-use Flarum\User\User;
 
 class ApproveFeedbackController extends AbstractShowController
 {
@@ -29,81 +27,57 @@ class ApproveFeedbackController extends AbstractShowController
         
         $feedback = Feedback::findOrFail($id);
         
-        // Önceden onaylı mıydı kontrol et
+        // Check if already approved
         $wasApproved = $feedback->is_approved;
         
-        // Onaylayan kişiyi kaydet
+        // Approve feedback
         $feedback->is_approved = true;
         $feedback->approved_by_id = $actor->id;
         $feedback->save();
         
-        // ✅ Database'den FRESH olarak yeniden çek
+        // Reload with relationships
         $feedback = Feedback::with(['fromUser', 'toUser'])->findOrFail($id);
         
-        // Stats güncelle
-        $this->updateUserStats($feedback->to_user_id);
+        // Update stats using service
+        StatsService::updateUserStats($feedback->to_user_id);
         
-        // İlk kez onaylanıyorsa bildirimleri gönder
+        // Send notifications if newly approved
         if (!$wasApproved) {
-            // 1. Feedback sahibine onay bildirimi - RAW QUERY
+            // 1. Notify feedback author about approval
             if ($feedback->fromUser) {
                 $now = Carbon::now();
                 
-                // ✅ app('db') kullan, facade değil
-                app('db')->table('notifications')->insert([
-                    'user_id' => $feedback->fromUser->id,
-                    'from_user_id' => $feedback->to_user_id,
-                    'type' => 'feedbackApproved',
-                    'subject_id' => $feedback->id,
-                    'data' => json_encode([
-                        'feedbackId' => $feedback->id,
-                        'feedbackType' => $feedback->type
-                    ]),
-                    'created_at' => $now,
-                    'read_at' => null,
-                    'is_deleted' => 0
-                ]);
-                
-                app('log')->info('Raw inserted FeedbackApproved notification', [
-                    'user_id' => $feedback->fromUser->id,
-                    'from_user_id' => $feedback->to_user_id,
-                    'subject_id' => $feedback->id
-                ]);
+                try {
+                    app('db')->table('notifications')->insert([
+                        'user_id' => (int)$feedback->fromUser->id,
+                        'from_user_id' => (int)$feedback->to_user_id,
+                        'type' => 'feedbackApproved',
+                        'subject_id' => (int)$feedback->id,
+                        'data' => json_encode([
+                            'feedbackId' => (int)$feedback->id,
+                            'feedbackType' => $feedback->type
+                        ], JSON_THROW_ON_ERROR),
+                        'created_at' => $now,
+                        'read_at' => null,
+                        'is_deleted' => 0
+                    ]);
+                } catch (\Exception $e) {
+                    // Silently fail - notification is not critical
+                }
             }
             
-            // 2. Feedback alan kişiye yeni feedback bildirimi - Normal sync (çalışıyor)
+            // 2. Notify feedback recipient about new feedback
             if ($feedback->toUser) {
-                $notifications = app(NotificationSyncer::class);
-                $newFeedbackBlueprint = new NewFeedbackBlueprint($feedback);
-                $notifications->sync($newFeedbackBlueprint, [$feedback->toUser]);
+                try {
+                    $notifications = app(NotificationSyncer::class);
+                    $newFeedbackBlueprint = new NewFeedbackBlueprint($feedback);
+                    $notifications->sync($newFeedbackBlueprint, [$feedback->toUser]);
+                } catch (\Exception $e) {
+                    // Silently fail - notification is not critical
+                }
             }
         }
         
         return $feedback;
-    }
-    
-    protected function updateUserStats($userId)
-    {
-        $stats = TraderStats::firstOrNew(['user_id' => $userId]);
-        
-        $stats->positive_count = Feedback::where('to_user_id', $userId)
-            ->where('type', 'positive')
-            ->where('is_approved', true)
-            ->count();
-            
-        $stats->neutral_count = Feedback::where('to_user_id', $userId)
-            ->where('type', 'neutral')
-            ->where('is_approved', true)
-            ->count();
-            
-        $stats->negative_count = Feedback::where('to_user_id', $userId)
-            ->where('type', 'negative')
-            ->where('is_approved', true)
-            ->count();
-        
-        $total = $stats->positive_count + $stats->neutral_count + $stats->negative_count;
-        $stats->score = $total > 0 ? ($stats->positive_count / $total) * 100 : 0;
-        $stats->last_updated = Carbon::now();
-        $stats->save();
     }
 }

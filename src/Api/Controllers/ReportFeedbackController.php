@@ -36,7 +36,9 @@ class ReportFeedbackController extends AbstractCreateController
             ->first();
             
         if ($existingReport) {
-            throw new \Flarum\User\Exception\PermissionDeniedException('You have already reported this feedback.');
+            throw new \Flarum\Foundation\ValidationException([
+    			'feedback' => app('translator')->trans('huseyinfiliz-traderfeedback.api.validation.already_reported')
+			]);
         }
         
         // Create the report

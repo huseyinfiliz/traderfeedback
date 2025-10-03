@@ -10,7 +10,7 @@ export default class SettingsTab extends Component {
         <div className="SettingsSection">
           <h3>
             <i className="fas fa-cog"></i>
-            General Settings
+            {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_general')}
           </h3>
           
           <div className="SettingsSection-content">
@@ -30,7 +30,6 @@ export default class SettingsTab extends Component {
               })}
             </div>
 
-            {/* ✅ YENİ AYAR */}
             <div className="Form-group">
               {buildSettingComponent({
                 type: 'boolean',
@@ -45,7 +44,7 @@ export default class SettingsTab extends Component {
         <div className="SettingsSection">
           <h3>
             <i className="fas fa-comments"></i>
-            Discussion Settings
+            {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_discussion')}
           </h3>
           
           <div className="SettingsSection-content">
@@ -72,7 +71,7 @@ export default class SettingsTab extends Component {
         <div className="SettingsSection">
           <h3>
             <i className="fas fa-comment-dots"></i>
-            Comment Settings
+            {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_comment')}
           </h3>
           
           <div className="SettingsSection-content">
@@ -101,7 +100,7 @@ export default class SettingsTab extends Component {
         <div className="SettingsSection">
           <h3>
             <i className="fas fa-user-check"></i>
-            User Requirements
+            {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_requirements')}
           </h3>
           
           <div className="SettingsSection-content">

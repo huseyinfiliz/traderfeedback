@@ -8,6 +8,7 @@ use Flarum\Database\ScopeVisibilityTrait;
 use Flarum\User\User;
 use Flarum\Discussion\Discussion;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id
@@ -21,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $approved_by_id
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property Carbon|null $deleted_at
  * @property User $fromUser
  * @property User $toUser
  * @property User|null $approvedBy
@@ -28,29 +30,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Feedback extends AbstractModel
 {
-    use ScopeVisibilityTrait;
+    use ScopeVisibilityTrait, SoftDeletes;
 
-    /**
-     * {@inheritdoc}
-     */
     protected $table = 'tfb_feedbacks';
 
-    /**
-     * {@inheritdoc}
-     * Eloquent'in otomatik tarih yönetimini aktif eder
-     */
     public $timestamps = true;
 
-    /**
-     * {@inheritdoc}
-     */
-    protected $dates = ['created_at', 'updated_at'];
+    protected $dates = ['created_at', 'updated_at', 'deleted_at'];
 
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
     protected $casts = [
         'from_user_id' => 'integer',
         'to_user_id' => 'integer',
@@ -59,13 +46,9 @@ class Feedback extends AbstractModel
         'is_approved' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
         'from_user_id',
         'to_user_id',
@@ -93,8 +76,6 @@ class Feedback extends AbstractModel
 
     /**
      * Get the user who gave the feedback.
-     *
-     * @return BelongsTo
      */
     public function fromUser(): BelongsTo
     {
@@ -103,8 +84,6 @@ class Feedback extends AbstractModel
 
     /**
      * Get the user who received the feedback.
-     *
-     * @return BelongsTo
      */
     public function toUser(): BelongsTo
     {
@@ -113,8 +92,6 @@ class Feedback extends AbstractModel
 
     /**
      * Get the user who approved the feedback.
-     *
-     * @return BelongsTo
      */
     public function approvedBy(): BelongsTo
     {
@@ -123,8 +100,6 @@ class Feedback extends AbstractModel
 
     /**
      * Get the discussion associated with the feedback.
-     *
-     * @return BelongsTo
      */
     public function discussion(): BelongsTo
     {
@@ -141,9 +116,6 @@ class Feedback extends AbstractModel
 
     /**
      * Scope a query to only include approved feedbacks.
-     *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeApproved($query)
     {
@@ -152,9 +124,6 @@ class Feedback extends AbstractModel
 
     /**
      * Scope a query to only include pending feedbacks.
-     *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopePending($query)
     {
@@ -163,10 +132,6 @@ class Feedback extends AbstractModel
 
     /**
      * Scope a query to only include feedbacks for a specific user.
-     *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param int $userId
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeForUser($query, $userId)
     {
@@ -175,10 +140,6 @@ class Feedback extends AbstractModel
 
     /**
      * Scope a query to only include feedbacks from a specific user.
-     *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param int $userId
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeFromUser($query, $userId)
     {
@@ -187,10 +148,6 @@ class Feedback extends AbstractModel
 
     /**
      * Scope a query to only include feedbacks of a specific type.
-     *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $type
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeOfType($query, $type)
     {
@@ -199,10 +156,6 @@ class Feedback extends AbstractModel
 
     /**
      * Scope a query to only include feedbacks with a specific role.
-     *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $role
-     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeWithRole($query, $role)
     {
@@ -211,8 +164,6 @@ class Feedback extends AbstractModel
 
     /**
      * Check if feedback is positive
-     *
-     * @return bool
      */
     public function isPositive(): bool
     {
@@ -221,8 +172,6 @@ class Feedback extends AbstractModel
 
     /**
      * Check if feedback is negative
-     *
-     * @return bool
      */
     public function isNegative(): bool
     {
@@ -231,8 +180,6 @@ class Feedback extends AbstractModel
 
     /**
      * Check if feedback is neutral
-     *
-     * @return bool
      */
     public function isNeutral(): bool
     {

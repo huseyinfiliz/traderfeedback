@@ -33,7 +33,7 @@ export default class FeedbackFilters extends Component {
                             {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.give_feedback_button')}
                         </span>
                         <span className="TraderFeedbackPage-giveBtnTextShort">
-                            Give
+                            {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.give_feedback_button_short')}
                         </span>
                     </Button>
                 )}

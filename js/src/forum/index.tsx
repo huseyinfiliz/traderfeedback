@@ -3,7 +3,7 @@ import { extend } from 'flarum/common/extend';
 import addUserProfilePage from './addUserProfilePage';
 import addUserControls from './addUserControls';
 import addUserCardStats from './addUserCardStats';
-import addPostBadge from './addPostBadge'; // ✅ YENİ
+import addPostBadge from './addPostBadge';
 import FeedbackModal from './modals/FeedbackModal';
 import registerNotifications from './notifications';
 import Feedback from '../common/models/Feedback';
@@ -11,23 +11,18 @@ import Feedback from '../common/models/Feedback';
 export {default as extend} from './extend';
 
 app.initializers.add('huseyinfiliz-traderfeedback', () => {
-  // ✅ KRİTİK: Model'i store'a kaydet
+  // Register model in store
   app.store.models['trader-feedbacks'] = Feedback;
   
-  // Modal'ı global olarak kaydet
+  // Register modal globally
   app.feedbackModal = FeedbackModal;
   
-  // Bildirim komponentlerini kaydet
+  // Register notification components
   registerNotifications();
   
-  // Sayfaları ve kontrolleri ekle
+  // Add pages and controls
   addUserProfilePage();
   addUserControls();
   addUserCardStats();
-  addPostBadge(); // ✅ YENİ
-  
-  // Debug log
-  console.log('✅ Trader feedback extension initialized');
-  console.log('Registered notification components:', Object.keys(app.notificationComponents));
-  console.log('Registered models:', Object.keys(app.store.models));
+  addPostBadge();
 });

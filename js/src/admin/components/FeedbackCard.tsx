@@ -28,7 +28,6 @@ export default class FeedbackCard extends Component {
       }
     }
 
-    // Flarum Badge classes
     const badgeClass = feedback.attributes.type === 'positive' ? 'Badge--success' : 
                       feedback.attributes.type === 'negative' ? 'Badge--danger' : 'Badge--warning';
 
@@ -44,28 +43,35 @@ export default class FeedbackCard extends Component {
           <div className="FeedbackCard-users">
             <div className="FeedbackCard-user">
               {fromUser && avatar(fromUser)}
-              <strong>{fromUser ? fromUser.displayName() : `User #${fromUserId}`}</strong>
+              <strong>
+                {fromUser 
+                  ? fromUser.displayName() 
+                  : app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.user_id_format', { id: fromUserId })
+                }
+              </strong>
             </div>
             <i className="fas fa-arrow-right FeedbackCard-arrow"></i>
             <div className="FeedbackCard-user">
               {toUser && avatar(toUser)}
-              <strong>{toUser ? toUser.displayName() : `User #${toUserId}`}</strong>
+              <strong>
+                {toUser 
+                  ? toUser.displayName() 
+                  : app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.user_id_format', { id: toUserId })
+                }
+              </strong>
             </div>
           </div>
           
           <div className="FeedbackCard-meta">
-            {/* Type Badge - Using Flarum's Badge */}
             <span className={`Badge ${badgeClass}`}>
               <i className={`fas fa-${typeIcon}`}></i>
             </span>
             
-            {/* Role Badge - Custom style like type badge */}
             <span className="FeedbackCard-roleBadge">
               <i className={`fas fa-${roleIcon}`}></i>
-              <span>{feedback.attributes.role}</span>
+              <span>{app.translator.trans(`huseyinfiliz-traderfeedback.admin.roles.${feedback.attributes.role}`)}</span>
             </span>
             
-            {/* Date Badge - Custom style */}
             {(feedback.attributes.created_at || feedback.attributes.updated_at) && (
               <span className="FeedbackCard-dateBadge">
                 <i className="far fa-clock"></i>
@@ -88,7 +94,7 @@ export default class FeedbackCard extends Component {
             target="_blank"
           >
             <i className="fas fa-comments"></i>
-            View Discussion
+            {app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.view_discussion')}
           </a>
         )}
 
@@ -98,14 +104,14 @@ export default class FeedbackCard extends Component {
             icon="fas fa-check"
             onclick={() => onApprove(feedback)}
           >
-            Approve
+            {app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.approve_button')}
           </Button>
           <Button
             className="Button"
             icon="fas fa-times"
             onclick={() => onReject(feedback)}
           >
-            Reject
+            {app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.reject_button')}
           </Button>
         </div>
       </div>

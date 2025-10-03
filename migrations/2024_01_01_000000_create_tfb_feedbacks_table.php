@@ -25,6 +25,7 @@ return [
 
                 // Timestamps
                 $table->timestamps();
+                $table->softDeletes(); // Soft delete support
 
                 // Foreign keys
                 $table->foreign('from_user_id')->references('id')->on('users')->onDelete('cascade');
@@ -38,8 +39,9 @@ return [
                 $table->index('type');
                 $table->index('is_approved');
                 $table->index('created_at');
+                $table->index('deleted_at'); // Index for soft delete queries
                 
-                // Unique constraint: bir kullanıcı bir kullanıcıya bir discussion için tek feedback verebilir
+                // Composite index for one-per-discussion rule
                 $table->index(['from_user_id', 'to_user_id', 'discussion_id'], 'feedback_composite_index');
             });
         }

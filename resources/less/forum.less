@@ -621,65 +621,26 @@
 // ============================================
 // User Stats
 // ============================================
-.TraderScore {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: fade(@primary-color, 8%);
-  border-radius: 12px;
-  border: 1px solid fade(@primary-color, 20%);
-  font-size: 12px;
-  
-  .fas.fa-balance-scale {
-    font-size: 13px;
-  }
-  
-  &-value {
-    font-weight: 700;
-    font-size: 13px;
-  }
-  
-  
-  &-count {
-    color: @muted-color;
-    font-size: 11px;
-    margin-left: 2px;
-  }
-}
+
 
 .TraderBadge {
   &--inline {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    margin-left: 6px;
     padding: 2px 8px;
     background: fade(@primary-color, 12%);
     border-radius: 10px;
     font-size: 11px;
     vertical-align: middle;
     
-    .fas.fa-balance-scale {
+    .fas.fa-shopping-cart {
       color: @primary-color;
-      font-size: 10px;
     }
   }
   
   &-score {
-    font-weight: 600;
+    font-weight: 700;
     color: @primary-color;
-  }
-}
-
-// Dark mode uyumluluğu
-.App--dark {
-  .TraderScore {
-    background: fade(@body-bg, 50%);
-    border-color: fade(@body-bg, 70%);
-  }
-  
-  .TraderBadge--inline {
-    background: fade(@primary-color, 20%);
   }
 }

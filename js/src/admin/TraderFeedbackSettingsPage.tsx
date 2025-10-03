@@ -41,7 +41,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
           }}
         >
           <i className="fas fa-cog"></i>
-          <span>Settings</span>
+          <span>{app.translator.trans('huseyinfiliz-traderfeedback.admin.tabs.settings')}</span>
         </button>
 
         <button
@@ -52,7 +52,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
           }}
         >
           <i className="fas fa-check-circle"></i>
-          <span>Pending Approvals</span>
+          <span>{app.translator.trans('huseyinfiliz-traderfeedback.admin.tabs.approvals')}</span>
           {this.pendingFeedbacks.length > 0 && (
             <span className="TabButton-badge">{this.pendingFeedbacks.length}</span>
           )}
@@ -66,7 +66,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
           }}
         >
           <i className="fas fa-flag"></i>
-          <span>Reports</span>
+          <span>{app.translator.trans('huseyinfiliz-traderfeedback.admin.tabs.reports')}</span>
           {this.reports.length > 0 && (
             <span className="TabButton-badge TabButton-badge--warning">{this.reports.length}</span>
           )}
@@ -104,8 +104,8 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
           <div className="EmptyState-icon">
             <i className="fas fa-check-circle"></i>
           </div>
-          <h3>No Pending Approvals</h3>
-          <p>All feedbacks have been reviewed</p>
+          <h3>{app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.title')}</h3>
+          <p>{app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.no_approvals')}</p>
         </div>
       );
     }
@@ -136,8 +136,8 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
           <div className="EmptyState-icon">
             <i className="fas fa-shield-alt"></i>
           </div>
-          <h3>No Active Reports</h3>
-          <p>Your community is safe and clean</p>
+          <h3>{app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.title')}</h3>
+          <p>{app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.no_reports')}</p>
         </div>
       );
     }
@@ -157,15 +157,11 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
     );
   }
 
-  /**
-   * Load stats - JSON API format parse
-   */
   loadStats() {
     app.request({
       method: 'GET',
       url: app.forum.attribute('apiUrl') + '/trader/stats/summary',
     }).then((response: any) => {
-      // JSON API formatını parse et
       let attrs;
       
       if (response.data && Array.isArray(response.data) && response.data[0]) {
@@ -187,10 +183,8 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
         negative: attrs.negative || 0,
       };
       
-      console.log('✅ Stats loaded:', this.stats);
       m.redraw();
     }).catch((error) => {
-      console.error('❌ Stats load error:', error);
       this.stats = { total: 0, positive: 0, neutral: 0, negative: 0 };
       m.redraw();
     });
@@ -207,15 +201,10 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
     }).then((response: any) => {
       this.pendingFeedbacks = response.data || [];
       this.included = response.included || [];
-      
-      // Store'a kullanıcıları ekle
       this.processIncluded(response);
-      
       this.loading = false;
-      console.log('✅ Pending feedbacks loaded:', this.pendingFeedbacks.length);
       m.redraw();
     }).catch((error) => {
-      console.error('❌ Pending feedbacks error:', error);
       this.loading = false;
       m.redraw();
     });
@@ -232,16 +221,11 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
     }).then((response: any) => {
       this.reports = response.data || [];
       this.included = response.included || [];
-      
-      // Store'a kullanıcıları ekle
       this.processIncluded(response);
-      
       this.loading = false;
-      console.log('✅ Reports loaded:', this.reports.length);
       m.redraw();
     }).catch((error) => {
-      console.error('❌ Reports error:', error);
-      app.alerts.show({ type: 'error' }, 'Failed to load reports');
+      app.alerts.show({ type: 'error' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.load_error'));
       this.loading = false;
       m.redraw();
     });
@@ -263,65 +247,61 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
   }
 
   approveFeedback(feedback: any) {
-    if (!confirm('Approve this feedback?')) return;
+    if (!confirm(app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.confirm_approve'))) return;
 
     app.request({
       method: 'POST',
       url: app.forum.attribute('apiUrl') + '/trader/feedback/' + feedback.id + '/approve',
     }).then(() => {
-      app.alerts.show({ type: 'success' }, 'Feedback approved');
+      app.alerts.show({ type: 'success' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.approved_success'));
       this.loadPendingFeedbacks();
       this.loadStats();
     }).catch((error) => {
-      console.error('Approve error:', error);
-      app.alerts.show({ type: 'error' }, 'Failed to approve feedback');
+      app.alerts.show({ type: 'error' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.approved_error'));
     });
   }
 
   rejectFeedback(feedback: any) {
-    if (!confirm('Reject this feedback?')) return;
+    if (!confirm(app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.confirm_reject'))) return;
 
     app.request({
       method: 'POST',
       url: app.forum.attribute('apiUrl') + '/trader/feedback/' + feedback.id + '/reject',
     }).then(() => {
-      app.alerts.show({ type: 'success' }, 'Feedback rejected');
+      app.alerts.show({ type: 'success' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.rejected_success'));
       this.loadPendingFeedbacks();
       this.loadStats();
     }).catch((error) => {
-      console.error('Reject error:', error);
-      app.alerts.show({ type: 'error' }, 'Failed to reject feedback');
+      app.alerts.show({ type: 'error' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.rejected_error'));
     });
   }
 
   dismissReport(report: any) {
-    if (!confirm('Dismiss this report?')) return;
+    if (!confirm(app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.confirm_dismiss'))) return;
 
     app.request({
       method: 'POST',
       url: app.forum.attribute('apiUrl') + '/trader/reports/' + report.id + '/dismiss',
     }).then(() => {
-      app.alerts.show({ type: 'success' }, 'Report dismissed');
+      app.alerts.show({ type: 'success' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.dismissed_success'));
       this.loadReports();
     }).catch((error) => {
-      console.error('Dismiss error:', error);
-      app.alerts.show({ type: 'error' }, 'Failed to dismiss report');
+      app.alerts.show({ type: 'error' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.dismissed_error'));
     });
   }
 
   deleteReportedFeedback(report: any) {
-    if (!confirm('Delete the reported feedback? This action cannot be undone.')) return;
+    if (!confirm(app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.confirm_delete'))) return;
 
     app.request({
       method: 'POST',
       url: app.forum.attribute('apiUrl') + '/trader/reports/' + report.id + '/reject',
     }).then(() => {
-      app.alerts.show({ type: 'success' }, 'Feedback deleted');
+      app.alerts.show({ type: 'success' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.deleted_success'));
       this.loadReports();
       this.loadStats();
     }).catch((error) => {
-      console.error('Delete error:', error);
-      app.alerts.show({ type: 'error' }, 'Failed to delete feedback');
+      app.alerts.show({ type: 'error' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.deleted_error'));
     });
   }
 }

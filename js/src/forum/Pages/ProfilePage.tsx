@@ -160,7 +160,7 @@ export default class ProfilePage extends UserPage {
     }
 
     reportFeedback(feedback) {
-        const reason = prompt('Please provide a reason for reporting this feedback:');
+        const reason = prompt(app.translator.trans('huseyinfiliz-traderfeedback.forum.report_modal.reason_placeholder'));
         if (!reason || !reason.trim()) return;
 
         this.loading = true;
@@ -187,7 +187,10 @@ export default class ProfilePage extends UserPage {
             })
             .catch(() => {
                 this.loading = false;
-                app.alerts.show({ type: 'error' }, 'Failed to report feedback');
+                app.alerts.show(
+                    { type: 'error' }, 
+                    app.translator.trans('huseyinfiliz-traderfeedback.forum.report_modal.error')
+                );
                 m.redraw();
             });
     }
@@ -208,12 +211,18 @@ export default class ProfilePage extends UserPage {
                 this.loading = false;
                 this.feedbacks = this.feedbacks.filter((f) => f.id !== feedback.id);
                 this.loadStats();
-                app.alerts.show({ type: 'success' }, 'Feedback deleted successfully');
+                app.alerts.show(
+                    { type: 'success' }, 
+                    app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.delete_success')
+                );
                 m.redraw();
             })
             .catch(() => {
                 this.loading = false;
-                app.alerts.show({ type: 'error' }, 'Failed to delete feedback');
+                app.alerts.show(
+                    { type: 'error' }, 
+                    app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.delete_error')
+                );
                 m.redraw();
             });
     }

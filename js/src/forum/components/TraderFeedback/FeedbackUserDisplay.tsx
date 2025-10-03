@@ -11,7 +11,7 @@ export interface FeedbackUserDisplayProps {
 
 export default class FeedbackUserDisplay {
     static getUserInfo(props: FeedbackUserDisplayProps) {
-        let displayName = props.displayName || 'Unknown User';
+        let displayName = props.displayName || app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.unknown_user');
         let avatarColor = props.avatarColor || '#888';
         let avatarUrl = props.avatarUrl || null;
         let fromUser = null;
@@ -20,7 +20,7 @@ export default class FeedbackUserDisplay {
         if (props.includedUsers) {
             const userData = props.includedUsers.get(String(props.userId));
             if (userData) {
-                displayName = userData.displayName || userData.username || `User #${props.userId}`;
+                displayName = userData.displayName || userData.username || app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.user_id_format', { id: props.userId });
                 avatarUrl = userData.avatarUrl;
             }
         }

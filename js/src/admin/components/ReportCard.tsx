@@ -43,7 +43,6 @@ export default class ReportCard extends Component {
       }
     }
 
-    // Flarum Badge classes
     const badgeClass = feedback?.attributes.type === 'positive' ? 'Badge--success' : 
                       feedback?.attributes.type === 'negative' ? 'Badge--danger' : 'Badge--warning';
 
@@ -55,7 +54,15 @@ export default class ReportCard extends Component {
         <div className="ReportCard-header">
           <div className="ReportCard-reporter">
             {reporter && avatar(reporter)}
-            <strong>{reporter ? reporter.displayName() : (reporterId ? `User #${reporterId}` : 'Unknown')}</strong>
+            <strong>
+              {reporter 
+                ? reporter.displayName() 
+                : (reporterId 
+                    ? app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.user_id_format', { id: reporterId })
+                    : app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.unknown_user')
+                  )
+              }
+            </strong>
           </div>
           
           {(report.attributes.created_at || report.attributes.updated_at) && (
@@ -68,7 +75,7 @@ export default class ReportCard extends Component {
 
         {report.attributes.reason && (
           <div className="ReportCard-reason">
-            <strong>Reason:</strong>
+            <strong>{app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.reason_label')}</strong>
             <p>{report.attributes.reason}</p>
           </div>
         )}
@@ -77,8 +84,7 @@ export default class ReportCard extends Component {
           <div className="ReportCard-feedback">
             <div className="ReportCard-feedbackHeader">
               <div className="ReportCard-feedbackHeader-left">
-                <span>Reported Feedback</span>
-                {/* Using Flarum's Badge */}
+                <span>{app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.reported_feedback_label')}</span>
                 <span className={`Badge ${badgeClass}`}>
                   <i className={`fas fa-${typeIcon}`}></i>
                 </span>
@@ -87,10 +93,20 @@ export default class ReportCard extends Component {
             
             <div className="ReportCard-feedbackUsers">
               {fromUser && avatar(fromUser)}
-              <span>{fromUser ? fromUser.displayName() : `User #${fromUserId}`}</span>
+              <span>
+                {fromUser 
+                  ? fromUser.displayName() 
+                  : app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.user_id_format', { id: fromUserId })
+                }
+              </span>
               <i className="fas fa-arrow-right"></i>
               {toUser && avatar(toUser)}
-              <span>{toUser ? toUser.displayName() : `User #${toUserId}`}</span>
+              <span>
+                {toUser 
+                  ? toUser.displayName() 
+                  : app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.user_id_format', { id: toUserId })
+                }
+              </span>
             </div>
 
             {feedback.attributes.comment && (
@@ -107,14 +123,14 @@ export default class ReportCard extends Component {
             icon="fas fa-check"
             onclick={() => onDismiss(report)}
           >
-            Dismiss Report
+            {app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.dismiss_button')}
           </Button>
           <Button
             className="Button"
             icon="fas fa-trash"
             onclick={() => onDelete(report)}
           >
-            Delete Feedback
+            {app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.delete_button')}
           </Button>
         </div>
       </div>

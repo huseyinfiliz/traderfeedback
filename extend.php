@@ -21,7 +21,6 @@ use HuseyinFiliz\TraderFeedback\Api\Controllers\ApproveReportController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\RejectReportController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\DismissReportController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\ShowTraderStatsController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\TestNotificationController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\StatsSummaryController;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\TraderStatsSerializer;
@@ -72,8 +71,7 @@ return [
         ->post('/trader/reports/{id}/reject', 'trader.reports.reject', RejectReportController::class)
         ->post('/trader/reports/{id}/dismiss', 'trader.reports.dismiss', DismissReportController::class)
         ->get('/trader/stats/summary', 'trader.stats.summary', StatsSummaryController::class)
-        ->get('/trader/stats/{id}', 'trader.stats.show', ShowTraderStatsController::class)
-        ->get('/trader/test-notification', 'trader.test.notification', TestNotificationController::class),
+        ->get('/trader/stats/{id}', 'trader.stats.show', ShowTraderStatsController::class),
 
     // Extend the User model with relationships
     (new Extend\Model(User::class))
