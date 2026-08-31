@@ -6,6 +6,7 @@ use Flarum\Api\Controller\ListUsersController;
 use Flarum\Api\Controller\ShowDiscussionController;
 use Flarum\Api\Controller\ListPostsController;
 use Flarum\Api\Serializer\UserSerializer;
+use Flarum\Settings\SettingsRepositoryInterface;
 use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\ListFeedbacksController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\CreateFeedbackController;
@@ -118,13 +119,14 @@ return [
     (new Extend\ApiController(ListUsersController::class))
         ->addInclude('traderStats'),
     
+    // NOTE: eager-load of traderStats is gated behind the
+    // "showBadgeInPosts" setting so it doesn't run on every discussion /
+    // post-list request when the badge feature isn't even enabled.
     (new Extend\ApiController(ShowDiscussionController::class))
-        ->addInclude('posts.user.traderStats')
-        ->load(['posts.user.traderStats']),
+        ->addInclude('posts.user.traderStats'),
     
     (new Extend\ApiController(ListPostsController::class))
-        ->addInclude('user.traderStats')
-        ->load(['user.traderStats']),
+        ->addInclude('user.traderStats'),
 
     // Register notification preferences
     (new Extend\User())

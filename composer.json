@@ -6,7 +6,7 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "Huseyin Filiz",
+            "name": "Hüseyin Filiz",
             "email": "mysuperuser01@gmail.com",
             "role": "Developer"
         }
@@ -36,7 +36,7 @@
         }
     },
     "flagrow": {
-        "discuss": "https://discuss.flarum.org/d/"
+        "discuss": "https://discuss.flarum.org/d/38253-trader-feedback-buyselltrade-rating-extension/"
     },
     "flarum-cli": {
         "modules": {

@@ -35,6 +35,11 @@ class CreateFeedbackController extends AbstractCreateController
     protected function data(ServerRequestInterface $request, Document $document)
     {
         $actor = RequestUtil::getActor($request);
+
+        // Authorization: must be registered and hold the "give" permission.
+        $actor->assertRegistered();
+        $actor->assertCan('huseyinfiliz-traderfeedback.give');
+
         $data = Arr::get($request->getParsedBody(), 'data.attributes', []);
         
         // Rate Limit Check: Max 1 feedback per minute

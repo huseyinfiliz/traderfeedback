@@ -12,4 +12,8 @@ export default class Feedback extends Model {
   fromUser = Model.hasOne('fromUser');
   toUser = Model.hasOne('toUser');
   //discussion = Model.hasOne('discussion');
+
+  apiEndpoint() {
+    return '/trader/feedback' + (this.exists ? '/' + this.data.id : '');
+  }
 }

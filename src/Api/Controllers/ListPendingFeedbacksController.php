@@ -24,14 +24,45 @@ class ListPendingFeedbacksController extends AbstractListController
     /**
      * {@inheritdoc}
      */
+    public $limit = 20;
+
+    /**
+     * {@inheritdoc}
+     */
+    public $maxLimit = 50;
+
+    /**
+     * {@inheritdoc}
+     */
     protected function data(ServerRequestInterface $request, Document $document)
     {
         $actor = RequestUtil::getActor($request);
         
         $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
-        
-        return Feedback::where('is_approved', false)
+
+        $limit = $this->extractLimit($request);
+        $offset = $this->extractOffset($request);
+
+        $results = Feedback::where('is_approved', false)
             ->orderBy('created_at', 'desc')
+            ->skip($offset)
+            ->take($limit + 1)
             ->get();
+
+        $hasMoreResults = $results->count() > $limit;
+
+        if ($hasMoreResults) {
+            $results->pop();
+        }
+
+        $document->addPaginationLinks(
+            $request->getUri()->getPath(),
+            $request->getQueryParams(),
+            $offset,
+            $limit,
+            $hasMoreResults ? null : 0
+        );
+
+        return $results;
     }
 }

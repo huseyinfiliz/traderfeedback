@@ -44,7 +44,6 @@ class UpdateFeedbackController extends AbstractShowController
         
         $actor->assertCan('edit', $feedback);
         
-        // Only validate fields that are being updated
         $validationData = [];
         
         if (isset($data['type'])) {
@@ -53,8 +52,9 @@ class UpdateFeedbackController extends AbstractShowController
         }
         
         if (isset($data['comment'])) {
-            $validationData['comment'] = $data['comment'];
-            $feedback->comment = $data['comment'];
+            $sanitizedComment = strip_tags($data['comment']);
+            $validationData['comment'] = $sanitizedComment;
+            $feedback->comment = $sanitizedComment;
         }
         
         if (isset($data['role'])) {
@@ -67,9 +67,7 @@ class UpdateFeedbackController extends AbstractShowController
             $feedback->transaction_id = $data['transaction_id'];
         }
         
-        // Only validate if there are fields to validate
         if (!empty($validationData)) {
-            // For partial updates, only validate the fields being updated
             $this->validator->assertValid($validationData);
         }
         

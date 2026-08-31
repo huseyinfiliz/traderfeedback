@@ -16,13 +16,17 @@ class StatsSummaryController extends AbstractListController
     {
         $actor = RequestUtil::getActor($request);
         $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
+
+        $counts = Feedback::where('is_approved', true)
+            ->selectRaw('type, count(*) as count')
+            ->groupBy('type')
+            ->pluck('count', 'type');
+
+        $positive = (int) ($counts['positive'] ?? 0);
+        $neutral = (int) ($counts['neutral'] ?? 0);
+        $negative = (int) ($counts['negative'] ?? 0);
+        $total = $positive + $neutral + $negative;
         
-        $total = Feedback::where('is_approved', true)->count();
-        $positive = Feedback::where('is_approved', true)->where('type', 'positive')->count();
-        $neutral = Feedback::where('is_approved', true)->where('type', 'neutral')->count();
-        $negative = Feedback::where('is_approved', true)->where('type', 'negative')->count();
-        
-        // Collection döndür (serializer için)
         return collect([
             (object)[
                 'id' => 'summary',

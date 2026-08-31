@@ -20,7 +20,6 @@ export default class FeedbackModal extends Modal {
 
     this.discussionUsers = [];
 
-    // ✅ discussionId varsa otomatik doldur (URL yerine)
     if (this.attrs.autoFillDiscussion && this.attrs.discussionId) {
       this.discussionId = parseInt(this.attrs.discussionId);
       this.discussionInput(this.discussionId.toString());
@@ -190,20 +189,21 @@ export default class FeedbackModal extends Modal {
       data.discussion_id = this.discussionId;
     }
     
-    app.request({
-      method: 'POST',
-      url: app.forum.attribute('apiUrl') + '/trader/feedback',
-      body: {
-        data: {
-          type: 'feedbacks',
-          attributes: data
-        }
-      }
-    })
-    .then(() => {
+    app.store.createRecord('trader-feedbacks')
+    .save(data)
+    .then((feedback) => {
       app.alerts.show({ type: 'success' }, app.translator.trans('huseyinfiliz-traderfeedback.forum.form.success'));
+      this.isSubmitting = false;
+      this.loading = false;
       this.hide();
-      window.location.reload();
+
+      // Notify anything listening (e.g. a feedback list on the current
+      // page) so it can update reactively without a full page reload.
+      if (this.attrs.onSubmit) {
+        this.attrs.onSubmit(feedback);
+      }
+
+      m.redraw();
     })
     .catch(error => {
       this.isSubmitting = false;
