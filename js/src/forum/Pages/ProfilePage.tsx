@@ -65,7 +65,13 @@ export default class ProfilePage extends UserPage {
     }
 
     showFeedbackModal() {
-        app.modal.show(FeedbackModal, { user: this.user });
+        app.modal.show(FeedbackModal, {
+            user: this.user,
+            onSubmit: () => {
+                this.loadFeedbacks();
+                this.loadStats();
+            },
+        });
     }
 
     loadFeedbacks() {

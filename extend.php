@@ -30,7 +30,6 @@ use HuseyinFiliz\TraderFeedback\Listeners\AddUserPreferencesListener;
 use HuseyinFiliz\TraderFeedback\Listeners\UserDeletedListener;
 use HuseyinFiliz\TraderFeedback\Listeners\FeedbackCreatedListener;
 use HuseyinFiliz\TraderFeedback\Listeners\FeedbackUpdatedListener;
-use HuseyinFiliz\TraderFeedback\Listeners\NotificationSendingListener;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Models\TraderStats;
 use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
@@ -40,7 +39,6 @@ use HuseyinFiliz\TraderFeedback\Access\FeedbackPolicy;
 use HuseyinFiliz\TraderFeedback\Access\GlobalPolicy;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackCreated;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated;
-use Flarum\Notification\Event\Sending;
 
 return [
     // Register assets and routes for the forum frontend
@@ -150,8 +148,7 @@ return [
         ->listen(\Flarum\User\Event\Saving::class, AddUserPreferencesListener::class)
         ->listen(\Flarum\User\Event\Deleted::class, UserDeletedListener::class)
         ->listen(FeedbackCreated::class, FeedbackCreatedListener::class)
-        ->listen(FeedbackUpdated::class, FeedbackUpdatedListener::class)
-        ->listen(Sending::class, NotificationSendingListener::class),
+        ->listen(FeedbackUpdated::class, FeedbackUpdatedListener::class),
 
     // Settings defaults and forum serialization
     (new Extend\Settings())

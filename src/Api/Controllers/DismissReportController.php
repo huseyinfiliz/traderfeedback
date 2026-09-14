@@ -27,7 +27,7 @@ class DismissReportController extends AbstractShowController
         $id = Arr::get($request->getQueryParams(), 'id');
         
         // Check permission
-        $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
+        $actor->assertCan('huseyinfiliz-traderfeedback.moderate');
         
         // Find the report
         $report = FeedbackReport::findOrFail($id);

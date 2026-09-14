@@ -26,7 +26,7 @@ class ListReportsController extends AbstractListController
         $actor = RequestUtil::getActor($request);
         
         // Permission check
-        $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
+        $actor->assertCan('huseyinfiliz-traderfeedback.moderate');
         
         // Query with eager loading - NULL check ekle
         return FeedbackReport::where('resolved', false)

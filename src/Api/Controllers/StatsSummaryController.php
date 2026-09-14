@@ -15,7 +15,7 @@ class StatsSummaryController extends AbstractListController
     protected function data(ServerRequestInterface $request, Document $document)
     {
         $actor = RequestUtil::getActor($request);
-        $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
+        $actor->assertCan('huseyinfiliz-traderfeedback.moderate');
 
         $counts = Feedback::where('is_approved', true)
             ->selectRaw('type, count(*) as count')

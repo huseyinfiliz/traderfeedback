@@ -62,7 +62,7 @@ export default class SelectUserModal extends Modal {
         setTimeout(() => {
           app.modal.show(FeedbackModal, {
             user: users[0],
-            discussionUrl: window.location.href,
+            discussionId: this.discussion.id(),
             autoFillDiscussion: true,
           });
         }, 200);

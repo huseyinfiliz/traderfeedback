@@ -72,6 +72,11 @@ class CreateFeedbackController extends AbstractCreateController
             ]);
         }
         
+        // XSS Protection: Strip HTML tags from comment before validation
+        $rawComment = Arr::get($data, 'comment', '');
+        $sanitizedComment = strip_tags($rawComment);
+        $data['comment'] = $sanitizedComment;
+
         // Validate the request data
         $this->validator->assertValid($data);
         
@@ -125,10 +130,6 @@ class CreateFeedbackController extends AbstractCreateController
                 ]);
             }
         }
-        
-        // XSS Protection: Strip HTML tags from comment
-        $rawComment = Arr::get($data, 'comment', '');
-        $sanitizedComment = strip_tags($rawComment);
         
         // Create the feedback
         $feedback = new Feedback();

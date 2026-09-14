@@ -23,7 +23,7 @@ class RejectReportController extends AbstractShowController
         $actor = RequestUtil::getActor($request);
         $id = Arr::get($request->getQueryParams(), 'id');
         
-        $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
+        $actor->assertCan('huseyinfiliz-traderfeedback.moderate');
         
         $report = FeedbackReport::findOrFail($id);
         $feedback = $report->feedback;

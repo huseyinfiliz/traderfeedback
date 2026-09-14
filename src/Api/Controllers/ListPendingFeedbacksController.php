@@ -38,12 +38,13 @@ class ListPendingFeedbacksController extends AbstractListController
     {
         $actor = RequestUtil::getActor($request);
         
-        $actor->assertCan('moderate', 'huseyinfiliz-traderfeedback');
+        $actor->assertCan('huseyinfiliz-traderfeedback.moderate');
 
         $limit = $this->extractLimit($request);
         $offset = $this->extractOffset($request);
 
         $results = Feedback::where('is_approved', false)
+            ->with(['fromUser', 'toUser'])
             ->orderBy('created_at', 'desc')
             ->skip($offset)
             ->take($limit + 1)
