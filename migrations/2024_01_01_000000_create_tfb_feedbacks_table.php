@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Database\Schema\Builder;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Schema\Builder;
 
 return [
     'up' => function (Builder $schema) {
@@ -40,7 +40,7 @@ return [
                 $table->index('is_approved');
                 $table->index('created_at');
                 $table->index('deleted_at'); // Index for soft delete queries
-                
+
                 // Composite index for one-per-discussion rule
                 $table->index(['from_user_id', 'to_user_id', 'discussion_id'], 'feedback_composite_index');
             });

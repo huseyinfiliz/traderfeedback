@@ -2,19 +2,19 @@
 
 namespace HuseyinFiliz\TraderFeedback\Models;
 
+use Carbon\Carbon;
 use Flarum\Database\AbstractModel;
 use Flarum\User\User;
-use Carbon\Carbon;
 
 /**
- * @property int $id
- * @property int $feedback_id
- * @property int $user_id
- * @property string $reason
- * @property bool $resolved
+ * @property int      $id
+ * @property int      $feedback_id
+ * @property int      $user_id
+ * @property string   $reason
+ * @property bool     $resolved
  * @property int|null $resolved_by_id
- * @property Carbon $created_at
- * @property Carbon $updated_at
+ * @property Carbon   $created_at
+ * @property Carbon   $updated_at
  */
 class FeedbackReport extends AbstractModel
 {
@@ -32,13 +32,13 @@ class FeedbackReport extends AbstractModel
     ];
 
     protected $casts = [
-        'resolved' => 'boolean',
+        'resolved'   => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
 
     /**
-     * Feedback relationship
+     * Feedback relationship.
      */
     public function feedback()
     {
@@ -47,7 +47,7 @@ class FeedbackReport extends AbstractModel
 
     /**
      * Reporter relationship
-     * ✅ 'user_id' foreign key belirt
+     * ✅ 'user_id' foreign key belirt.
      */
     public function reporter()
     {
@@ -55,7 +55,7 @@ class FeedbackReport extends AbstractModel
     }
 
     /**
-     * Resolved by relationship
+     * Resolved by relationship.
      */
     public function resolvedBy()
     {

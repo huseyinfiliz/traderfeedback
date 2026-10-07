@@ -130,7 +130,7 @@ class FeedbackPolicyTest extends TestCase
         $feedback->from_user_id = 10;
         $feedback->setRawAttributes([
             'from_user_id' => 10,
-            'created_at' => Carbon::now()->subHours(12)
+            'created_at'   => Carbon::now()->subHours(12),
         ], true);
 
         $this->assertTrue($this->policy->edit($author, $feedback));
@@ -144,7 +144,7 @@ class FeedbackPolicyTest extends TestCase
         $feedback->from_user_id = 10;
         $feedback->setRawAttributes([
             'from_user_id' => 10,
-            'created_at' => Carbon::now()->subHours(25)
+            'created_at'   => Carbon::now()->subHours(25),
         ], true);
 
         $this->assertFalse($this->policy->edit($author, $feedback));
@@ -158,7 +158,7 @@ class FeedbackPolicyTest extends TestCase
         $feedback->from_user_id = 10;
         $feedback->setRawAttributes([
             'from_user_id' => 10,
-            'created_at' => Carbon::now()->subHour()
+            'created_at'   => Carbon::now()->subHour(),
         ], true);
 
         $this->assertFalse($this->policy->edit($other, $feedback));
@@ -172,7 +172,7 @@ class FeedbackPolicyTest extends TestCase
         $feedback->from_user_id = 10;
         $feedback->setRawAttributes([
             'from_user_id' => 10,
-            'created_at' => Carbon::now()->subMinutes(30)
+            'created_at'   => Carbon::now()->subMinutes(30),
         ], true);
 
         $this->assertTrue($this->policy->delete($author, $feedback));
@@ -186,7 +186,7 @@ class FeedbackPolicyTest extends TestCase
         $feedback->from_user_id = 10;
         $feedback->setRawAttributes([
             'from_user_id' => 10,
-            'created_at' => Carbon::now()->subMinutes(65)
+            'created_at'   => Carbon::now()->subMinutes(65),
         ], true);
 
         $this->assertFalse($this->policy->delete($author, $feedback));

@@ -1,4 +1,5 @@
 <?php
+
 namespace HuseyinFiliz\TraderFeedback\Notifications;
 
 use Flarum\Notification\Blueprint\BlueprintInterface;
@@ -27,8 +28,8 @@ class FeedbackApprovedBlueprint implements BlueprintInterface
     public function getData()
     {
         return [
-            'feedbackId' => $this->feedback->id,
-            'feedbackType' => $this->feedback->type
+            'feedbackId'   => $this->feedback->id,
+            'feedbackType' => $this->feedback->type,
         ];
     }
 
