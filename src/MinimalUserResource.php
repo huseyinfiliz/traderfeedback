@@ -11,7 +11,7 @@ use Tobyz\JsonApiServer\Context as OriginalContext;
 /**
  * @extends Resource\AbstractResource<object>
  */
-class MinimalUserResource extends Resource\AbstractResource implements 
+class MinimalUserResource extends Resource\AbstractResource
 {
     public function type(): string
     {
