@@ -61,8 +61,8 @@
 }
 
 .StatsCard {
-  background: @body-bg;
-  border: 1px solid @control-bg;
+  background: var(--body-bg);
+  border: 1px solid var(--control-bg);
   border-radius: @card-radius;
   padding: 16px;
   display: flex;
@@ -127,7 +127,7 @@
   
   &-label {
     font-size: 11px;
-    color: @muted-color;
+    color: var(--muted-color);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-weight: 600;
@@ -149,12 +149,12 @@
   // Color variants
   &--total {
     &::before {
-      background: @primary-color;
+      background: var(--primary-color);
     }
     
     .StatsCard-icon {
       background: fade(@primary-color, 10%);
-      color: @primary-color;
+      color: var(--primary-color);
     }
   }
   
@@ -226,7 +226,7 @@
   display: flex;
   gap: 8px;
   margin-bottom: 20px;
-  background: fade(@control-bg, 50%);
+  background: var(--control-bg-fade-50);
   padding: 4px;
   border-radius: 10px;
   
@@ -245,7 +245,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: @muted-color;
+  color: var(--muted-color);
   font-size: 13px;
   font-weight: 600;
   transition: all @transition-speed @transition-smooth;
@@ -259,24 +259,24 @@
   }
   
   &:hover {
-    color: @text-color;
-    background: fade(@body-bg, 50%);
+    color: var(--text-color);
+    background: var(--body-bg-fade-50);
   }
   
   &:focus-visible {
-    outline: 2px solid @primary-color;
+    outline: 2px solid var(--primary-color);
     outline-offset: 2px;
   }
   
   &.active {
-    color: @primary-color;
-    background: @body-bg;
+    color: var(--primary-color);
+    background: var(--body-bg);
     box-shadow: @shadow-sm;
     font-weight: 700;
   }
   
   &-badge {
-    background: @primary-color;
+    background: var(--primary-color);
     color: #fff;
     border-radius: 12px;
     padding: 2px 7px;
@@ -304,8 +304,8 @@
 // CONTENT AREA
 // ==========================================
 .TraderFeedbackPage-content {
-  background: @body-bg;
-  border: 1px solid @control-bg;
+  background: var(--body-bg);
+  border: 1px solid var(--control-bg);
   border-radius: @card-radius;
   padding: 20px;
   min-height: 400px;
@@ -318,7 +318,7 @@
 .EmptyState {
   text-align: center;
   padding: 40px 20px;
-  color: @muted-color;
+  color: var(--muted-color);
   
   i {
     font-size: 48px;
@@ -329,7 +329,7 @@
   h3 {
     font-size: 18px;
     font-weight: 600;
-    color: @text-color;
+    color: var(--text-color);
     margin-bottom: 8px;
   }
   
@@ -343,8 +343,8 @@
 // ==========================================
 .SettingsSection {
   margin-bottom: 32px;
-  background: fade(@control-bg, 25%);
-  border: 1px solid @control-bg;
+  background: var(--control-bg-fade-25);
+  border: 1px solid var(--control-bg);
   border-radius: @card-radius;
   padding: 20px;
   
@@ -355,16 +355,16 @@
   h3 {
     font-size: 16px;
     font-weight: 700;
-    color: @text-color;
+    color: var(--text-color);
     margin: 0 0 16px;
     padding-bottom: 12px;
-    border-bottom: 1px solid @control-bg;
+    border-bottom: 1px solid var(--control-bg);
     display: flex;
     align-items: center;
     gap: 10px;
     
     i {
-      color: @primary-color;
+      color: var(--primary-color);
       font-size: 18px;
       width: 28px;
       height: 28px;
@@ -388,18 +388,18 @@
     label {
       display: block;
       font-weight: 600;
-      color: @text-color;
+      color: var(--text-color);
       margin-bottom: 8px;
       font-size: 14px;
     }
     
     .helpText {
       font-size: 12px;
-      color: @muted-color;
+      color: var(--muted-color);
       margin-top: 6px;
       line-height: 1.5;
       padding-left: 10px;
-      border-left: 2px solid @control-bg;
+      border-left: 2px solid var(--control-bg);
     }
     
     input[type="text"],
@@ -408,15 +408,15 @@
     textarea {
       width: 100%;
       max-width: 500px;
-      border: 1px solid @control-bg;
+      border: 1px solid var(--control-bg);
       border-radius: 8px;
       font-size: 14px;
       font-family: inherit;
       transition: border-color @transition-speed ease;
-      background: @body-bg;
+      background: var(--body-bg);
       
       &:focus {
-        border-color: @primary-color;
+        border-color: var(--primary-color);
         outline: none;
         box-shadow: 0 0 0 3px fade(@primary-color, 10%);
       }
@@ -436,14 +436,14 @@
       transition: background @transition-speed ease;
       
       &:hover {
-        background: fade(@control-bg, 30%);
+        background: var(--control-bg-fade-30);
       }
       
       input[type="checkbox"] {
         width: 18px;
         height: 18px;
         cursor: pointer;
-        accent-color: @primary-color;
+        accent-color: var(--primary-color);
       }
     }
   }
@@ -459,8 +459,8 @@
 }
 
 .FeedbackCard {
-  background: @body-bg;
-  border: 1px solid @control-bg;
+  background: var(--body-bg);
+  border: 1px solid var(--control-bg);
   border-radius: @card-radius;
   padding: 16px;
   transition: all @transition-speed @transition-smooth;
@@ -498,7 +498,7 @@
     align-items: flex-start;
     margin-bottom: 12px;
     padding-bottom: 12px;
-    border-bottom: 1px solid @control-bg;
+    border-bottom: 1px solid var(--control-bg);
     gap: 12px;
     flex-wrap: wrap;
   }
@@ -546,7 +546,7 @@
   }
   
   &-arrow {
-    color: @muted-color;
+    color: var(--muted-color);
     font-size: 16px;
     flex-shrink: 0;
     
@@ -571,7 +571,7 @@
     padding: 12px;
     border-radius: 8px;
     margin-bottom: 12px;
-    border-left: 2px solid @primary-color;
+    border-left: 2px solid var(--primary-color);
     font-size: 13px;
     line-height: 1.5;
     
@@ -658,7 +658,7 @@
 .FeedbackCard-dateBadge,
 .ReportCard-dateBadge {
   font-size: 12px;
-  color: @muted-color;
+  color: var(--muted-color);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -675,7 +675,7 @@
 // REPORT CARDS (Reports Page)
 // ==========================================
 .ReportCard {
-  background: @body-bg;
+  background: var(--body-bg);
   border: 1px solid @danger-color;
   border-left: 3px solid @danger-color;
   border-radius: @card-radius;
@@ -693,7 +693,7 @@
     align-items: center;
     margin-bottom: 12px;
     padding-bottom: 12px;
-    border-bottom: 1px solid @control-bg;
+    border-bottom: 1px solid var(--control-bg);
     gap: 12px;
     flex-wrap: wrap;
   }
@@ -793,17 +793,17 @@
       }
       
       i {
-        color: @muted-color;
+        color: var(--muted-color);
         font-size: 12px;
         flex-shrink: 0;
       }
     }
     
     &Comment {
-      background: @body-bg;
+      background: var(--body-bg);
       padding: 10px 12px;
       border-radius: 6px;
-      border-left: 2px solid @primary-color;
+      border-left: 2px solid var(--primary-color);
       font-size: 13px;
       line-height: 1.5;
       
@@ -838,7 +838,7 @@
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  color: @muted-color;
+  color: var(--muted-color);
   
   .LoadingIndicator {
     margin-bottom: 16px;
@@ -871,7 +871,7 @@
 a,
 button {
   &:focus-visible {
-    outline: 2px solid @primary-color;
+    outline: 2px solid var(--primary-color);
     outline-offset: 2px;
   }
 }
@@ -912,8 +912,8 @@ button {
 // ==========================================
 
 .SettingsSection--badge {
-  background: fade(@control-bg, 15%);
-  border: 2px solid @control-bg;
+  background: var(--control-bg-fade-15);
+  border: 2px solid var(--control-bg);
 }
 
 // Custom Format Editor
@@ -926,10 +926,10 @@ button {
     
     .Button {
       padding: 6px 12px;
-      border: 1px solid @control-bg;
+      border: 1px solid var(--control-bg);
       border-radius: 4px;
-      background: @control-bg;
-      color: @text-color;
+      background: var(--control-bg);
+      color: var(--text-color);
       cursor: pointer;
       font-size: 12px;
       transition: all 0.2s;
@@ -938,9 +938,9 @@ button {
       gap: 5px;
       
       &:hover {
-        background: darken(@control-bg, 5%);
-        border-color: @primary-color;
-        color: @primary-color;
+        background: var(--control-bg-darken-5);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
       }
       
       i {
@@ -955,18 +955,18 @@ button {
     min-height: 80px;
     
     &.error {
-      border-color: @error-color;
+      border-color: var(--error-color);
     }
   }
   
   .TraderFeedback-formatError {
-    color: @error-color;
+    color: var(--error-color);
     font-size: 12px;
     margin-top: 8px;
     padding: 10px 12px;
     background: fade(@error-color, 10%);
     border-radius: 4px;
-    border-left: 3px solid @error-color;
+    border-left: 3px solid var(--error-color);
     
     i {
       margin-right: 6px;
@@ -976,14 +976,14 @@ button {
   .TraderFeedback-preview {
     margin-top: 15px;
     padding: 15px;
-    background: @body-bg;
-    border: 1px solid @control-bg;
+    background: var(--body-bg);
+    border: 1px solid var(--control-bg);
     border-radius: 8px;
     
     &-label {
       font-weight: 600;
       margin-bottom: 12px;
-      color: @muted-color;
+      color: var(--muted-color);
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -992,7 +992,7 @@ button {
       gap: 6px;
       
       i {
-        color: @primary-color;
+        color: var(--primary-color);
       }
     }
     
@@ -1011,7 +1011,7 @@ button {
     
     &-stats {
       font-size: 11px;
-      color: @muted-more-color;
+      color: var(--muted-more-color);
       font-style: italic;
     }
   }
@@ -1030,20 +1030,20 @@ button {
     vertical-align: middle;
     
     .fas.fa-shopping-cart {
-      color: @primary-color;
+      color: var(--primary-color);
       font-size: 13px;
     }
   }
   
   &-prefix {
     font-weight: 600;
-    color: @text-color;
+    color: var(--text-color);
     margin-right: 2px;
   }
   
   &-score {
     font-weight: 700;
-    color: @primary-color;
+    color: var(--primary-color);
   }
 }
 
@@ -1057,13 +1057,13 @@ button {
   
   .BadgeExample {
     padding: 12px;
-    background: @control-bg;
-    border: 2px solid @control-bg;
+    background: var(--control-bg);
+    border: 2px solid var(--control-bg);
     border-radius: 8px;
     transition: all 0.2s;
     
     &--active {
-      border-color: @primary-color;
+      border-color: var(--primary-color);
       background: fade(@primary-color, 5%);
     }
     
@@ -1074,7 +1074,7 @@ button {
     
     &-label {
       font-size: 11px;
-      color: @muted-color;
+      color: var(--muted-color);
       margin-bottom: 8px;
       font-weight: 600;
       text-transform: uppercase;
@@ -1120,7 +1120,7 @@ button {
 
 .SettingsSection--badge {
   background: fade(@control-bg, 15%);
-  border: 2px solid @control-bg;
+  border: 2px solid var(--control-bg);
 }
 
 // Custom Format Editor
@@ -1133,10 +1133,10 @@ button {
     
     .Button {
       padding: 6px 12px;
-      border: 1px solid @control-bg;
+      border: 1px solid var(--control-bg);
       border-radius: 4px;
-      background: @control-bg;
-      color: @text-color;
+      background: var(--control-bg);
+      color: var(--text-color);
       cursor: pointer;
       font-size: 12px;
       transition: all 0.2s;
@@ -1146,8 +1146,8 @@ button {
       
       &:hover {
         background: darken(@control-bg, 5%);
-        border-color: @primary-color;
-        color: @primary-color;
+        border-color: var(--primary-color);
+        color: var(--primary-color);
       }
       
       i {
@@ -1162,18 +1162,18 @@ button {
     min-height: 80px;
     
     &.error {
-      border-color: @error-color;
+      border-color: var(--error-color);
     }
   }
   
   .TraderFeedback-formatError {
-    color: @error-color;
+    color: var(--error-color);
     font-size: 12px;
     margin-top: 8px;
     padding: 10px 12px;
     background: fade(@error-color, 10%);
     border-radius: 4px;
-    border-left: 3px solid @error-color;
+    border-left: 3px solid var(--error-color);
     
     i {
       margin-right: 6px;
@@ -1183,14 +1183,14 @@ button {
   .TraderFeedback-preview {
     margin-top: 15px;
     padding: 15px;
-    background: @body-bg;
-    border: 1px solid @control-bg;
+    background: var(--body-bg);
+    border: 1px solid var(--control-bg);
     border-radius: 8px;
     
     &-label {
       font-weight: 600;
       margin-bottom: 12px;
-      color: @muted-color;
+      color: var(--muted-color);
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -1199,7 +1199,7 @@ button {
       gap: 6px;
       
       i {
-        color: @primary-color;
+        color: var(--primary-color);
       }
     }
     
@@ -1218,7 +1218,7 @@ button {
     
     &-stats {
       font-size: 11px;
-      color: @muted-more-color;
+      color: var(--muted-more-color);
       font-style: italic;
     }
   }
@@ -1237,20 +1237,20 @@ button {
     vertical-align: middle;
     
     .fas.fa-shopping-cart {
-      color: @primary-color;
+      color: var(--primary-color);
       font-size: 13px;
     }
   }
   
   &-prefix {
     font-weight: 600;
-    color: @text-color;
+    color: var(--text-color);
     margin-right: 2px;
   }
   
   &-score {
     font-weight: 700;
-    color: @primary-color;
+    color: var(--primary-color);
   }
 }
 
@@ -1264,13 +1264,13 @@ button {
   
   .BadgeExample {
     padding: 12px;
-    background: @control-bg;
-    border: 2px solid @control-bg;
+    background: var(--control-bg);
+    border: 2px solid var(--control-bg);
     border-radius: 8px;
     transition: all 0.2s;
     
     &--active {
-      border-color: @primary-color;
+      border-color: var(--primary-color);
       background: fade(@primary-color, 5%);
     }
     
@@ -1281,7 +1281,7 @@ button {
     
     &-label {
       font-size: 11px;
-      color: @muted-color;
+      color: var(--muted-color);
       margin-bottom: 8px;
       font-weight: 600;
       text-transform: uppercase;
@@ -1319,4 +1319,21 @@ button {
   .BadgeExamples {
     grid-template-columns: 1fr !important;
   }
+}
+
+[data-theme^=light] {
+  --control-bg-fade-50: fade(@control-bg-light, 50%);
+  --body-bg-fade-50: fade(@body-bg-light, 50%);
+  --control-bg-fade-25: fade(@control-bg-light, 25%);
+  --control-bg-fade-30: fade(@control-bg-light, 30%);
+  --control-bg-fade-15: fade(@control-bg-light, 15%);
+  --control-bg-darken-5: darken(@control-bg-light, 5%);
+}
+[data-theme^=dark] {
+  --control-bg-fade-50: fade(@control-bg-dark, 50%);
+  --body-bg-fade-50: fade(@body-bg-dark, 50%);
+  --control-bg-fade-25: fade(@control-bg-dark, 25%);
+  --control-bg-fade-30: fade(@control-bg-dark, 30%);
+  --control-bg-fade-15: fade(@control-bg-dark, 15%);
+  --control-bg-darken-5: darken(@control-bg-dark, 5%);
 }

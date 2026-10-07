@@ -11,7 +11,7 @@
       margin: 0 0 20px;
       font-size: 24px;
       font-weight: normal;
-      color: @heading-color;
+      color: var(--heading-color);
     }
   }
   
@@ -28,7 +28,7 @@
   
   &-stat {
     flex: 1;
-    background: @control-bg;
+    background: var(--control-bg);
     border-radius: 4px;
     padding: 15px;
     text-align: center;
@@ -43,7 +43,7 @@
       font-size: 24px;
       font-weight: bold;
       margin-bottom: 5px;
-      color: @text-color;
+      color: var(--text-color);
       
       @media @phone {
         font-size: 20px;
@@ -53,7 +53,7 @@
     &-label {
       font-size: 11px;
       text-transform: uppercase;
-      color: @muted-color;
+      color: var(--muted-color);
       letter-spacing: 0.02em;
       
       @media @phone {
@@ -63,7 +63,7 @@
     
     // Stat type colors
     &--score &-value {
-      color: @primary-color;
+      color: var(--primary-color);
     }
     
     &--positive &-value {
@@ -155,8 +155,8 @@
 // Feedback Items
 // ============================================
 .FeedbackItem {
-  background: @body-bg;
-  border: 1px solid @control-bg;
+  background: var(--body-bg);
+  border: 1px solid var(--control-bg);
   border-radius: 4px;
   padding: 15px;
   transition: box-shadow 0.2s ease;
@@ -213,7 +213,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: @muted-color;
+    color: var(--muted-color);
     font-size: 13px;
     flex-shrink: 0;
     
@@ -248,7 +248,7 @@
     }
     
     &--placeholder {
-      background: @primary-color;
+      background: var(--primary-color);
       color: #fff;
       display: inline-flex;
       align-items: center;
@@ -263,7 +263,7 @@
   }
   
   &-username {
-    color: @text-color;
+    color: var(--text-color);
     font-weight: 600;
     font-size: 14px;
     overflow: hidden;
@@ -288,7 +288,7 @@
       }
       
       .FeedbackItem-username {
-        color: @primary-color;
+        color: var(--primary-color);
       }
     }
   }
@@ -349,8 +349,8 @@
   }
   
   &-role {
-    background: @control-bg;
-    color: @muted-color;
+    background: var(--control-bg);
+    color: var(--muted-color);
   }
   
   // Date
@@ -364,7 +364,7 @@
     align-items: center;
     gap: 4px;
     font-size: 0.85em;
-    color: @link-color;
+    color: var(--link-color);
     transition: all 0.2s ease;
     text-decoration: none;
     white-space: nowrap;
@@ -379,19 +379,19 @@
     }
     
     &:hover {
-      color: @primary-color;
+      color: var(--primary-color);
       text-decoration: underline;
     }
     
     &--deleted,
     &--locked {
-      color: @muted-color;
+      color: var(--muted-color);
       opacity: 0.6;
       cursor: not-allowed;
       
       &:hover {
         text-decoration: none;
-        color: @muted-color;
+        color: var(--muted-color);
       }
     }
   }
@@ -412,10 +412,10 @@
   
   // Comment section
   &-comment {
-    color: @text-color;
+    color: var(--text-color);
     line-height: 1.6;
     padding: 12px;
-    background: @control-bg;
+    background: var(--control-bg);
     border-radius: 4px;
     word-wrap: break-word;
     white-space: pre-wrap;
@@ -431,7 +431,7 @@
   &-actions {
     margin-top: 10px;
     padding-top: 10px;
-    border-top: 1px solid @control-bg;
+    border-top: 1px solid var(--control-bg);
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
@@ -445,7 +445,7 @@
     .Button--link {
       padding: 4px 8px;
       font-size: 13px;
-      color: @muted-color;
+      color: var(--muted-color);
       transition: all 0.2s ease;
       display: inline-flex;
       align-items: center;
@@ -458,8 +458,8 @@
       }
       
       &:hover {
-        color: @text-color;
-        background: @control-bg;
+        color: var(--text-color);
+        background: var(--control-bg);
       }
       
       i {
@@ -491,7 +491,7 @@
 .Modal {
   &.Modal--medium {
     .Modal-header {
-      background: @primary-color;
+      background: var(--primary-color);
       color: #fff;
       
       .Modal-close {
@@ -523,13 +523,13 @@
       display: block;
       margin-bottom: 5px;
       font-weight: 600;
-      color: @text-color;
+      color: var(--text-color);
     }
     
     textarea {
       width: 100%;
       min-height: 100px;
-      border: 2px solid @control-bg;
+      border: 2px solid var(--control-bg);
       border-radius: 4px;
       padding: 10px;
       font-family: inherit;
@@ -537,9 +537,9 @@
       transition: border-color 0.2s ease;
       
       &:focus {
-        border-color: @primary-color;
+        border-color: var(--primary-color);
         outline: none;
-        box-shadow: 0 0 0 3px rgba(red(@primary-color), green(@primary-color), blue(@primary-color), 0.1);
+        box-shadow: 0 0 0 3px rgba(red(@primary-color), green(var(--primary-color)), blue(var(--primary-color)), 0.1);
       }
     }
   }
@@ -551,7 +551,7 @@
 .Placeholder {
   padding: 60px 20px;
   text-align: center;
-  color: @muted-color;
+  color: var(--muted-color);
   
   @media @phone {
     padding: 40px 15px;
@@ -594,14 +594,14 @@
   &-userLink,
   &-discussionLink {
     &:focus {
-      outline: 2px solid @primary-color;
+      outline: 2px solid var(--primary-color);
       outline-offset: 2px;
       border-radius: 2px;
     }
   }
   
   .Button--link:focus {
-    outline: 2px solid @primary-color;
+    outline: 2px solid var(--primary-color);
     outline-offset: 2px;
     border-radius: 2px;
   }
@@ -635,13 +635,13 @@
     vertical-align: middle;
     
     .fas.fa-shopping-cart {
-      color: @primary-color;
+      color: var(--primary-color);
     }
   }
   
   &-score {
     font-weight: 700;
-    color: @primary-color;
+    color: var(--primary-color);
   }
 }
 
@@ -661,13 +661,13 @@
     vertical-align: middle;
     
     .fas.fa-shopping-cart {
-      color: @primary-color;
+      color: var(--primary-color);
     }
   }
   
   &-prefix {
     font-weight: 600;
-    color: @text-color;
+    color: var(--text-color);
     margin-right: 2px;
     
     @media @phone {
@@ -677,7 +677,7 @@
   
   &-score {
     font-weight: 700;
-    color: @primary-color;
+    color: var(--primary-color);
   }
 }
 
@@ -707,13 +707,13 @@
     vertical-align: middle;
     
     .fas.fa-shopping-cart {
-      color: @primary-color;
+      color: var(--primary-color);
     }
   }
   
   &-prefix {
     font-weight: 600;
-    color: @text-color;
+    color: var(--text-color);
     margin-right: 2px;
     
     @media @phone {
@@ -723,7 +723,7 @@
   
   &-score {
     font-weight: 700;
-    color: @primary-color;
+    color: var(--primary-color);
   }
 }
 
