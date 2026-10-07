@@ -85,7 +85,7 @@ return [
         ->belongsTo('toUser', User::class, 'to_user_id')
         ->belongsTo('approvedBy', User::class, 'approved_by_id'),
 
-    // Extend the UserSerializer to add permission attributes
+    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
     (new Extend\ApiSerializer(UserSerializer::class))
         ->hasMany('feedbacksReceived', FeedbackSerializer::class)
         ->hasMany('feedbacksGiven', FeedbackSerializer::class)
@@ -109,19 +109,19 @@ return [
             return $attributes;
         }),
 
-    // API Controller includes
+    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
     (new Extend\ApiController(ShowUserController::class))
         ->addInclude('traderStats'),
 
+    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
     (new Extend\ApiController(ListUsersController::class))
         ->addInclude('traderStats'),
 
-    // NOTE: eager-load of traderStats is gated behind the
-    // "showBadgeInPosts" setting so it doesn't run on every discussion /
-    // post-list request when the badge feature isn't even enabled.
+    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
     (new Extend\ApiController(ShowDiscussionController::class))
         ->addInclude('posts.user.traderStats'),
 
+    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
     (new Extend\ApiController(ListPostsController::class))
         ->addInclude('user.traderStats'),
 
@@ -201,4 +201,9 @@ return [
         ->serializeToForum('huseyinfiliz.traderfeedback.badgeCustomFormat', 'huseyinfiliz.traderfeedback.badgeCustomFormat')
         ->serializeToForum('huseyinfiliz.traderfeedback.badgeTagFilter', 'huseyinfiliz.traderfeedback.badgeTagFilter')
         ->serializeToForum('huseyinfiliz.traderfeedback.badgeOnlyFirstPost', 'huseyinfiliz.traderfeedback.badgeOnlyFirstPost', 'boolval'),
+    new Extend\ApiResource(HuseyinFiliz\TraderFeedback\FeedbackReportResource::class),
+    new Extend\ApiResource(HuseyinFiliz\TraderFeedback\FeedbackResource::class),
+    new Extend\ApiResource(HuseyinFiliz\TraderFeedback\MinimalUserResource::class),
+    new Extend\ApiResource(HuseyinFiliz\TraderFeedback\StatsSummaryResource::class),
+    new Extend\ApiResource(HuseyinFiliz\TraderFeedback\TraderStatsResource::class),
 ];
