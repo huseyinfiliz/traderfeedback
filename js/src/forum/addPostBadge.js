@@ -1,6 +1,7 @@
 import { extend } from 'flarum/common/extend';
 import app from 'flarum/forum/app';
 import CommentPost from 'flarum/forum/components/CommentPost';
+import Icon from 'flarum/common/components/Icon';
 
 export default function addPostBadge() {
   extend(CommentPost.prototype, 'headerItems', function (items) {
@@ -63,7 +64,7 @@ export default function addPostBadge() {
     items.add(
       'traderBadge',
       <span className="TraderBadge TraderBadge--inline">
-        <i className="fas fa-shopping-cart"></i>
+        <Icon name="fas fa-cart-shopping" />
         {customPrefix && <span className="TraderBadge-prefix">{customPrefix}</span>}
         <span className="TraderBadge-score">{badgeText}</span>
       </span>,

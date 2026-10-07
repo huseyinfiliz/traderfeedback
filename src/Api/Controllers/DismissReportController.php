@@ -3,48 +3,35 @@
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
 use Carbon\Carbon;
-use Flarum\Api\Controller\AbstractShowController;
 use Flarum\Http\RequestUtil;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackReportSerializer;
+use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\FeedbackReport;
 use Illuminate\Support\Arr;
+use Laminas\Diactoros\Response\JsonResponse;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Tobscure\JsonApi\Document;
+use Psr\Http\Server\RequestHandlerInterface;
 
-/**
- * @TODO: Remove this in favor of one of the API resource classes that were added.
- *      Or extend an existing API Resource to add this to.
- *      Or use a vanilla RequestHandlerInterface controller.
- *      @link https://docs.flarum.org/2.x/extend/api#endpoints
- */
-class DismissReportController extends AbstractShowController
+class DismissReportController implements RequestHandlerInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public $serializer = FeedbackReportSerializer::class;
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function data(ServerRequestInterface $request, Document $document)
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
-        $id = Arr::get($request->getQueryParams(), 'id');
+        $routeParams = $request->getAttribute('routeParameters') ?? [];
+        $id = $routeParams['id'] ?? Arr::get($request->getQueryParams(), 'id');
 
-        // Check permission
         $actor->assertCan('huseyinfiliz-traderfeedback.moderate');
 
-        // Find the report
         $report = FeedbackReport::findOrFail($id);
 
-        // Simply mark as resolved without any action
-        // Admin decided to dismiss the report without taking action
         $report->resolved = true;
         $report->resolved_by_id = $actor->id;
         $report->updated_at = Carbon::now();
         $report->save();
 
-        return $report;
+        return new JsonResponse([
+            'success' => true,
+            'data' => FeedbackSerializer::report($report, $actor),
+        ]);
     }
 }

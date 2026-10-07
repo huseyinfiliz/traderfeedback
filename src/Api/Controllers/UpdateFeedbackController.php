@@ -2,50 +2,42 @@
 
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
-use Flarum\Api\Controller\AbstractShowController;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
 use Flarum\Settings\SettingsRepositoryInterface;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
+use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Validators\FeedbackValidator;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Arr;
+use Laminas\Diactoros\Response\JsonResponse;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Tobscure\JsonApi\Document;
+use Psr\Http\Server\RequestHandlerInterface;
 
-/**
- * @TODO: Remove this in favor of one of the API resource classes that were added.
- *      Or extend an existing API Resource to add this to.
- *      Or use a vanilla RequestHandlerInterface controller.
- *      @link https://docs.flarum.org/2.x/extend/api#endpoints
- */
-class UpdateFeedbackController extends AbstractShowController
+class UpdateFeedbackController implements RequestHandlerInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public $serializer = FeedbackSerializer::class;
-
-    /**
-     * {@inheritdoc}
-     */
-    public $include = ['fromUser', 'toUser', 'discussion'];
-
-    public function __construct(protected FeedbackValidator $validator, protected SettingsRepositoryInterface $settings)
-    {
+    public function __construct(
+        protected FeedbackValidator $validator,
+        protected SettingsRepositoryInterface $settings,
+        protected Dispatcher $events
+    ) {
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function data(ServerRequestInterface $request, Document $document)
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
-        $data = Arr::get($request->getParsedBody(), 'data.attributes', []);
-        $id = Arr::get($request->getQueryParams(), 'id');
+        $body = $request->getParsedBody();
+        $data = Arr::get($body, 'data.attributes') ?: Arr::get($body, 'data') ?: $body;
+        if (!is_array($data)) {
+            $data = [];
+        }
 
-        $feedback = Feedback::findOrFail($id);
+        $routeParams = $request->getAttribute('routeParameters') ?? [];
+        $id = $routeParams['id'] ?? Arr::get($request->getQueryParams(), 'id');
+
+        $feedback = Feedback::with(['fromUser', 'toUser', 'discussion'])->findOrFail($id);
 
         $actor->assertCan('edit', $feedback);
 
@@ -80,8 +72,22 @@ class UpdateFeedbackController extends AbstractShowController
 
         $feedback->save();
 
-        event(new FeedbackUpdated($feedback, $actor));
+        $this->events->dispatch(new FeedbackUpdated($feedback, $actor));
 
-        return $feedback;
+        $included = [];
+        if ($feedback->fromUser) {
+            $included[] = FeedbackSerializer::user($feedback->fromUser);
+        }
+        if ($feedback->toUser) {
+            $included[] = FeedbackSerializer::user($feedback->toUser);
+        }
+        if ($feedback->discussion) {
+            $included[] = FeedbackSerializer::discussion($feedback->discussion);
+        }
+
+        return new JsonResponse([
+            'data' => FeedbackSerializer::feedback($feedback, $actor),
+            'included' => $included,
+        ]);
     }
 }

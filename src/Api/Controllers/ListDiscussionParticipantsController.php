@@ -2,31 +2,23 @@
 
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
-use Flarum\Api\Controller\AbstractListController;
 use Flarum\Discussion\Discussion;
+use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\MinimalUserSerializer;
+use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use Illuminate\Support\Arr;
+use Laminas\Diactoros\Response\JsonResponse;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Tobscure\JsonApi\Document;
+use Psr\Http\Server\RequestHandlerInterface;
 
-/**
- * @TODO: Remove this in favor of one of the API resource classes that were added.
- *      Or extend an existing API Resource to add this to.
- *      Or use a vanilla RequestHandlerInterface controller.
- *      @link https://docs.flarum.org/2.x/extend/api#endpoints
- */
-class ListDiscussionParticipantsController extends AbstractListController
+class ListDiscussionParticipantsController implements RequestHandlerInterface
 {
-    public $serializer = MinimalUserSerializer::class;
-
-    public $limit = 100;
-
-    protected function data(ServerRequestInterface $request, Document $document)
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
-
-        $discussionId = Arr::get($request->getQueryParams(), 'id');
+        $routeParams = $request->getAttribute('routeParameters') ?? [];
+        $discussionId = $routeParams['id'] ?? Arr::get($request->getQueryParams(), 'id');
 
         if (!$discussionId) {
             $path = $request->getUri()->getPath();
@@ -36,14 +28,12 @@ class ListDiscussionParticipantsController extends AbstractListController
         }
 
         if (!$discussionId) {
-            throw new \Flarum\Foundation\ValidationException([
+            throw new ValidationException([
                 'id' => 'Discussion ID is required.',
             ]);
         }
 
-        $discussion = Discussion::query()
-            ->where('id', $discussionId)
-            ->firstOrFail();
+        $discussion = Discussion::findOrFail($discussionId);
 
         $actor->assertCan('view', $discussion);
 
@@ -56,10 +46,12 @@ class ListDiscussionParticipantsController extends AbstractListController
             $query->where('users.username', 'like', '%'.$search.'%');
         }
 
-        $participants = $query
-            ->limit($this->limit)
-            ->get();
+        $participants = $query->limit(100)->get();
 
-        return $participants;
+        $data = $participants->map(fn ($user) => FeedbackSerializer::user($user))->all();
+
+        return new JsonResponse([
+            'data' => $data,
+        ]);
     }
 }

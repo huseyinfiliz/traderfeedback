@@ -16,4 +16,4 @@ jobs:
       cache_dependency_path: ./js/yarn.lock
 
       node_version: 20
-      main_git_branch: main
+      main_git_branch: 2.x

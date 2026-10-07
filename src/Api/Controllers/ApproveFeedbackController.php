@@ -2,42 +2,39 @@
 
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
-use Flarum\Api\Controller\AbstractShowController;
 use Flarum\Http\RequestUtil;
 use Flarum\Notification\NotificationSyncer;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
+use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
 use HuseyinFiliz\TraderFeedback\Services\StatsService;
 use Illuminate\Support\Arr;
+use Laminas\Diactoros\Response\JsonResponse;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Tobscure\JsonApi\Document;
+use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\LoggerInterface;
 
-/**
- * @TODO: Remove this in favor of one of the API resource classes that were added.
- *      Or extend an existing API Resource to add this to.
- *      Or use a vanilla RequestHandlerInterface controller.
- *      @link https://docs.flarum.org/2.x/extend/api#endpoints
- */
-class ApproveFeedbackController extends AbstractShowController
+class ApproveFeedbackController implements RequestHandlerInterface
 {
-    public $serializer = FeedbackSerializer::class;
-
-    public function __construct(protected NotificationSyncer $notifications)
-    {
+    public function __construct(
+        protected NotificationSyncer $notifications,
+        protected LoggerInterface $log
+    ) {
     }
 
-    protected function data(ServerRequestInterface $request, Document $document)
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
-        $id = Arr::get($request->getQueryParams(), 'id');
+        $routeParams = $request->getAttribute('routeParameters') ?? [];
+        $id = $routeParams['id'] ?? Arr::get($request->getQueryParams(), 'id');
 
         $actor->assertCan('huseyinfiliz-traderfeedback.moderate');
 
         $feedback = Feedback::with(['fromUser', 'toUser'])->findOrFail($id);
 
-        $wasApproved = $feedback->is_approved;
+        $wasApproved = (bool) $feedback->is_approved;
 
         // Approve feedback
         $feedback->is_approved = true;
@@ -62,13 +59,15 @@ class ApproveFeedbackController extends AbstractShowController
                     $this->notifications->sync($newFeedbackBlueprint, [$feedback->toUser]);
                 }
             } catch (\Exception $e) {
-                app('log')->error('Failed to send approval notifications', [
+                $this->log->error('Failed to send approval notifications', [
                     'feedback_id' => $feedback->id,
-                    'error'       => $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
 
-        return $feedback;
+        return new JsonResponse([
+            'data' => FeedbackSerializer::feedback($feedback, $actor),
+        ]);
     }
 }

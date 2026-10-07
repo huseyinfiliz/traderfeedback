@@ -2,42 +2,36 @@
 
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
-use Flarum\Api\Controller\AbstractShowController;
-use Flarum\Http\RequestUtil;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\TraderStatsSerializer;
+use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Services\StatsService;
+use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Support\Arr;
+use Laminas\Diactoros\Response\JsonResponse;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Tobscure\JsonApi\Document;
+use Psr\Http\Server\RequestHandlerInterface;
 
-/**
- * @TODO: Remove this in favor of one of the API resource classes that were added.
- *      Or extend an existing API Resource to add this to.
- *      Or use a vanilla RequestHandlerInterface controller.
- *      @link https://docs.flarum.org/2.x/extend/api#endpoints
- */
-class ShowTraderStatsController extends AbstractShowController
+class ShowTraderStatsController implements RequestHandlerInterface
 {
-    public $serializer = TraderStatsSerializer::class;
-
-    protected function data(ServerRequestInterface $request, Document $document)
+    public function __construct(protected Cache $cache)
     {
-        $actor = RequestUtil::getActor($request);
-        $userId = (int) Arr::get($request->getQueryParams(), 'id');
+    }
 
-        // Cache key for this user's stats
+    public function handle(ServerRequestInterface $request): ResponseInterface
+    {
+        $routeParams = $request->getAttribute('routeParameters') ?? [];
+        $userId = (int) ($routeParams['id'] ?? Arr::get($request->getQueryParams(), 'id'));
+
         $cacheKey = "trader_stats_{$userId}";
-        $cache = app('cache.store');
-
-        // Try to get from cache (60 minutes TTL)
-        $stats = $cache->get($cacheKey);
+        $stats = $this->cache->get($cacheKey);
 
         if (!$stats) {
-            // Not in cache, calculate and store
             $stats = StatsService::updateUserStats($userId);
-            $cache->put($cacheKey, $stats, 3600); // 3600 seconds = 1 hour
+            $this->cache->put($cacheKey, $stats, 3600);
         }
 
-        return $stats;
+        return new JsonResponse([
+            'data' => FeedbackSerializer::stats($stats),
+        ]);
     }
 }

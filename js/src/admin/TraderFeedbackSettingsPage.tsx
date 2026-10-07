@@ -1,6 +1,7 @@
 import app from 'flarum/admin/app';
 import ExtensionPage from 'flarum/admin/components/ExtensionPage';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
+import Icon from 'flarum/common/components/Icon';
 import StatsCards from './components/StatsCards';
 import FeedbackCard from './components/FeedbackCard';
 import ReportCard from './components/ReportCard';
@@ -56,7 +57,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
             this.activeTab = 'settings';
           }}
         >
-          <i className="fas fa-cog"></i>
+          <Icon name="fas fa-gear" />
           <span>{app.translator.trans('huseyinfiliz-traderfeedback.admin.tabs.settings')}</span>
         </button>
 
@@ -67,7 +68,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
             if (this.pendingFeedbacks.length === 0) this.loadPendingFeedbacks();
           }}
         >
-          <i className="fas fa-check-circle"></i>
+          <Icon name="fas fa-circle-check" />
           <span>{app.translator.trans('huseyinfiliz-traderfeedback.admin.tabs.approvals')}</span>
           {this.pendingFeedbacks.length > 0 && <span className="TabButton-badge">{this.pendingFeedbacks.length}</span>}
         </button>
@@ -79,7 +80,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
             if (this.reports.length === 0) this.loadReports();
           }}
         >
-          <i className="fas fa-flag"></i>
+          <Icon name="fas fa-flag" />
           <span>{app.translator.trans('huseyinfiliz-traderfeedback.admin.tabs.reports')}</span>
           {this.reports.length > 0 && <span className="TabButton-badge TabButton-badge--warning">{this.reports.length}</span>}
         </button>
@@ -109,7 +110,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
       return (
         <div className="EmptyState">
           <div className="EmptyState-icon">
-            <i className="fas fa-check-circle"></i>
+            <Icon name="fas fa-circle-check" />
           </div>
           <h3>{app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.title')}</h3>
           <p>{app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.no_approvals')}</p>
@@ -141,7 +142,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
       return (
         <div className="EmptyState">
           <div className="EmptyState-icon">
-            <i className="fas fa-shield-alt"></i>
+            <Icon name="fas fa-shield-halved" />
           </div>
           <h3>{app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.title')}</h3>
           <p>{app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.no_reports')}</p>

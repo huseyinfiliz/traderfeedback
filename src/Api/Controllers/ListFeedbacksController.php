@@ -2,30 +2,18 @@
 
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
-use Flarum\Api\Controller\AbstractListController;
 use Flarum\Http\RequestUtil;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
+use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use Illuminate\Support\Arr;
+use Laminas\Diactoros\Response\JsonResponse;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Tobscure\JsonApi\Document;
+use Psr\Http\Server\RequestHandlerInterface;
 
-/**
- * @TODO: Remove this in favor of one of the API resource classes that were added.
- *      Or extend an existing API Resource to add this to.
- *      Or use a vanilla RequestHandlerInterface controller.
- *      @link https://docs.flarum.org/2.x/extend/api#endpoints
- */
-class ListFeedbacksController extends AbstractListController
+class ListFeedbacksController implements RequestHandlerInterface
 {
-    public $serializer = FeedbackSerializer::class;
-
-    public $include = ['fromUser', 'toUser', 'discussion'];
-
-    public $limit = 20;
-    public $maxLimit = 50;
-
-    protected function data(ServerRequestInterface $request, Document $document)
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
         $params = $request->getQueryParams();
@@ -33,41 +21,61 @@ class ListFeedbacksController extends AbstractListController
         $userId = Arr::get($params, 'filter.user');
         $type = Arr::get($params, 'filter.type');
         $sort = Arr::get($params, 'filter.sort', 'newest');
-        $limit = $this->extractLimit($request);
-        $offset = $this->extractOffset($request);
+        $limit = min((int) Arr::get($params, 'page.limit', 20), 50);
+        if ($limit <= 0) {
+            $limit = 20;
+        }
+        $offset = max((int) Arr::get($params, 'page.offset', 0), 0);
 
-        $query = Feedback::query()
-            ->with(['fromUser', 'toUser', 'discussion']) // Eager load relationships
-            ->where('to_user_id', $userId)
-            ->where('is_approved', true);
+        $query = Feedback::query()->with(['fromUser', 'toUser', 'discussion']);
 
-        if ($type && $type !== 'all') {
+        // Visibility scoping
+        if (!$actor->hasPermission('huseyinfiliz-traderfeedback.moderate')) {
+            $query->where(function ($q) use ($actor) {
+                $q->where('is_approved', true);
+                if ($actor->id) {
+                    $q->orWhere('from_user_id', $actor->id)
+                      ->orWhere('to_user_id', $actor->id);
+                }
+            });
+        }
+
+        if ($userId) {
+            $query->where('to_user_id', (int) $userId);
+        }
+
+        if ($type && in_array($type, [Feedback::TYPE_POSITIVE, Feedback::TYPE_NEUTRAL, Feedback::TYPE_NEGATIVE], true)) {
             $query->where('type', $type);
         }
 
-        if ($sort === 'newest') {
-            $query->orderBy('created_at', 'desc');
-        } else {
+        if ($sort === 'oldest') {
             $query->orderBy('created_at', 'asc');
+        } else {
+            $query->orderBy('created_at', 'desc');
         }
 
-        // Paginate
-        $results = $query->skip($offset)->take($limit + 1)->get();
-        $hasMoreResults = $results->count() > $limit;
+        $feedbacks = $query->skip($offset)->take($limit)->get();
 
-        if ($hasMoreResults) {
-            $results->pop();
+        $data = [];
+        $includedMap = [];
+
+        foreach ($feedbacks as $fb) {
+            $data[] = FeedbackSerializer::feedback($fb, $actor);
+
+            if ($fb->fromUser && !isset($includedMap['users:'.$fb->fromUser->id])) {
+                $includedMap['users:'.$fb->fromUser->id] = FeedbackSerializer::user($fb->fromUser);
+            }
+            if ($fb->toUser && !isset($includedMap['users:'.$fb->toUser->id])) {
+                $includedMap['users:'.$fb->toUser->id] = FeedbackSerializer::user($fb->toUser);
+            }
+            if ($fb->discussion && !isset($includedMap['discussions:'.$fb->discussion->id])) {
+                $includedMap['discussions:'.$fb->discussion->id] = FeedbackSerializer::discussion($fb->discussion);
+            }
         }
 
-        // Add pagination info
-        $document->addPaginationLinks(
-            $request->getUri()->getPath(),
-            $request->getQueryParams(),
-            $offset,
-            $limit,
-            $hasMoreResults ? null : 0
-        );
-
-        return $results;
+        return new JsonResponse([
+            'data' => $data,
+            'included' => array_values($includedMap),
+        ]);
     }
 }

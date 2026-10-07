@@ -3,32 +3,32 @@
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
 use Carbon\Carbon;
-use Flarum\Api\Controller\AbstractCreateController;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackReportSerializer;
+use Flarum\Locale\TranslatorInterface;
+use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Models\FeedbackReport;
 use Illuminate\Support\Arr;
+use Laminas\Diactoros\Response\JsonResponse;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Tobscure\JsonApi\Document;
+use Psr\Http\Server\RequestHandlerInterface;
 
-/**
- * @TODO: Remove this in favor of one of the API resource classes that were added.
- *      Or extend an existing API Resource to add this to.
- *      Or use a vanilla RequestHandlerInterface controller.
- *      @link https://docs.flarum.org/2.x/extend/api#endpoints
- */
-class ReportFeedbackController extends AbstractCreateController
+class ReportFeedbackController implements RequestHandlerInterface
 {
-    public $serializer = FeedbackReportSerializer::class;
-    public $include = ['reporter', 'feedback', 'feedback.fromUser', 'feedback.toUser'];
+    public function __construct(protected TranslatorInterface $translator)
+    {
+    }
 
-    protected function data(ServerRequestInterface $request, Document $document)
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
-        $data = Arr::get($request->getParsedBody(), 'data', []);
-        $id = Arr::get($request->getQueryParams(), 'id');
+        $actor->assertRegistered();
+
+        $body = $request->getParsedBody();
+        $routeParams = $request->getAttribute('routeParameters') ?? [];
+        $id = $routeParams['id'] ?? Arr::get($request->getQueryParams(), 'id');
 
         $feedback = Feedback::findOrFail($id);
 
@@ -43,7 +43,7 @@ class ReportFeedbackController extends AbstractCreateController
 
         if ($existingReport) {
             throw new ValidationException([
-                'feedback' => app('translator')->trans('huseyinfiliz-traderfeedback.api.validation.already_reported'),
+                'feedback' => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.already_reported'),
             ]);
         }
 
@@ -54,24 +54,36 @@ class ReportFeedbackController extends AbstractCreateController
 
         if ($recentReport) {
             throw new ValidationException([
-                'rate_limit' => app('translator')->trans(
+                'rate_limit' => $this->translator->trans(
                     'huseyinfiliz-traderfeedback.api.validation.rate_limit_report',
                     ['seconds' => 60]
                 ),
             ]);
         }
 
+        $reason = Arr::get($body, 'data.attributes.reason')
+            ?? Arr::get($body, 'data.reason')
+            ?? Arr::get($body, 'reason')
+            ?? 'No reason provided';
+
+        $sanitizedReason = mb_substr(trim(strip_tags((string) $reason)), 0, 1000);
+        if (empty($sanitizedReason)) {
+            $sanitizedReason = 'No reason provided';
+        }
+
         // Create the report
         $report = new FeedbackReport();
         $report->user_id = $actor->id;
         $report->feedback_id = $feedback->id;
-        $report->reason = Arr::get($data, 'attributes.reason', 'No reason provided');
+        $report->reason = $sanitizedReason;
         $report->resolved = false;
         $report->save();
 
-        // Load relationships
-        $report->load(['reporter', 'feedback', 'feedback.fromUser', 'feedback.toUser']);
+        $report->load(['reporter', 'feedback.fromUser', 'feedback.toUser']);
 
-        return $report;
+        return new JsonResponse([
+            'success' => true,
+            'data' => FeedbackSerializer::report($report, $actor),
+        ], 201);
     }
 }

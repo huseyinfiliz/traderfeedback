@@ -10,7 +10,7 @@ use HuseyinFiliz\TraderFeedback\Models\Feedback;
 
 class TestUser extends User
 {
-    public $permissions = [];
+    public ?array $permissions = [];
 
     public function __construct(int $id = 0, array $permissions = [])
     {
@@ -19,9 +19,9 @@ class TestUser extends User
         $this->permissions = $permissions;
     }
 
-    public function hasPermission($permission)
+    public function hasPermission(string $permission): bool
     {
-        return in_array($permission, $this->permissions, true);
+        return in_array($permission, $this->permissions ?? [], true);
     }
 }
 

@@ -2,6 +2,7 @@ import app from 'flarum/admin/app';
 import Component from 'flarum/common/Component';
 import Button from 'flarum/common/components/Button';
 import Avatar from 'flarum/common/components/Avatar';
+import Icon from 'flarum/common/components/Icon';
 import humanTime from 'flarum/common/helpers/humanTime';
 
 export default class FeedbackCard extends Component {
@@ -33,7 +34,7 @@ export default class FeedbackCard extends Component {
 
     const typeIcon = feedback.attributes.type === 'positive' ? 'thumbs-up' : feedback.attributes.type === 'negative' ? 'thumbs-down' : 'minus';
 
-    const roleIcon = feedback.attributes.role === 'buyer' ? 'shopping-cart' : feedback.attributes.role === 'seller' ? 'store' : 'exchange-alt';
+    const roleIcon = feedback.attributes.role === 'buyer' ? 'cart-shopping' : feedback.attributes.role === 'seller' ? 'store' : 'right-left';
 
     return (
       <div className={`FeedbackCard FeedbackCard--${feedback.attributes.type}`}>
@@ -47,7 +48,7 @@ export default class FeedbackCard extends Component {
                   : app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.user_id_format', { id: fromUserId })}
               </strong>
             </div>
-            <i className="fas fa-arrow-right FeedbackCard-arrow"></i>
+            <Icon name="fas fa-arrow-right" className="FeedbackCard-arrow" />
             <div className="FeedbackCard-user">
               {toUser && <Avatar user={toUser} />}
               <strong>
@@ -58,17 +59,17 @@ export default class FeedbackCard extends Component {
 
           <div className="FeedbackCard-meta">
             <span className={`Badge ${badgeClass}`}>
-              <i className={`fas fa-${typeIcon}`}></i>
+              <Icon name={`fas fa-${typeIcon}`} />
             </span>
 
             <span className="FeedbackCard-roleBadge">
-              <i className={`fas fa-${roleIcon}`}></i>
+              <Icon name={`fas fa-${roleIcon}`} />
               <span>{app.translator.trans(`huseyinfiliz-traderfeedback.admin.roles.${feedback.attributes.role}`)}</span>
             </span>
 
             {(feedback.attributes.created_at || feedback.attributes.updated_at) && (
               <span className="FeedbackCard-dateBadge">
-                <i className="far fa-clock"></i>
+                <Icon name="far fa-clock" />
                 <span>{humanTime(new Date(feedback.attributes.created_at || feedback.attributes.updated_at))}</span>
               </span>
             )}
@@ -83,7 +84,7 @@ export default class FeedbackCard extends Component {
 
         {feedback.attributes.discussion_id && (
           <a href={app.route('discussion', { id: feedback.attributes.discussion_id })} className="FeedbackCard-discussion" target="_blank">
-            <i className="fas fa-comments"></i>
+            <Icon name="fas fa-comments" />
             {app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.view_discussion')}
           </a>
         )}
@@ -92,7 +93,7 @@ export default class FeedbackCard extends Component {
           <Button className="Button Button--primary" icon="fas fa-check" onclick={() => onApprove(feedback)}>
             {app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.approve_button')}
           </Button>
-          <Button className="Button" icon="fas fa-times" onclick={() => onReject(feedback)}>
+          <Button className="Button" icon="fas fa-xmark" onclick={() => onReject(feedback)}>
             {app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.reject_button')}
           </Button>
         </div>

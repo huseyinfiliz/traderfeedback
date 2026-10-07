@@ -1,10 +1,12 @@
 <?php
 
-use Flarum\Api\Controller\ListPostsController;
-use Flarum\Api\Controller\ListUsersController;
-use Flarum\Api\Controller\ShowDiscussionController;
-use Flarum\Api\Controller\ShowUserController;
-use Flarum\Api\Serializer\UserSerializer;
+namespace HuseyinFiliz\TraderFeedback;
+
+use Flarum\Api\Context;
+use Flarum\Api\Endpoint;
+use Flarum\Api\Resource;
+use Flarum\Api\Schema;
+use Flarum\Discussion\Discussion;
 use Flarum\Extend;
 use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Access\FeedbackPolicy;
@@ -25,8 +27,9 @@ use HuseyinFiliz\TraderFeedback\Api\Controllers\ShowFeedbackController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\ShowTraderStatsController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\StatsSummaryController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\UpdateFeedbackController;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\TraderStatsSerializer;
+use HuseyinFiliz\TraderFeedback\Api\Resource\FeedbackReportResource;
+use HuseyinFiliz\TraderFeedback\Api\Resource\FeedbackResource;
+use HuseyinFiliz\TraderFeedback\Api\Resource\TraderStatsResource;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackCreated;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated;
 use HuseyinFiliz\TraderFeedback\Listeners\AddUserPreferencesListener;
@@ -83,47 +86,48 @@ return [
     (new Extend\Model(Feedback::class))
         ->belongsTo('fromUser', User::class, 'from_user_id')
         ->belongsTo('toUser', User::class, 'to_user_id')
-        ->belongsTo('approvedBy', User::class, 'approved_by_id'),
+        ->belongsTo('approvedBy', User::class, 'approved_by_id')
+        ->belongsTo('discussion', Discussion::class, 'discussion_id'),
 
-    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
-    (new Extend\ApiSerializer(UserSerializer::class))
-        ->hasMany('feedbacksReceived', FeedbackSerializer::class)
-        ->hasMany('feedbacksGiven', FeedbackSerializer::class)
-        ->hasOne('traderStats', TraderStatsSerializer::class)
-        ->attributes(function (UserSerializer $serializer, User $user, array $attributes) {
-            $actor = $serializer->getActor();
+    // Register official API Resources
+    new Extend\ApiResource(FeedbackResource::class),
+    new Extend\ApiResource(TraderStatsResource::class),
+    new Extend\ApiResource(FeedbackReportResource::class),
 
-            $attributes['canGiveFeedback'] = $actor &&
-                $actor->hasPermission('huseyinfiliz-traderfeedback.give') &&
-                $actor->id !== $user->id;
+    // Extend UserResource in Flarum 2
+    (new Extend\ApiResource(Resource\UserResource::class))
+        ->fields(fn () => [
+            Schema\Relationship\ToOne::make('traderStats')
+                ->type('trader-stats')
+                ->includable(),
+            Schema\Relationship\ToMany::make('feedbacksReceived')
+                ->type('trader-feedbacks')
+                ->includable(),
+            Schema\Relationship\ToMany::make('feedbacksGiven')
+                ->type('trader-feedbacks')
+                ->includable(),
+            Schema\Boolean::make('canGiveFeedback')
+                ->get(fn (User $user, Context $context) => (bool) (
+                    $context->getActor()->id &&
+                    $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.give') &&
+                    $context->getActor()->id !== $user->id
+                )),
+            Schema\Boolean::make('canReportFeedback')
+                ->get(fn (User $user, Context $context) => (bool) $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.report')),
+            Schema\Boolean::make('canDeleteFeedback')
+                ->get(fn (User $user, Context $context) => (bool) $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.delete')),
+            Schema\Boolean::make('canModerateFeedback')
+                ->get(fn (User $user, Context $context) => (bool) $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.moderate')),
+        ])
+        ->endpoint(Endpoint\Show::class, fn (Endpoint\Show $endpoint) => $endpoint->eagerLoad(['traderStats']))
+        ->endpoint(Endpoint\Index::class, fn (Endpoint\Index $endpoint) => $endpoint->eagerLoad(['traderStats'])),
 
-            $attributes['canReportFeedback'] = $actor &&
-                $actor->hasPermission('huseyinfiliz-traderfeedback.report');
+    (new Extend\ApiResource(Resource\DiscussionResource::class))
+        ->endpoint(Endpoint\Show::class, fn (Endpoint\Show $endpoint) => $endpoint->eagerLoad(['posts.user.traderStats'])),
 
-            $attributes['canDeleteFeedback'] = $actor &&
-                $actor->hasPermission('huseyinfiliz-traderfeedback.delete');
-
-            $attributes['canModerateFeedback'] = $actor &&
-                $actor->hasPermission('huseyinfiliz-traderfeedback.moderate');
-
-            return $attributes;
-        }),
-
-    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
-    (new Extend\ApiController(ShowUserController::class))
-        ->addInclude('traderStats'),
-
-    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
-    (new Extend\ApiController(ListUsersController::class))
-        ->addInclude('traderStats'),
-
-    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
-    (new Extend\ApiController(ShowDiscussionController::class))
-        ->addInclude('posts.user.traderStats'),
-
-    // @TODO: Replace with the new implementation https://docs.flarum.org/2.x/extend/api#extending-api-resources
-    (new Extend\ApiController(ListPostsController::class))
-        ->addInclude('user.traderStats'),
+    (new Extend\ApiResource(Resource\PostResource::class))
+        ->endpoint(Endpoint\Index::class, fn (Endpoint\Index $endpoint) => $endpoint->eagerLoad(['user.traderStats']))
+        ->endpoint(Endpoint\Show::class, fn (Endpoint\Show $endpoint) => $endpoint->eagerLoad(['user.traderStats'])),
 
     // Register notification preferences
     (new Extend\User())
@@ -160,7 +164,7 @@ return [
         ->default('huseyinfiliz.traderfeedback.minDays', 0)
         ->default('huseyinfiliz.traderfeedback.minPosts', 0)
 
-        // NEW: Post/Discussion feedback action defaults
+        // Post/Discussion feedback action defaults
         ->default('huseyinfiliz.traderfeedback.showFeedbackInPostMenu', false)
         ->default('huseyinfiliz.traderfeedback.showFeedbackBelowReply', false)
         ->default('huseyinfiliz.traderfeedback.showFeedbackInPostFooter', false)
@@ -185,7 +189,7 @@ return [
         ->serializeToForum('huseyinfiliz.traderfeedback.minLength', 'huseyinfiliz.traderfeedback.minLength', 'intval')
         ->serializeToForum('huseyinfiliz.traderfeedback.maxLength', 'huseyinfiliz.traderfeedback.maxLength', 'intval')
 
-        // NEW: Post/Discussion feedback action serialization
+        // Post/Discussion feedback action serialization
         ->serializeToForum('huseyinfiliz.traderfeedback.showFeedbackInPostMenu', 'huseyinfiliz.traderfeedback.showFeedbackInPostMenu', 'boolval')
         ->serializeToForum('huseyinfiliz.traderfeedback.showFeedbackBelowReply', 'huseyinfiliz.traderfeedback.showFeedbackBelowReply', 'boolval')
         ->serializeToForum('huseyinfiliz.traderfeedback.showFeedbackInPostFooter', 'huseyinfiliz.traderfeedback.showFeedbackInPostFooter', 'boolval')
@@ -201,9 +205,4 @@ return [
         ->serializeToForum('huseyinfiliz.traderfeedback.badgeCustomFormat', 'huseyinfiliz.traderfeedback.badgeCustomFormat')
         ->serializeToForum('huseyinfiliz.traderfeedback.badgeTagFilter', 'huseyinfiliz.traderfeedback.badgeTagFilter')
         ->serializeToForum('huseyinfiliz.traderfeedback.badgeOnlyFirstPost', 'huseyinfiliz.traderfeedback.badgeOnlyFirstPost', 'boolval'),
-    new Extend\ApiResource(HuseyinFiliz\TraderFeedback\FeedbackReportResource::class),
-    new Extend\ApiResource(HuseyinFiliz\TraderFeedback\FeedbackResource::class),
-    new Extend\ApiResource(HuseyinFiliz\TraderFeedback\MinimalUserResource::class),
-    new Extend\ApiResource(HuseyinFiliz\TraderFeedback\StatsSummaryResource::class),
-    new Extend\ApiResource(HuseyinFiliz\TraderFeedback\TraderStatsResource::class),
 ];

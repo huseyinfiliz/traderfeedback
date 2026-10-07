@@ -539,7 +539,7 @@
       &:focus {
         border-color: var(--primary-color);
         outline: none;
-        box-shadow: 0 0 0 3px rgba(red(@primary-color), green(var(--primary-color)), blue(var(--primary-color)), 0.1);
+        box-shadow: 0 0 0 3px fade(@primary-color, 10%);
       }
     }
   }
@@ -619,77 +619,26 @@
 }
 
 // ============================================
-// User Stats
+// User Stats (User Card / Profile)
 // ============================================
 
-
-.TraderBadge {
-  &--inline {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    background: fade(@primary-color, 12%);
-    border-radius: 10px;
-    font-size: 11px;
-    vertical-align: middle;
-    
-    .fas.fa-shopping-cart {
-      color: var(--primary-color);
-    }
-  }
+.TraderScore {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 13px;
   
-  &-score {
-    font-weight: 700;
+  .icon, i, .fa-shopping-cart, .fa-cart-shopping {
     color: var(--primary-color);
-  }
-}
-
-// ==========================================
-// TRADER BADGE STYLES (Forum Posts)
-// ==========================================
-
-.TraderBadge {
-  &--inline {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    background: fade(@primary-color, 12%);
-    border-radius: 10px;
-    font-size: 11px;
-    vertical-align: middle;
-    
-    .fas.fa-shopping-cart {
-      color: var(--primary-color);
-    }
+    font-size: 12px;
   }
   
-  &-prefix {
+  &-value {
     font-weight: 600;
     color: var(--text-color);
-    margin-right: 2px;
-    
-    @media @phone {
-      display: none; // Hide prefix on mobile for space
-    }
-  }
-  
-  &-score {
-    font-weight: 700;
-    color: var(--primary-color);
   }
 }
-
-// Dark mode support
-.dark-mode {
-  .TraderBadge {
-    &--inline {
-      background: fade(@primary-color, 18%);
-    }
-  }
-}
-
 
 // ==========================================
 // TRADER BADGE STYLES (Forum Posts)
@@ -706,7 +655,7 @@
     font-size: 11px;
     vertical-align: middle;
     
-    .fas.fa-shopping-cart {
+    .icon, i, .fa-shopping-cart, .fa-cart-shopping {
       color: var(--primary-color);
     }
   }

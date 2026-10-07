@@ -33,7 +33,7 @@ export default function addPostControls() {
       'giveFeedback',
       Button.component(
         {
-          icon: 'fas fa-exchange-alt',
+          icon: 'fas fa-right-left',
           onclick: () => {
             app.modal.show(FeedbackModal, {
               user: user,

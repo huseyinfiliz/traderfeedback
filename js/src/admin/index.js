@@ -34,7 +34,7 @@ app.initializers.add('huseyinfiliz-traderfeedback', () => {
     )
     .registerPermission(
       {
-        icon: 'fas fa-shield-alt',
+        icon: 'fas fa-shield-halved',
         label: app.translator.trans('huseyinfiliz-traderfeedback.admin.permissions.moderate_feedback'),
         permission: 'huseyinfiliz-traderfeedback.moderate',
       },

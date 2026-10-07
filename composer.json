@@ -23,7 +23,8 @@
         "source": "https://github.com/huseyinfiliz/flarum-trader-feedback"
     },
     "require": {
-        "flarum/core": "^2.0.0"
+        "php": "^8.2 || ^8.3 || ^8.4",
+        "flarum/core": "^2.0.0-beta || ^2.0"
     },
     "autoload": {
         "psr-4": {
@@ -35,7 +36,7 @@
             "title": "Trader Feedback",
             "category": "feature",
             "icon": {
-                "name": "fas fa-exchange-alt",
+                "name": "fas fa-right-left",
                 "backgroundColor": "#3498db",
                 "color": "#fff"
             }

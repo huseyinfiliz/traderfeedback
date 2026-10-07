@@ -1,6 +1,7 @@
 import Component from 'flarum/common/Component';
 import Select from 'flarum/common/components/Select';
 import Button from 'flarum/common/components/Button';
+import Icon from 'flarum/common/components/Icon';
 import app from 'flarum/forum/app';
 
 export default class FeedbackFilters extends Component {
@@ -26,7 +27,7 @@ export default class FeedbackFilters extends Component {
 
         {app.session.user && app.session.user.id() !== user.id() && (
           <Button className="Button Button--primary TraderFeedbackPage-giveBtn" onclick={onGiveFeedback}>
-            <i className="fas fa-plus TraderFeedbackPage-giveBtnIcon"></i>
+            <Icon name="fas fa-plus" className="TraderFeedbackPage-giveBtnIcon" />
             <span className="TraderFeedbackPage-giveBtnText">
               {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.give_feedback_button')}
             </span>

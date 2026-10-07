@@ -2,28 +2,28 @@
 
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
-use Flarum\Api\Controller\AbstractDeleteController;
 use Flarum\Http\RequestUtil;
+use HuseyinFiliz\TraderFeedback\Events\FeedbackDeleted;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Services\StatsService;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Arr;
+use Laminas\Diactoros\Response\EmptyResponse;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
-/**
- * @TODO: Remove this in favor of one of the API resource classes that were added.
- *      Or extend an existing API Resource to add this to.
- *      Or use a vanilla RequestHandlerInterface controller.
- *      @link https://docs.flarum.org/2.x/extend/api#endpoints
- */
-class DeleteFeedbackController extends AbstractDeleteController
+class DeleteFeedbackController implements RequestHandlerInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    protected function delete(ServerRequestInterface $request): void
+    public function __construct(protected Dispatcher $events)
+    {
+    }
+
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
-        $id = Arr::get($request->getQueryParams(), 'id');
+        $routeParams = $request->getAttribute('routeParameters') ?? [];
+        $id = $routeParams['id'] ?? Arr::get($request->getQueryParams(), 'id');
 
         $feedback = Feedback::findOrFail($id);
 
@@ -34,8 +34,12 @@ class DeleteFeedbackController extends AbstractDeleteController
 
         $feedback->delete();
 
+        $this->events->dispatch(new FeedbackDeleted($feedback, $actor));
+
         if ($isApproved) {
             StatsService::updateUserStats($toUserId);
         }
+
+        return new EmptyResponse(204);
     }
 }

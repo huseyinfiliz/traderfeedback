@@ -3,34 +3,33 @@
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
 use Carbon\Carbon;
-use Flarum\Api\Controller\AbstractCreateController;
+use Flarum\Discussion\Discussion;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
+use Flarum\Locale\TranslatorInterface;
 use Flarum\Settings\SettingsRepositoryInterface;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
+use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackCreated;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Validators\FeedbackValidator;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Arr;
+use Laminas\Diactoros\Response\JsonResponse;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Tobscure\JsonApi\Document;
+use Psr\Http\Server\RequestHandlerInterface;
 
-/**
- * @TODO: Remove this in favor of one of the API resource classes that were added.
- *      Or extend an existing API Resource to add this to.
- *      Or use a vanilla RequestHandlerInterface controller.
- *      @link https://docs.flarum.org/2.x/extend/api#endpoints
- */
-class CreateFeedbackController extends AbstractCreateController
+class CreateFeedbackController implements RequestHandlerInterface
 {
-    public $serializer = FeedbackSerializer::class;
-    public $include = ['fromUser', 'toUser', 'discussion'];
-
-    public function __construct(protected FeedbackValidator $validator, protected SettingsRepositoryInterface $settings)
-    {
+    public function __construct(
+        protected FeedbackValidator $validator,
+        protected SettingsRepositoryInterface $settings,
+        protected Dispatcher $events,
+        protected TranslatorInterface $translator
+    ) {
     }
 
-    protected function data(ServerRequestInterface $request, Document $document)
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
 
@@ -44,7 +43,7 @@ class CreateFeedbackController extends AbstractCreateController
             $daysSinceJoined = $actor->joined_at->diffInDays(Carbon::now(), true);
             if ($daysSinceJoined < $minDays) {
                 throw new ValidationException([
-                    'user' => app('translator')->trans(
+                    'user' => $this->translator->trans(
                         'huseyinfiliz-traderfeedback.api.validation.min_days',
                         ['days' => $minDays]
                     ),
@@ -56,14 +55,18 @@ class CreateFeedbackController extends AbstractCreateController
         $minPosts = (int) $this->settings->get('huseyinfiliz.traderfeedback.minPosts', 0);
         if ($minPosts > 0 && (int) $actor->comment_count < $minPosts) {
             throw new ValidationException([
-                'user' => app('translator')->trans(
+                'user' => $this->translator->trans(
                     'huseyinfiliz-traderfeedback.api.validation.min_posts',
                     ['posts' => $minPosts]
                 ),
             ]);
         }
 
-        $data = Arr::get($request->getParsedBody(), 'data.attributes', []);
+        $body = $request->getParsedBody();
+        $data = Arr::get($body, 'data.attributes') ?: Arr::get($body, 'data') ?: $body;
+        if (!is_array($data)) {
+            $data = [];
+        }
 
         // Rate Limit Check: Max 1 feedback per minute
         $recentFeedback = Feedback::where('from_user_id', $actor->id)
@@ -72,7 +75,7 @@ class CreateFeedbackController extends AbstractCreateController
 
         if ($recentFeedback) {
             throw new ValidationException([
-                'rate_limit' => app('translator')->trans(
+                'rate_limit' => $this->translator->trans(
                     'huseyinfiliz-traderfeedback.api.validation.rate_limit_feedback',
                     ['seconds' => 60]
                 ),
@@ -93,7 +96,7 @@ class CreateFeedbackController extends AbstractCreateController
         }
 
         // Check if discussion is required
-        $requireDiscussion = $this->settings->get('huseyinfiliz.traderfeedback.requireDiscussion', false);
+        $requireDiscussion = (bool) $this->settings->get('huseyinfiliz.traderfeedback.requireDiscussion', false);
         if ($requireDiscussion && !$discussionId) {
             throw new ValidationException([
                 'discussion_id' => 'Discussion URL or ID is required for feedback.',
@@ -109,7 +112,7 @@ class CreateFeedbackController extends AbstractCreateController
         }
 
         // XSS Protection: Strip HTML tags from comment before validation
-        $rawComment = Arr::get($data, 'comment', '');
+        $rawComment = (string) Arr::get($data, 'comment', '');
         $sanitizedComment = strip_tags($rawComment);
         $data['comment'] = $sanitizedComment;
 
@@ -118,14 +121,14 @@ class CreateFeedbackController extends AbstractCreateController
 
         // Check if user is trying to give feedback to themselves
         $toUserId = (int) Arr::get($data, 'to_user_id');
-        if ($actor->id == $toUserId) {
+        if ($actor->id === $toUserId) {
             throw new ValidationException([
                 'to_user_id' => 'You cannot give feedback to yourself.',
             ]);
         }
 
         // Check one per discussion rule
-        $onePerDiscussion = $this->settings->get('huseyinfiliz.traderfeedback.onePerDiscussion', true);
+        $onePerDiscussion = (bool) $this->settings->get('huseyinfiliz.traderfeedback.onePerDiscussion', true);
         if ($onePerDiscussion && $discussionId) {
             $existingFeedback = Feedback::where('from_user_id', $actor->id)
                 ->where('to_user_id', $toUserId)
@@ -141,7 +144,7 @@ class CreateFeedbackController extends AbstractCreateController
 
         // Validate discussion exists if provided
         if ($discussionId) {
-            $discussionExists = \Flarum\Discussion\Discussion::find($discussionId);
+            $discussionExists = Discussion::find($discussionId);
             if (!$discussionExists) {
                 throw new ValidationException([
                     'discussion_id' => 'The specified discussion does not exist.',
@@ -164,7 +167,7 @@ class CreateFeedbackController extends AbstractCreateController
         $feedback->comment = $sanitizedComment;
         $feedback->role = Arr::get($data, 'role');
         $feedback->discussion_id = $discussionId;
-        $feedback->is_approved = !$this->settings->get('huseyinfiliz.traderfeedback.requireApproval', false);
+        $feedback->is_approved = !(bool) $this->settings->get('huseyinfiliz.traderfeedback.requireApproval', false);
 
         $feedback->save();
 
@@ -172,8 +175,22 @@ class CreateFeedbackController extends AbstractCreateController
         $feedback->load(['fromUser', 'toUser', 'discussion']);
 
         // Fire the event - listener will handle stats update and notifications
-        event(new FeedbackCreated($feedback, $actor));
+        $this->events->dispatch(new FeedbackCreated($feedback, $actor));
 
-        return $feedback;
+        $included = [];
+        if ($feedback->fromUser) {
+            $included[] = FeedbackSerializer::user($feedback->fromUser);
+        }
+        if ($feedback->toUser) {
+            $included[] = FeedbackSerializer::user($feedback->toUser);
+        }
+        if ($feedback->discussion) {
+            $included[] = FeedbackSerializer::discussion($feedback->discussion);
+        }
+
+        return new JsonResponse([
+            'data' => FeedbackSerializer::feedback($feedback, $actor),
+            'included' => $included,
+        ], 201);
     }
 }

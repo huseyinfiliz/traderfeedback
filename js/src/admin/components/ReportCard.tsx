@@ -2,6 +2,7 @@ import app from 'flarum/admin/app';
 import Component from 'flarum/common/Component';
 import Button from 'flarum/common/components/Button';
 import Avatar from 'flarum/common/components/Avatar';
+import Icon from 'flarum/common/components/Icon';
 import humanTime from 'flarum/common/helpers/humanTime';
 
 export default class ReportCard extends Component {
@@ -62,7 +63,7 @@ export default class ReportCard extends Component {
 
           {(report.attributes.created_at || report.attributes.updated_at) && (
             <span className="ReportCard-dateBadge">
-              <i className="far fa-clock"></i>
+              <Icon name="far fa-clock" />
               <span>{humanTime(new Date(report.attributes.created_at || report.attributes.updated_at))}</span>
             </span>
           )}
@@ -81,7 +82,7 @@ export default class ReportCard extends Component {
               <div className="ReportCard-feedbackHeader-left">
                 <span>{app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.reported_feedback_label')}</span>
                 <span className={`Badge ${badgeClass}`}>
-                  <i className={`fas fa-${typeIcon}`}></i>
+                  <Icon name={`fas fa-${typeIcon}`} />
                 </span>
               </div>
             </div>
@@ -93,7 +94,7 @@ export default class ReportCard extends Component {
                   ? fromUser.displayName()
                   : app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.user_id_format', { id: fromUserId })}
               </span>
-              <i className="fas fa-arrow-right"></i>
+              <Icon name="fas fa-arrow-right" />
               {toUser && <Avatar user={toUser} />}
               <span>
                 {toUser ? toUser.displayName() : app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.user_id_format', { id: toUserId })}

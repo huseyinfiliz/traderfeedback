@@ -2,23 +2,16 @@
 
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
-use Flarum\Api\Controller\AbstractListController;
 use Flarum\Http\RequestUtil;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
+use Laminas\Diactoros\Response\JsonResponse;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Tobscure\JsonApi\Document;
+use Psr\Http\Server\RequestHandlerInterface;
 
-/**
- * @TODO: Remove this in favor of one of the API resource classes that were added.
- *      Or extend an existing API Resource to add this to.
- *      Or use a vanilla RequestHandlerInterface controller.
- *      @link https://docs.flarum.org/2.x/extend/api#endpoints
- */
-class StatsSummaryController extends AbstractListController
+class StatsSummaryController implements RequestHandlerInterface
 {
-    public $serializer = 'HuseyinFiliz\TraderFeedback\Api\Serializers\StatsSummarySerializer';
-
-    protected function data(ServerRequestInterface $request, Document $document)
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
         $actor->assertCan('huseyinfiliz-traderfeedback.moderate');
@@ -33,14 +26,23 @@ class StatsSummaryController extends AbstractListController
         $negative = (int) ($counts['negative'] ?? 0);
         $total = $positive + $neutral + $negative;
 
-        return collect([
-            (object) [
-                'id'       => 'summary',
-                'total'    => $total,
-                'positive' => $positive,
-                'neutral'  => $neutral,
-                'negative' => $negative,
+        $attributes = [
+            'total' => $total,
+            'positive' => $positive,
+            'neutral' => $neutral,
+            'negative' => $negative,
+        ];
+
+        return new JsonResponse([
+            'data' => [
+                'type' => 'trader-stats-summary',
+                'id' => 'summary',
+                'attributes' => $attributes,
             ],
+            'total' => $total,
+            'positive' => $positive,
+            'neutral' => $neutral,
+            'negative' => $negative,
         ]);
     }
 }

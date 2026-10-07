@@ -3,7 +3,8 @@ import UserPage from 'flarum/forum/components/UserPage';
 import LinkButton from 'flarum/common/components/LinkButton';
 import app from 'flarum/forum/app';
 import TraderFeedbackPage from './Pages/ProfilePage';
-import { ItemList } from 'flarum/common/utils/ItemList';
+import type ItemList from 'flarum/common/utils/ItemList';
+import NotificationGrid from 'flarum/forum/components/NotificationGrid';
 
 export default function addUserProfilePage() {
   app.routes['user.feedbacks'] = {
@@ -14,7 +15,7 @@ export default function addUserProfilePage() {
   extend(UserPage.prototype, 'navItems', function (items: ItemList) {
     items.add(
       'traderFeedbacksLink',
-      <LinkButton href={app.route('user.feedbacks', { username: this.user?.slug() })} name="feedbacks" icon="fas fa-exchange-alt">
+      <LinkButton href={app.route('user.feedbacks', { username: this.user?.slug() })} name="feedbacks" icon="fas fa-right-left">
         {app.translator.trans('huseyinfiliz-traderfeedback.forum.nav.feedback_link')}
       </LinkButton>,
       79
@@ -22,22 +23,22 @@ export default function addUserProfilePage() {
   });
 
   // NotificationGrid'e feedback notification tiplerini ekle
-  extend('flarum/forum/components/NotificationGrid', 'notificationTypes', function (items) {
+  extend(NotificationGrid.prototype, 'notificationTypes', function (items: ItemList) {
     items.add('newFeedback', {
       name: 'newFeedback',
-      icon: 'fas fa-exchange-alt',
+      icon: 'fas fa-right-left',
       label: app.translator.trans('huseyinfiliz-traderfeedback.forum.settings.notify_new_feedback_label'),
     });
 
     items.add('feedbackApproved', {
       name: 'feedbackApproved',
-      icon: 'fas fa-check-circle',
+      icon: 'fas fa-circle-check',
       label: app.translator.trans('huseyinfiliz-traderfeedback.forum.settings.notify_feedback_approved_label'),
     });
 
     items.add('feedbackRejected', {
       name: 'feedbackRejected',
-      icon: 'fas fa-times-circle',
+      icon: 'fas fa-circle-xmark',
       label: app.translator.trans('huseyinfiliz-traderfeedback.forum.settings.notify_feedback_rejected_label'),
     });
   });

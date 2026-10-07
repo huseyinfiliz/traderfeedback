@@ -1,5 +1,6 @@
 import app from 'flarum/admin/app';
 import Component from 'flarum/common/Component';
+import Icon from 'flarum/common/components/Icon';
 
 export default class SettingsTab extends Component {
   view() {
@@ -10,7 +11,7 @@ export default class SettingsTab extends Component {
         {/* General Settings */}
         <div className="SettingsSection">
           <h3>
-            <i className="fas fa-cog"></i>
+            <Icon name="fas fa-gear" />
             {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_general')}
           </h3>
 
@@ -36,7 +37,7 @@ export default class SettingsTab extends Component {
         {/* Discussion Settings */}
         <div className="SettingsSection">
           <h3>
-            <i className="fas fa-comments"></i>
+            <Icon name="fas fa-comments" />
             {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_discussion')}
           </h3>
 
@@ -64,7 +65,7 @@ export default class SettingsTab extends Component {
         {/* Comment Settings */}
         <div className="SettingsSection">
           <h3>
-            <i className="fas fa-comment-dots"></i>
+            <Icon name="fas fa-comment-dots" />
             {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_comment')}
           </h3>
 
@@ -94,7 +95,7 @@ export default class SettingsTab extends Component {
         {/* User Requirements */}
         <div className="SettingsSection">
           <h3>
-            <i className="fas fa-user-check"></i>
+            <Icon name="fas fa-user-check" />
             {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_requirements')}
           </h3>
 
@@ -126,7 +127,7 @@ export default class SettingsTab extends Component {
         {/* Post Feedback Actions Settings (YENİ BÖLÜM) */}
         <div className="SettingsSection">
           <h3>
-            <i className="fas fa-hand-pointer"></i>
+            <Icon name="fas fa-hand-pointer" />
             {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_post_feedback_actions')}
           </h3>
 
@@ -204,7 +205,7 @@ export default class SettingsTab extends Component {
         {/* Badge Display Settings */}
         <div className="SettingsSection SettingsSection--badge">
           <h3>
-            <i className="fas fa-tag"></i>
+            <Icon name="fas fa-tag" />
             {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_badge_display')}
           </h3>
 
@@ -266,19 +267,19 @@ export default class SettingsTab extends Component {
                 {/* Variable Toolbar */}
                 <div className="TraderFeedback-variableToolbar">
                   <button type="button" className="Button" onclick={() => page.insertVariable('{total}')}>
-                    <i className="fas fa-hashtag"></i> {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_var_total')}
+                    <Icon name="fas fa-hashtag" /> {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_var_total')}
                   </button>
                   <button type="button" className="Button" onclick={() => page.insertVariable('{score}')}>
-                    <i className="fas fa-percentage"></i> {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_var_score')}
+                    <Icon name="fas fa-percent" /> {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_var_score')}
                   </button>
                   <button type="button" className="Button" onclick={() => page.insertVariable('{positive}')}>
-                    <i className="fas fa-thumbs-up"></i> {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_var_positive')}
+                    <Icon name="fas fa-thumbs-up" /> {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_var_positive')}
                   </button>
                   <button type="button" className="Button" onclick={() => page.insertVariable('{neutral}')}>
-                    <i className="fas fa-minus"></i> {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_var_neutral')}
+                    <Icon name="fas fa-minus" /> {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_var_neutral')}
                   </button>
                   <button type="button" className="Button" onclick={() => page.insertVariable('{negative}')}>
-                    <i className="fas fa-thumbs-down"></i> {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_var_negative')}
+                    <Icon name="fas fa-thumbs-down" /> {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_var_negative')}
                   </button>
                 </div>
 
@@ -300,18 +301,18 @@ export default class SettingsTab extends Component {
                 {/* Validation Error */}
                 {page.customFormatError && (
                   <div className="TraderFeedback-formatError">
-                    <i className="fas fa-exclamation-triangle"></i> {page.customFormatError}
+                    <Icon name="fas fa-triangle-exclamation" /> {page.customFormatError}
                   </div>
                 )}
 
                 {/* Live Preview */}
                 <div className="TraderFeedback-preview">
                   <div className="TraderFeedback-preview-label">
-                    <i className="fas fa-eye"></i> {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_preview_label')}
+                    <Icon name="fas fa-eye" /> {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_preview_label')}
                   </div>
                   <div className="TraderFeedback-preview-badge">
                     <span className="TraderBadge TraderBadge--inline">
-                      <i className="fas fa-shopping-cart"></i>
+                      <Icon name="fas fa-cart-shopping" />
                       {page.setting('huseyinfiliz.traderfeedback.badgeCustomPrefix')() && (
                         <span className="TraderBadge-prefix">{page.setting('huseyinfiliz.traderfeedback.badgeCustomPrefix')()}</span>
                       )}

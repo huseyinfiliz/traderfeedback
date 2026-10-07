@@ -521,7 +521,7 @@
     align-items: center;
     gap: 8px;
     padding: 6px 10px;
-    background: fade(@control-bg, 30%);
+    background: var(--control-bg-fade-30);
     border-radius: 8px;
     min-width: 0;
     
@@ -567,7 +567,7 @@
   }
   
   &-comment {
-    background: fade(@control-bg, 25%);
+    background: var(--control-bg-fade-25);
     padding: 12px;
     border-radius: 8px;
     margin-bottom: 12px;
@@ -663,7 +663,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  background: fade(@control-bg, 30%);
+  background: var(--control-bg-fade-30);
   border-radius: 12px;
   
   i {
@@ -703,7 +703,7 @@
     align-items: center;
     gap: 8px;
     padding: 6px 10px;
-    background: fade(@control-bg, 30%);
+    background: var(--control-bg-fade-30);
     border-radius: 8px;
     flex: 1;
     min-width: 0;
@@ -724,6 +724,7 @@
   }
   
   &-reason {
+    display: block;
     background: @danger-bg;
     padding: 12px;
     border-radius: 8px;
@@ -748,7 +749,7 @@
   }
   
   &-feedback {
-    background: fade(@control-bg, 25%);
+    background: var(--control-bg-fade-25);
     padding: 12px;
     border-radius: @card-radius-sm;
     margin-bottom: 12px;
@@ -1001,7 +1002,7 @@ button {
       align-items: center;
       margin-bottom: 10px;
       padding: 10px;
-      background: fade(@control-bg, 30%);
+      background: var(--control-bg-fade-30);
       border-radius: 6px;
       
       .TraderBadge {
@@ -1029,7 +1030,7 @@ button {
     font-size: 12px;
     vertical-align: middle;
     
-    .fas.fa-shopping-cart {
+    .icon, i, .fa-shopping-cart, .fa-cart-shopping {
       color: var(--primary-color);
       font-size: 13px;
     }
@@ -1119,7 +1120,7 @@ button {
 // ==========================================
 
 .SettingsSection--badge {
-  background: fade(@control-bg, 15%);
+  background: var(--control-bg-fade-15);
   border: 2px solid var(--control-bg);
 }
 
@@ -1145,7 +1146,7 @@ button {
       gap: 5px;
       
       &:hover {
-        background: darken(@control-bg, 5%);
+        background: var(--control-bg-darken-5);
         border-color: var(--primary-color);
         color: var(--primary-color);
       }
@@ -1208,7 +1209,7 @@ button {
       align-items: center;
       margin-bottom: 10px;
       padding: 10px;
-      background: fade(@control-bg, 30%);
+      background: var(--control-bg-fade-30);
       border-radius: 6px;
       
       .TraderBadge {
@@ -1236,7 +1237,7 @@ button {
     font-size: 12px;
     vertical-align: middle;
     
-    .fas.fa-shopping-cart {
+    .icon, i, .fa-shopping-cart, .fa-cart-shopping {
       color: var(--primary-color);
       font-size: 13px;
     }

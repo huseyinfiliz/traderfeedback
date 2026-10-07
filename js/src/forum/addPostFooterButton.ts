@@ -41,7 +41,7 @@ export default function addPostFooterControls() {
       Button.component(
         {
           className: 'Button Button--link',
-          icon: 'fas fa-exchange-alt',
+          icon: 'fas fa-right-left',
           onclick: () => {
             app.modal.show(FeedbackModal, {
               user: user,

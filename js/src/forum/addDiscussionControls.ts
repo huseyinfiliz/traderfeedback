@@ -32,7 +32,7 @@ export default function addDiscussionControls() {
       Button.component(
         {
           className: 'Button Button--primary',
-          icon: 'fas fa-exchange-alt',
+          icon: 'fas fa-right-left',
           onclick: () => {
             if (isDiscussionOwner) {
               app.modal.show(SelectUserModal, {

@@ -1,9 +1,10 @@
+import app from 'flarum/forum/app';
 import Notification from 'flarum/forum/components/Notification';
 import username from 'flarum/common/helpers/username';
 
 export default class FeedbackRejectedNotification extends Notification {
   icon() {
-    return 'fas fa-times-circle';
+    return 'fas fa-circle-xmark';
   }
 
   href() {

@@ -2,74 +2,56 @@
 
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
-use Flarum\Api\Controller\AbstractListController;
 use Flarum\Http\RequestUtil;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
+use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
+use Illuminate\Support\Arr;
+use Laminas\Diactoros\Response\JsonResponse;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Tobscure\JsonApi\Document;
+use Psr\Http\Server\RequestHandlerInterface;
 
-/**
- * @TODO: Remove this in favor of one of the API resource classes that were added.
- *      Or extend an existing API Resource to add this to.
- *      Or use a vanilla RequestHandlerInterface controller.
- *      @link https://docs.flarum.org/2.x/extend/api#endpoints
- */
-class ListPendingFeedbacksController extends AbstractListController
+class ListPendingFeedbacksController implements RequestHandlerInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public $serializer = FeedbackSerializer::class;
-
-    /**
-     * {@inheritdoc}
-     */
-    public $include = ['fromUser', 'toUser', 'discussion'];
-
-    /**
-     * {@inheritdoc}
-     */
-    public $limit = 20;
-
-    /**
-     * {@inheritdoc}
-     */
-    public $maxLimit = 50;
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function data(ServerRequestInterface $request, Document $document)
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
-
         $actor->assertCan('huseyinfiliz-traderfeedback.moderate');
 
-        $limit = $this->extractLimit($request);
-        $offset = $this->extractOffset($request);
+        $params = $request->getQueryParams();
+        $limit = min((int) Arr::get($params, 'page.limit', 50), 100);
+        if ($limit <= 0) {
+            $limit = 50;
+        }
+        $offset = max((int) Arr::get($params, 'page.offset', 0), 0);
 
-        $results = Feedback::where('is_approved', false)
+        $feedbacks = Feedback::where('is_approved', false)
             ->with(['fromUser', 'toUser', 'discussion'])
             ->orderBy('created_at', 'desc')
             ->skip($offset)
-            ->take($limit + 1)
+            ->take($limit)
             ->get();
 
-        $hasMoreResults = $results->count() > $limit;
+        $data = [];
+        $includedMap = [];
 
-        if ($hasMoreResults) {
-            $results->pop();
+        foreach ($feedbacks as $fb) {
+            $data[] = FeedbackSerializer::feedback($fb, $actor);
+
+            if ($fb->fromUser && !isset($includedMap['users:'.$fb->fromUser->id])) {
+                $includedMap['users:'.$fb->fromUser->id] = FeedbackSerializer::user($fb->fromUser);
+            }
+            if ($fb->toUser && !isset($includedMap['users:'.$fb->toUser->id])) {
+                $includedMap['users:'.$fb->toUser->id] = FeedbackSerializer::user($fb->toUser);
+            }
+            if ($fb->discussion && !isset($includedMap['discussions:'.$fb->discussion->id])) {
+                $includedMap['discussions:'.$fb->discussion->id] = FeedbackSerializer::discussion($fb->discussion);
+            }
         }
 
-        $document->addPaginationLinks(
-            $request->getUri()->getPath(),
-            $request->getQueryParams(),
-            $offset,
-            $limit,
-            $hasMoreResults ? null : 0
-        );
-
-        return $results;
+        return new JsonResponse([
+            'data' => $data,
+            'included' => array_values($includedMap),
+        ]);
     }
 }

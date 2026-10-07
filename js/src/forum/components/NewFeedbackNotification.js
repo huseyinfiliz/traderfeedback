@@ -1,3 +1,4 @@
+import app from 'flarum/forum/app';
 import Notification from 'flarum/forum/components/Notification';
 import username from 'flarum/common/helpers/username';
 
@@ -9,7 +10,7 @@ export default class NewFeedbackNotification extends Notification {
 
     if (feedbackType === 'positive') return 'fas fa-thumbs-up';
     if (feedbackType === 'negative') return 'fas fa-thumbs-down';
-    return 'fas fa-exchange-alt';
+    return 'fas fa-right-left';
   }
 
   href() {

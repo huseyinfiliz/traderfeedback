@@ -1,6 +1,7 @@
 import app from 'flarum/forum/app';
 import Component from 'flarum/common/Component';
 import Button from 'flarum/common/components/Button';
+import Icon from 'flarum/common/components/Icon';
 import humanTime from 'flarum/common/helpers/humanTime';
 import FeedbackUserDisplay from './FeedbackUserDisplay';
 
@@ -55,7 +56,7 @@ export default class FeedbackItem extends Component {
 
     return (
       <span className={`FeedbackItem-type FeedbackItem-type--${type}`}>
-        <i className={`${icons[type]} FeedbackItem-typeIcon`}></i>
+        <Icon name={icons[type]} className="FeedbackItem-typeIcon" />
         <span className="FeedbackItem-typeText">{text}</span>
       </span>
     );
@@ -63,16 +64,16 @@ export default class FeedbackItem extends Component {
 
   renderRoleBadge(role) {
     const icons = {
-      buyer: 'fas fa-shopping-cart',
+      buyer: 'fas fa-cart-shopping',
       seller: 'fas fa-store',
-      trader: 'fas fa-exchange-alt',
+      trader: 'fas fa-right-left',
     };
 
     const text = app.translator.trans(`huseyinfiliz-traderfeedback.forum.feedback_item.as_${role}`);
 
     return (
       <span className="FeedbackItem-role">
-        <i className={`${icons[role]} FeedbackItem-roleIcon`}></i>
+        <Icon name={icons[role]} className="FeedbackItem-roleIcon" />
         <span className="FeedbackItem-roleText">{text}</span>
       </span>
     );
@@ -86,7 +87,7 @@ export default class FeedbackItem extends Component {
     if (attrs.discussionExists === false) {
       return (
         <span className="FeedbackItem-discussionLink FeedbackItem-discussionLink--deleted">
-          <i className="fas fa-unlink"></i>
+          <Icon name="fas fa-link-slash" />
         </span>
       );
     }
@@ -94,7 +95,7 @@ export default class FeedbackItem extends Component {
     if (attrs.canViewDiscussion === false) {
       return (
         <span className="FeedbackItem-discussionLink FeedbackItem-discussionLink--locked">
-          <i className="fas fa-lock"></i>
+          <Icon name="fas fa-lock" />
         </span>
       );
     }
@@ -106,7 +107,7 @@ export default class FeedbackItem extends Component {
         target="_blank"
         rel="noopener noreferrer"
       >
-        <i className="fas fa-external-link-alt"></i>
+        <Icon name="fas fa-arrow-up-right-from-square" />
         <span className="FeedbackItem-discussionLinkText">
           {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.discussion_link')}
         </span>
@@ -136,10 +137,10 @@ export default class FeedbackItem extends Component {
         {!isOwn && canReport && (
           <Button
             className="Button Button--link FeedbackItem-reportBtn"
+            icon="fas fa-flag"
             onclick={() => this.attrs.onReport(feedback)}
             title={app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.report_button')}
           >
-            <i className="fas fa-flag"></i>
             <span className="FeedbackItem-actionText">{app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.report_button')}</span>
           </Button>
         )}
@@ -147,10 +148,10 @@ export default class FeedbackItem extends Component {
         {(isOwn || canDelete || canModerate) && (
           <Button
             className="Button Button--link Button--danger FeedbackItem-deleteBtn"
+            icon="fas fa-trash"
             onclick={() => this.attrs.onDelete(feedback)}
             title={app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.delete_button')}
           >
-            <i className="fas fa-trash"></i>
             <span className="FeedbackItem-actionText">{app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.delete_button')}</span>
           </Button>
         )}

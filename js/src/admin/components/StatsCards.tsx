@@ -1,4 +1,6 @@
 import Component from 'flarum/common/Component';
+import Icon from 'flarum/common/components/Icon';
+import app from 'flarum/admin/app';
 
 export default class StatsCards extends Component {
   view() {
@@ -12,24 +14,24 @@ export default class StatsCards extends Component {
     return (
       <div className="TraderFeedbackStats">
         {this.card({
-          icon: 'fas fa-exchange-alt',
+          icon: 'fas fa-right-left',
           value: stats.total,
-          label: 'Total Feedbacks',
+          label: app.translator.trans('huseyinfiliz-traderfeedback.admin.dashboard.total_feedbacks'),
           type: 'total',
         })}
 
         {this.card({
           icon: 'fas fa-thumbs-up',
           value: stats.positive,
-          label: 'Positive',
+          label: app.translator.trans('huseyinfiliz-traderfeedback.admin.dashboard.positive_feedbacks'),
           percentage: stats.total > 0 ? Math.round((stats.positive / stats.total) * 100) : 0,
           type: 'positive',
         })}
 
         {this.card({
-          icon: 'fas fa-minus-circle',
+          icon: 'fas fa-circle-minus',
           value: stats.neutral,
-          label: 'Neutral',
+          label: app.translator.trans('huseyinfiliz-traderfeedback.admin.dashboard.neutral_feedbacks'),
           percentage: stats.total > 0 ? Math.round((stats.neutral / stats.total) * 100) : 0,
           type: 'neutral',
         })}
@@ -37,7 +39,7 @@ export default class StatsCards extends Component {
         {this.card({
           icon: 'fas fa-thumbs-down',
           value: stats.negative,
-          label: 'Negative',
+          label: app.translator.trans('huseyinfiliz-traderfeedback.admin.dashboard.negative_feedbacks'),
           percentage: stats.total > 0 ? Math.round((stats.negative / stats.total) * 100) : 0,
           type: 'negative',
         })}
@@ -49,7 +51,7 @@ export default class StatsCards extends Component {
     return (
       <div className={'StatsCard StatsCard--' + data.type}>
         <div className="StatsCard-icon">
-          <i className={data.icon}></i>
+          <Icon name={data.icon} />
         </div>
         <div className="StatsCard-content">
           <div className="StatsCard-value">{data.value}</div>
