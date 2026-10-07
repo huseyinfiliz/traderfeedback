@@ -33,16 +33,16 @@
                 "backgroundColor": "#3498db",
                 "color": "#fff"
             }
+        },
+        "flarum-cli": {
+            "modules": {
+                "githubActions": true,
+                "backendTesting": true
+            }
         }
     },
     "flagrow": {
         "discuss": "https://discuss.flarum.org/d/38253-trader-feedback-buyselltrade-rating-extension/"
-    },
-    "flarum-cli": {
-        "modules": {
-            "githubActions": true,
-            "backendTesting": true
-        }
     },
     "autoload-dev": {
         "psr-4": {
