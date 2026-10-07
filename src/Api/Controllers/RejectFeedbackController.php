@@ -41,7 +41,7 @@ class RejectFeedbackController implements RequestHandlerInterface
             } catch (\Exception $e) {
                 $this->log->error('Failed to send rejection notification', [
                     'feedback_id' => $feedback->id,
-                    'error' => $e->getMessage(),
+                    'error'       => $e->getMessage(),
                 ]);
             }
         }

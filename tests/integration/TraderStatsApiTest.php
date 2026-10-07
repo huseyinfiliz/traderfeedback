@@ -3,11 +3,11 @@
 namespace HuseyinFiliz\TraderFeedback\Tests\Integration;
 
 use Carbon\Carbon;
+use Flarum\Discussion\Discussion;
+use Flarum\Post\Post;
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase;
 use Flarum\User\User;
-use Flarum\Discussion\Discussion;
-use Flarum\Post\Post;
 
 class TraderStatsApiTest extends TestCase
 {

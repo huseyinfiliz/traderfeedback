@@ -35,7 +35,7 @@ class ShowFeedbackController implements RequestHandlerInterface
         }
 
         return new JsonResponse([
-            'data' => FeedbackSerializer::feedback($feedback, $actor),
+            'data'     => FeedbackSerializer::feedback($feedback, $actor),
             'included' => $included,
         ]);
     }

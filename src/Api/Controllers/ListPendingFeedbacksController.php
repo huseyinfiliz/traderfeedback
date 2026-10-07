@@ -50,7 +50,7 @@ class ListPendingFeedbacksController implements RequestHandlerInterface
         }
 
         return new JsonResponse([
-            'data' => $data,
+            'data'     => $data,
             'included' => array_values($includedMap),
         ]);
     }

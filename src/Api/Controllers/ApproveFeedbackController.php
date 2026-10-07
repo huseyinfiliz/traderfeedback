@@ -61,7 +61,7 @@ class ApproveFeedbackController implements RequestHandlerInterface
             } catch (\Exception $e) {
                 $this->log->error('Failed to send approval notifications', [
                     'feedback_id' => $feedback->id,
-                    'error' => $e->getMessage(),
+                    'error'       => $e->getMessage(),
                 ]);
             }
         }
