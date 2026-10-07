@@ -44,6 +44,8 @@
     "flagrow": {
         "discuss": "https://discuss.flarum.org/d/38253-trader-feedback-buyselltrade-rating-extension/"
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload-dev": {
         "psr-4": {
             "HuseyinFiliz\\TraderFeedback\\Tests\\": "tests/"
@@ -70,5 +72,13 @@
         "test:unit": "Runs all unit tests.",
         "test:integration": "Runs all integration tests.",
         "test:setup": "Sets up a database for use with integration tests. Execute this only once."
+    },
+    "config": {
+        "policy": {
+            "advisories": {
+                "block": false,
+                "ignore": ["league/flysystem"]
+            }
+        }
     }
 }
