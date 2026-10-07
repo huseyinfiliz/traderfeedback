@@ -1,7 +1,6 @@
 import { extend } from 'flarum/common/extend';
 import UserPage from 'flarum/forum/components/UserPage';
 import LinkButton from 'flarum/common/components/LinkButton';
-import NotificationGrid from 'flarum/forum/components/NotificationGrid';
 import app from 'flarum/forum/app';
 import TraderFeedbackPage from './Pages/ProfilePage';
 import { ItemList } from 'flarum/common/utils/ItemList';
@@ -23,7 +22,7 @@ export default function addUserProfilePage() {
   });
 
   // NotificationGrid'e feedback notification tiplerini ekle
-  extend(NotificationGrid.prototype, 'notificationTypes', function (items) {
+  extend('flarum/forum/components/NotificationGrid', 'notificationTypes', function (items) {
     items.add('newFeedback', {
       name: 'newFeedback',
       icon: 'fas fa-exchange-alt',
