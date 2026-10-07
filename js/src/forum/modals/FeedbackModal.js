@@ -1,10 +1,10 @@
-import Modal from 'flarum/common/components/Modal';
+import FormModal from 'flarum/common/components/FormModal';
 import Button from 'flarum/common/components/Button';
 import Select from 'flarum/common/components/Select';
 import Stream from 'flarum/common/utils/Stream';
 import app from 'flarum/forum/app';
 
-export default class FeedbackModal extends Modal {
+export default class FeedbackModal extends FormModal {
   oninit(vnode) {
     super.oninit(vnode);
 

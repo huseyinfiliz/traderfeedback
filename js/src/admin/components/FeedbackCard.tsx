@@ -1,7 +1,7 @@
 import app from 'flarum/admin/app';
 import Component from 'flarum/common/Component';
 import Button from 'flarum/common/components/Button';
-import avatar from 'flarum/common/helpers/avatar';
+import Avatar from 'flarum/common/components/Avatar';
 import humanTime from 'flarum/common/helpers/humanTime';
 
 export default class FeedbackCard extends Component {
@@ -40,7 +40,7 @@ export default class FeedbackCard extends Component {
         <div className="FeedbackCard-header">
           <div className="FeedbackCard-users">
             <div className="FeedbackCard-user">
-              {fromUser && avatar(fromUser)}
+              {fromUser && <Avatar user={fromUser} />}
               <strong>
                 {fromUser
                   ? fromUser.displayName()
@@ -49,7 +49,7 @@ export default class FeedbackCard extends Component {
             </div>
             <i className="fas fa-arrow-right FeedbackCard-arrow"></i>
             <div className="FeedbackCard-user">
-              {toUser && avatar(toUser)}
+              {toUser && <Avatar user={toUser} />}
               <strong>
                 {toUser ? toUser.displayName() : app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.user_id_format', { id: toUserId })}
               </strong>

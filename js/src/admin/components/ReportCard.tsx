@@ -1,7 +1,7 @@
 import app from 'flarum/admin/app';
 import Component from 'flarum/common/Component';
 import Button from 'flarum/common/components/Button';
-import avatar from 'flarum/common/helpers/avatar';
+import Avatar from 'flarum/common/components/Avatar';
 import humanTime from 'flarum/common/helpers/humanTime';
 
 export default class ReportCard extends Component {
@@ -50,7 +50,7 @@ export default class ReportCard extends Component {
       <div className="ReportCard">
         <div className="ReportCard-header">
           <div className="ReportCard-reporter">
-            {reporter && avatar(reporter)}
+            {reporter && <Avatar user={reporter} />}
             <strong>
               {reporter
                 ? reporter.displayName()
@@ -87,14 +87,14 @@ export default class ReportCard extends Component {
             </div>
 
             <div className="ReportCard-feedbackUsers">
-              {fromUser && avatar(fromUser)}
+              {fromUser && <Avatar user={fromUser} />}
               <span>
                 {fromUser
                   ? fromUser.displayName()
                   : app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.user_id_format', { id: fromUserId })}
               </span>
               <i className="fas fa-arrow-right"></i>
-              {toUser && avatar(toUser)}
+              {toUser && <Avatar user={toUser} />}
               <span>
                 {toUser ? toUser.displayName() : app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.user_id_format', { id: toUserId })}
               </span>

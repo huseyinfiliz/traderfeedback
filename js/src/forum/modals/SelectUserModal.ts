@@ -1,7 +1,7 @@
 import Modal from 'flarum/common/components/Modal';
 import Button from 'flarum/common/components/Button';
 import username from 'flarum/common/helpers/username';
-import avatar from 'flarum/common/helpers/avatar';
+import Avatar from 'flarum/common/components/Avatar';
 import KeyboardNavigatable from 'flarum/common/utils/KeyboardNavigatable';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import FeedbackModal from './FeedbackModal';
@@ -188,7 +188,13 @@ export default class SelectUserModal extends Modal {
                   className: index === this.selectedIndex ? 'active' : '',
                   onclick: () => this.selectUser(user),
                 },
-                [avatar(user, { className: 'UserListItem-avatar' }), m('.UserListItem-info', username(user))]
+                [
+                  Avatar.component({
+                    user: user,
+                    className: 'UserListItem-avatar',
+                  }),
+                  m('.UserListItem-info', username(user)),
+                ]
               )
             )
           : m(

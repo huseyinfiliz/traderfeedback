@@ -1,8 +1,9 @@
-import Modal from 'flarum/common/components/Modal';
+import Form from 'flarum/common/components/Form';
+import FormModal from 'flarum/common/components/FormModal';
 import Button from 'flarum/common/components/Button';
 import app from 'flarum/forum/app';
 
-export default class ReportModal extends Modal {
+export default class ReportModal extends FormModal {
   className() {
     return 'ReportModal Modal--small';
   }
@@ -20,7 +21,7 @@ export default class ReportModal extends Modal {
   content() {
     return (
       <div className="Modal-body">
-        <div className="Form Form--centered">
+        <Form className="Form--centered">
           <div className="Form-group">
             <label className="label">{app.translator.trans('huseyinfiliz-traderfeedback.forum.report_modal.reason_label')}</label>
             <textarea
@@ -37,7 +38,7 @@ export default class ReportModal extends Modal {
               {app.translator.trans('huseyinfiliz-traderfeedback.forum.report_modal.submit_button')}
             </Button>
           </div>
-        </div>
+        </Form>
       </div>
     );
   }

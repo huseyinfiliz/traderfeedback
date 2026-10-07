@@ -3,7 +3,7 @@ import TraderFeedbackSettingsPage from './TraderFeedbackSettingsPage';
 
 app.initializers.add('huseyinfiliz-traderfeedback', () => {
   // Register the main settings page with tabs
-  app.extensionData
+  app.registry
     .for('huseyinfiliz-traderfeedback')
     .registerPage(TraderFeedbackSettingsPage)
     .registerPermission(
