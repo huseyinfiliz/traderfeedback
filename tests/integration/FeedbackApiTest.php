@@ -155,7 +155,10 @@ class FeedbackApiTest extends TestCase
 
     public function test_list_feedbacks_only_returns_approved_feedbacks_for_guest()
     {
-        $response = $this->send($this->request('GET', '/api/trader/feedback'));
+        $response = $this->send(
+            $this->request('GET', '/api/trader/feedback')
+                ->withQueryParams(['filter' => ['user' => 3]])
+        );
         $this->assertSame(200, $response->getStatusCode());
 
         $body = json_decode((string) $response->getBody(), true);
@@ -166,68 +169,67 @@ class FeedbackApiTest extends TestCase
 
     public function test_guest_cannot_create_feedback()
     {
-        $response = $this->send(
-            $this->request('POST', '/api/trader/feedback')
-                ->withParsedBody([
-                    'data' => [
-                        'attributes' => [
-                            'to_user_id' => 3,
-                            'type'       => 'positive',
-                            'role'       => 'buyer',
-                            'comment'    => 'This is a test comment that meets length requirements.',
-                        ],
-                    ],
-                ])
-        );
-        // Guests cannot create feedback
+        $req = $this->request('POST', '/api/trader/feedback');
+        $req = $this->requestWithJsonBody($req, [
+            'data' => [
+                'attributes' => [
+                    'to_user_id' => 3,
+                    'type'       => 'positive',
+                    'role'       => 'buyer',
+                    'comment'    => 'This is a test comment that meets length requirements.',
+                ],
+            ],
+        ]);
+
+        $response = $this->send($req);
         $this->assertContains($response->getStatusCode(), [401, 403]);
     }
 
     public function test_user_cannot_give_feedback_to_self()
     {
-        $response = $this->send(
-            $this->request('POST', '/api/trader/feedback', ['authenticatedAs' => 2])
-                ->withParsedBody([
-                    'data' => [
-                        'attributes' => [
-                            'to_user_id' => 2,
-                            'type'       => 'positive',
-                            'role'       => 'buyer',
-                            'comment'    => 'This is a test comment that meets length requirements.',
-                        ],
-                    ],
-                ])
-        );
+        $req = $this->request('POST', '/api/trader/feedback', ['authenticatedAs' => 2]);
+        $req = $this->requestWithJsonBody($req, [
+            'data' => [
+                'attributes' => [
+                    'to_user_id' => 2,
+                    'type'       => 'positive',
+                    'role'       => 'buyer',
+                    'comment'    => 'This is a test comment that meets length requirements.',
+                ],
+            ],
+        ]);
+
+        $response = $this->send($req);
         $this->assertSame(422, $response->getStatusCode());
     }
 
     public function test_unrelated_user_cannot_update_feedback()
     {
-        $response = $this->send(
-            $this->request('PATCH', '/api/trader/feedback/1', ['authenticatedAs' => 4])
-                ->withParsedBody([
-                    'data' => [
-                        'attributes' => [
-                            'comment' => 'Malicious update attempt by unrelated user.',
-                        ],
-                    ],
-                ])
-        );
+        $req = $this->request('PATCH', '/api/trader/feedback/1', ['authenticatedAs' => 4]);
+        $req = $this->requestWithJsonBody($req, [
+            'data' => [
+                'attributes' => [
+                    'comment' => 'Malicious update attempt by unrelated user.',
+                ],
+            ],
+        ]);
+
+        $response = $this->send($req);
         $this->assertSame(403, $response->getStatusCode());
     }
 
     public function test_author_can_update_feedback()
     {
-        $response = $this->send(
-            $this->request('PATCH', '/api/trader/feedback/1', ['authenticatedAs' => 2])
-                ->withParsedBody([
-                    'data' => [
-                        'attributes' => [
-                            'comment' => 'Updated comment by author that is long enough.',
-                        ],
-                    ],
-                ])
-        );
+        $req = $this->request('PATCH', '/api/trader/feedback/1', ['authenticatedAs' => 2]);
+        $req = $this->requestWithJsonBody($req, [
+            'data' => [
+                'attributes' => [
+                    'comment' => 'Updated comment by author that is long enough.',
+                ],
+            ],
+        ]);
+
+        $response = $this->send($req);
         $this->assertSame(200, $response->getStatusCode());
 
         $body = json_decode((string) $response->getBody(), true);

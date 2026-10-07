@@ -2,6 +2,7 @@
 
 namespace HuseyinFiliz\TraderFeedback\Tests\Integration;
 
+use Carbon\Carbon;
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase;
 
@@ -31,14 +32,13 @@ class TraderStatsApiTest extends TestCase
             ],
             'tfb_stats' => [
                 [
-                    'id'                  => 1,
-                    'user_id'             => 3,
-                    'total_feedbacks'     => 5,
-                    'positive_feedbacks'  => 4,
-                    'neutral_feedbacks'   => 1,
-                    'negative_feedbacks'  => 0,
-                    'positive_percentage' => 80.0,
-                    'score'               => 4,
+                    'id'             => 1,
+                    'user_id'        => 3,
+                    'positive_count' => 4,
+                    'neutral_count'  => 1,
+                    'negative_count' => 0,
+                    'score'          => 80.0,
+                    'last_updated'   => Carbon::now()->toDateTimeString(),
                 ],
             ],
         ]);
@@ -50,9 +50,10 @@ class TraderStatsApiTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
 
         $body = json_decode((string) $response->getBody(), true);
-        $this->assertSame(5, $body['data']['attributes']['totalFeedbacks']);
-        $this->assertSame(4, $body['data']['attributes']['positiveFeedbacks']);
-        $this->assertSame(80.0, (float) $body['data']['attributes']['positivePercentage']);
+        $this->assertSame(4, $body['data']['attributes']['positive_count']);
+        $this->assertSame(1, $body['data']['attributes']['neutral_count']);
+        $this->assertSame(0, $body['data']['attributes']['negative_count']);
+        $this->assertSame(80.0, (float) $body['data']['attributes']['score']);
     }
 
     public function test_stats_summary_requires_moderate_permission()
