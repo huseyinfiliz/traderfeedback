@@ -9,7 +9,7 @@ class FeedbackValidator extends AbstractValidator
     /**
      * {@inheritdoc}
      */
-    protected $rules = [
+    protected array $rules = [
         'to_user_id' => [
             'required',
             'integer',
@@ -41,7 +41,7 @@ class FeedbackValidator extends AbstractValidator
     /**
      * {@inheritdoc}
      */
-    protected function getRules()
+    protected function getRules(): array
     {
         $rules = $this->rules;
 
@@ -66,7 +66,7 @@ class FeedbackValidator extends AbstractValidator
     /**
      * {@inheritdoc}
      */
-    protected function getMessages()
+    protected function getMessages(): array
     {
         return [
             'to_user_id.required'  => 'User ID is required.',

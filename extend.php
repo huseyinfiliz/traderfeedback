@@ -138,9 +138,9 @@ return [
 
     // Notification type registration
     (new Extend\Notification())
-        ->type(NewFeedbackBlueprint::class, FeedbackSerializer::class, ['alert'])
-        ->type(FeedbackApprovedBlueprint::class, FeedbackSerializer::class, ['alert'])
-        ->type(FeedbackRejectedBlueprint::class, FeedbackSerializer::class, ['alert']),
+        ->type(NewFeedbackBlueprint::class, ['alert'])
+        ->type(FeedbackApprovedBlueprint::class, ['alert'])
+        ->type(FeedbackRejectedBlueprint::class, ['alert']),
 
     // Event listeners
     (new Extend\Event())

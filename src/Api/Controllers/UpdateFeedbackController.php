@@ -26,24 +26,8 @@ class UpdateFeedbackController extends AbstractShowController
      */
     public $include = ['fromUser', 'toUser', 'discussion'];
 
-    /**
-     * @var FeedbackValidator
-     */
-    protected $validator;
-
-    /**
-     * @var SettingsRepositoryInterface
-     */
-    protected $settings;
-
-    /**
-     * @param FeedbackValidator           $validator
-     * @param SettingsRepositoryInterface $settings
-     */
-    public function __construct(FeedbackValidator $validator, SettingsRepositoryInterface $settings)
+    public function __construct(protected FeedbackValidator $validator, protected SettingsRepositoryInterface $settings)
     {
-        $this->validator = $validator;
-        $this->settings = $settings;
     }
 
     /**

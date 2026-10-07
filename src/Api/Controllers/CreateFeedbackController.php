@@ -20,15 +20,8 @@ class CreateFeedbackController extends AbstractCreateController
     public $serializer = FeedbackSerializer::class;
     public $include = ['fromUser', 'toUser', 'discussion'];
 
-    protected $validator;
-    protected $settings;
-
-    public function __construct(
-        FeedbackValidator $validator,
-        SettingsRepositoryInterface $settings
-    ) {
-        $this->validator = $validator;
-        $this->settings = $settings;
+    public function __construct(protected FeedbackValidator $validator, protected SettingsRepositoryInterface $settings)
+    {
     }
 
     protected function data(ServerRequestInterface $request, Document $document)
@@ -42,7 +35,7 @@ class CreateFeedbackController extends AbstractCreateController
         // Check account age requirement (minDays)
         $minDays = (int) $this->settings->get('huseyinfiliz.traderfeedback.minDays', 0);
         if ($minDays > 0 && $actor->joined_at) {
-            $daysSinceJoined = $actor->joined_at->diffInDays(Carbon::now());
+            $daysSinceJoined = $actor->joined_at->diffInDays(Carbon::now(), true);
             if ($daysSinceJoined < $minDays) {
                 throw new ValidationException([
                     'user' => app('translator')->trans(

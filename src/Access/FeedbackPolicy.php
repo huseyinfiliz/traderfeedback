@@ -28,7 +28,7 @@ class FeedbackPolicy extends AbstractPolicy
                 return false;
             }
 
-            $hoursSinceCreated = $feedback->created_at->diffInHours(Carbon::now());
+            $hoursSinceCreated = $feedback->created_at->diffInHours(Carbon::now(), true);
 
             return $hoursSinceCreated <= 24;
         }
@@ -55,7 +55,7 @@ class FeedbackPolicy extends AbstractPolicy
                 return false;
             }
 
-            $minutesSinceCreated = $feedback->created_at->diffInMinutes(Carbon::now());
+            $minutesSinceCreated = $feedback->created_at->diffInMinutes(Carbon::now(), true);
 
             return $minutesSinceCreated <= 60;
         }
