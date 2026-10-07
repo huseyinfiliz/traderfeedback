@@ -49,7 +49,7 @@ class RejectReportController implements RequestHandlerInterface
 
         return new JsonResponse([
             'success' => true,
-            'data' => FeedbackSerializer::report($report, $actor),
+            'data'    => FeedbackSerializer::report($report, $actor),
         ]);
     }
 }

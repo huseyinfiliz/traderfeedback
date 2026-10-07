@@ -27,21 +27,21 @@ class StatsSummaryController implements RequestHandlerInterface
         $total = $positive + $neutral + $negative;
 
         $attributes = [
-            'total' => $total,
+            'total'    => $total,
             'positive' => $positive,
-            'neutral' => $neutral,
+            'neutral'  => $neutral,
             'negative' => $negative,
         ];
 
         return new JsonResponse([
             'data' => [
-                'type' => 'trader-stats-summary',
-                'id' => 'summary',
+                'type'       => 'trader-stats-summary',
+                'id'         => 'summary',
                 'attributes' => $attributes,
             ],
-            'total' => $total,
+            'total'    => $total,
             'positive' => $positive,
-            'neutral' => $neutral,
+            'neutral'  => $neutral,
             'negative' => $negative,
         ]);
     }
