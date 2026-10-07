@@ -4,11 +4,11 @@ namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
 use Flarum\Api\Controller\AbstractShowController;
 use Flarum\Http\RequestUtil;
+use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
+use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use Illuminate\Support\Arr;
 use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
-use HuseyinFiliz\TraderFeedback\Models\Feedback;
 
 class ShowFeedbackController extends AbstractShowController
 {

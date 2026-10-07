@@ -2,7 +2,6 @@
 
 namespace HuseyinFiliz\TraderFeedback\Tests\Integration;
 
-use Carbon\Carbon;
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase;
 
@@ -20,10 +19,10 @@ class TraderStatsApiTest extends TestCase
             'users' => [
                 $this->normalUser(), // id 2
                 [
-                    'id' => 3,
-                    'username' => 'trader',
-                    'password' => '$2y$10$LO59tiT7uggl6Oe23o/O6.utnF6ipngYjvMvaxo1TciKqBttDNKim',
-                    'email' => 'trader@machine.local',
+                    'id'                 => 3,
+                    'username'           => 'trader',
+                    'password'           => '$2y$10$LO59tiT7uggl6Oe23o/O6.utnF6ipngYjvMvaxo1TciKqBttDNKim',
+                    'email'              => 'trader@machine.local',
                     'is_email_confirmed' => 1,
                 ],
             ],
@@ -32,14 +31,14 @@ class TraderStatsApiTest extends TestCase
             ],
             'tfb_stats' => [
                 [
-                    'id' => 1,
-                    'user_id' => 3,
-                    'total_feedbacks' => 5,
-                    'positive_feedbacks' => 4,
-                    'neutral_feedbacks' => 1,
-                    'negative_feedbacks' => 0,
+                    'id'                  => 1,
+                    'user_id'             => 3,
+                    'total_feedbacks'     => 5,
+                    'positive_feedbacks'  => 4,
+                    'neutral_feedbacks'   => 1,
+                    'negative_feedbacks'  => 0,
                     'positive_percentage' => 80.0,
-                    'score' => 4,
+                    'score'               => 4,
                 ],
             ],
         ]);

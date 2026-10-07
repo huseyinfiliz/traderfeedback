@@ -1,59 +1,58 @@
 <?php
 
-use Flarum\Extend;
-use Flarum\Api\Controller\ShowUserController;
+use Flarum\Api\Controller\ListPostsController;
 use Flarum\Api\Controller\ListUsersController;
 use Flarum\Api\Controller\ShowDiscussionController;
-use Flarum\Api\Controller\ListPostsController;
+use Flarum\Api\Controller\ShowUserController;
 use Flarum\Api\Serializer\UserSerializer;
-use Flarum\Settings\SettingsRepositoryInterface;
+use Flarum\Extend;
 use Flarum\User\User;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\ListFeedbacksController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\CreateFeedbackController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\ListPendingFeedbacksController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\ShowFeedbackController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\UpdateFeedbackController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\DeleteFeedbackController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\ReportFeedbackController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\ApproveFeedbackController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\RejectFeedbackController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\ListReportsController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\ApproveReportController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\RejectReportController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\DismissReportController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\ShowTraderStatsController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\StatsSummaryController;
-use HuseyinFiliz\TraderFeedback\Api\Controllers\ListDiscussionParticipantsController;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\TraderStatsSerializer;
-use HuseyinFiliz\TraderFeedback\Listeners\AddUserPreferencesListener;
-use HuseyinFiliz\TraderFeedback\Listeners\UserDeletedListener;
-use HuseyinFiliz\TraderFeedback\Listeners\FeedbackCreatedListener;
-use HuseyinFiliz\TraderFeedback\Listeners\FeedbackUpdatedListener;
-use HuseyinFiliz\TraderFeedback\Models\Feedback;
-use HuseyinFiliz\TraderFeedback\Models\TraderStats;
-use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
-use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
-use HuseyinFiliz\TraderFeedback\Notifications\FeedbackRejectedBlueprint;
 use HuseyinFiliz\TraderFeedback\Access\FeedbackPolicy;
 use HuseyinFiliz\TraderFeedback\Access\GlobalPolicy;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\ApproveFeedbackController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\ApproveReportController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\CreateFeedbackController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\DeleteFeedbackController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\DismissReportController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\ListDiscussionParticipantsController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\ListFeedbacksController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\ListPendingFeedbacksController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\ListReportsController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\RejectFeedbackController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\RejectReportController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\ReportFeedbackController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\ShowFeedbackController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\ShowTraderStatsController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\StatsSummaryController;
+use HuseyinFiliz\TraderFeedback\Api\Controllers\UpdateFeedbackController;
+use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
+use HuseyinFiliz\TraderFeedback\Api\Serializers\TraderStatsSerializer;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackCreated;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated;
+use HuseyinFiliz\TraderFeedback\Listeners\AddUserPreferencesListener;
+use HuseyinFiliz\TraderFeedback\Listeners\FeedbackCreatedListener;
+use HuseyinFiliz\TraderFeedback\Listeners\FeedbackUpdatedListener;
+use HuseyinFiliz\TraderFeedback\Listeners\UserDeletedListener;
+use HuseyinFiliz\TraderFeedback\Models\Feedback;
+use HuseyinFiliz\TraderFeedback\Models\TraderStats;
+use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
+use HuseyinFiliz\TraderFeedback\Notifications\FeedbackRejectedBlueprint;
+use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
 
 return [
     // Register assets and routes for the forum frontend
     (new Extend\Frontend('forum'))
-        ->js(__DIR__ . '/js/dist/forum.js')
-        ->css(__DIR__ . '/resources/less/forum.less')
+        ->js(__DIR__.'/js/dist/forum.js')
+        ->css(__DIR__.'/resources/less/forum.less')
         ->route('/u/{username}/feedbacks', 'user.feedbacks'),
 
     // Register assets for the admin frontend
     (new Extend\Frontend('admin'))
-        ->js(__DIR__ . '/js/dist/admin.js')
-        ->css(__DIR__ . '/resources/less/admin.less'),
+        ->js(__DIR__.'/js/dist/admin.js')
+        ->css(__DIR__.'/resources/less/admin.less'),
 
     // Register locales
-    new Extend\Locales(__DIR__ . '/resources/locale'),
+    new Extend\Locales(__DIR__.'/resources/locale'),
 
     // API routes
     (new Extend\Routes('api'))
@@ -109,20 +108,20 @@ return [
 
             return $attributes;
         }),
-    
+
     // API Controller includes
     (new Extend\ApiController(ShowUserController::class))
         ->addInclude('traderStats'),
 
     (new Extend\ApiController(ListUsersController::class))
         ->addInclude('traderStats'),
-    
+
     // NOTE: eager-load of traderStats is gated behind the
     // "showBadgeInPosts" setting so it doesn't run on every discussion /
     // post-list request when the badge feature isn't even enabled.
     (new Extend\ApiController(ShowDiscussionController::class))
         ->addInclude('posts.user.traderStats'),
-    
+
     (new Extend\ApiController(ListPostsController::class))
         ->addInclude('user.traderStats'),
 
@@ -165,7 +164,7 @@ return [
         ->default('huseyinfiliz.traderfeedback.showFeedbackInPostMenu', false)
         ->default('huseyinfiliz.traderfeedback.showFeedbackBelowReply', false)
         ->default('huseyinfiliz.traderfeedback.showFeedbackInPostFooter', false)
-		->default('huseyinfiliz.traderfeedback.footerOnlyFirstPost', false)
+        ->default('huseyinfiliz.traderfeedback.footerOnlyFirstPost', false)
         ->default('huseyinfiliz.traderfeedback.feedbackActionTagFilter', '[]')
         ->default('huseyinfiliz.traderfeedback.feedbackOnlyWhenLocked', false)
 
@@ -190,7 +189,7 @@ return [
         ->serializeToForum('huseyinfiliz.traderfeedback.showFeedbackInPostMenu', 'huseyinfiliz.traderfeedback.showFeedbackInPostMenu', 'boolval')
         ->serializeToForum('huseyinfiliz.traderfeedback.showFeedbackBelowReply', 'huseyinfiliz.traderfeedback.showFeedbackBelowReply', 'boolval')
         ->serializeToForum('huseyinfiliz.traderfeedback.showFeedbackInPostFooter', 'huseyinfiliz.traderfeedback.showFeedbackInPostFooter', 'boolval')
-		->serializeToForum('huseyinfiliz.traderfeedback.footerOnlyFirstPost', 'huseyinfiliz.traderfeedback.footerOnlyFirstPost', 'boolval')
+        ->serializeToForum('huseyinfiliz.traderfeedback.footerOnlyFirstPost', 'huseyinfiliz.traderfeedback.footerOnlyFirstPost', 'boolval')
         ->serializeToForum('huseyinfiliz.traderfeedback.feedbackActionTagFilter', 'huseyinfiliz.traderfeedback.feedbackActionTagFilter')
         ->serializeToForum('huseyinfiliz.traderfeedback.feedbackOnlyWhenLocked', 'huseyinfiliz.traderfeedback.feedbackOnlyWhenLocked', 'boolval')
 

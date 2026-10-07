@@ -2,10 +2,10 @@
 
 namespace HuseyinFiliz\TraderFeedback\Listeners;
 
+use Flarum\Notification\NotificationSyncer;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
 use HuseyinFiliz\TraderFeedback\Services\StatsService;
-use Flarum\Notification\NotificationSyncer;
 
 class FeedbackUpdatedListener
 {

@@ -3,9 +3,9 @@
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
 use Flarum\Api\Controller\AbstractListController;
-use HuseyinFiliz\TraderFeedback\Api\Serializers\MinimalUserSerializer;
 use Flarum\Discussion\Discussion;
 use Flarum\Http\RequestUtil;
+use HuseyinFiliz\TraderFeedback\Api\Serializers\MinimalUserSerializer;
 use Illuminate\Support\Arr;
 use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
@@ -19,9 +19,9 @@ class ListDiscussionParticipantsController extends AbstractListController
     protected function data(ServerRequestInterface $request, Document $document)
     {
         $actor = RequestUtil::getActor($request);
-        
+
         $discussionId = Arr::get($request->getQueryParams(), 'id');
-        
+
         if (!$discussionId) {
             $path = $request->getUri()->getPath();
             if (preg_match('/\/trader\/discussions\/(\d+)\/participants/', $path, $matches)) {
@@ -31,7 +31,7 @@ class ListDiscussionParticipantsController extends AbstractListController
 
         if (!$discussionId) {
             throw new \Flarum\Foundation\ValidationException([
-                'id' => 'Discussion ID is required.'
+                'id' => 'Discussion ID is required.',
             ]);
         }
 
@@ -47,7 +47,7 @@ class ListDiscussionParticipantsController extends AbstractListController
             ->where('users.id', '!=', $actor->id);
 
         if ($search) {
-            $query->where('users.username', 'like', '%' . $search . '%');
+            $query->where('users.username', 'like', '%'.$search.'%');
         }
 
         $participants = $query

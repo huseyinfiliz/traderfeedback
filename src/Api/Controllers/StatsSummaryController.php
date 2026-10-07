@@ -4,14 +4,14 @@ namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
 use Flarum\Api\Controller\AbstractListController;
 use Flarum\Http\RequestUtil;
+use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
-use HuseyinFiliz\TraderFeedback\Models\Feedback;
 
 class StatsSummaryController extends AbstractListController
 {
     public $serializer = 'HuseyinFiliz\TraderFeedback\Api\Serializers\StatsSummarySerializer';
-    
+
     protected function data(ServerRequestInterface $request, Document $document)
     {
         $actor = RequestUtil::getActor($request);
@@ -26,15 +26,15 @@ class StatsSummaryController extends AbstractListController
         $neutral = (int) ($counts['neutral'] ?? 0);
         $negative = (int) ($counts['negative'] ?? 0);
         $total = $positive + $neutral + $negative;
-        
+
         return collect([
-            (object)[
-                'id' => 'summary',
-                'total' => $total,
+            (object) [
+                'id'       => 'summary',
+                'total'    => $total,
                 'positive' => $positive,
-                'neutral' => $neutral,
+                'neutral'  => $neutral,
                 'negative' => $negative,
-            ]
+            ],
         ]);
     }
 }
