@@ -20,12 +20,19 @@ class ListDiscussionParticipantsController extends AbstractListController
     {
         $actor = RequestUtil::getActor($request);
         
-        $path = $request->getUri()->getPath();
+        $discussionId = Arr::get($request->getQueryParams(), 'id');
         
-        if (preg_match('/\/trader\/discussions\/(\d+)\/participants/', $path, $matches)) {
-            $discussionId = $matches[1];
-        } else {
-            throw new \Exception('Could not extract discussion ID from path: ' . $path);
+        if (!$discussionId) {
+            $path = $request->getUri()->getPath();
+            if (preg_match('/\/trader\/discussions\/(\d+)\/participants/', $path, $matches)) {
+                $discussionId = $matches[1];
+            }
+        }
+
+        if (!$discussionId) {
+            throw new \Flarum\Foundation\ValidationException([
+                'id' => 'Discussion ID is required.'
+            ]);
         }
 
         $discussion = Discussion::query()

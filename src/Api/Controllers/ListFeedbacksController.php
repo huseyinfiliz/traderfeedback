@@ -14,7 +14,7 @@ class ListFeedbacksController extends AbstractListController
 {
     public $serializer = FeedbackSerializer::class;
     
-    public $include = ['fromUser', 'toUser'];
+    public $include = ['fromUser', 'toUser', 'discussion'];
     
     public $limit = 20;
     public $maxLimit = 50;
@@ -31,7 +31,7 @@ class ListFeedbacksController extends AbstractListController
         $offset = $this->extractOffset($request);
         
         $query = Feedback::query()
-            ->with(['fromUser', 'toUser']) // Eager load relationships
+            ->with(['fromUser', 'toUser', 'discussion']) // Eager load relationships
             ->where('to_user_id', $userId)
             ->where('is_approved', true);
         

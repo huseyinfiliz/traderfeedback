@@ -7,6 +7,7 @@ use Flarum\Http\RequestUtil;
 use Illuminate\Support\Arr;
 use Psr\Http\Message\ServerRequestInterface;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
+use HuseyinFiliz\TraderFeedback\Services\StatsService;
 
 class DeleteFeedbackController extends AbstractDeleteController
 {
@@ -22,6 +23,13 @@ class DeleteFeedbackController extends AbstractDeleteController
         
         $actor->assertCan('delete', $feedback);
         
+        $toUserId = (int) $feedback->to_user_id;
+        $isApproved = (bool) $feedback->is_approved;
+
         $feedback->delete();
+
+        if ($isApproved) {
+            StatsService::updateUserStats($toUserId);
+        }
     }
 }

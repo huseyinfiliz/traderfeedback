@@ -61,7 +61,7 @@ class FeedbackSerializer extends AbstractSerializer
             
             // Discussion visibility check - kullanıcı bazlı kontrol
             if ($feedback->discussion_id) {
-                $discussion = \Flarum\Discussion\Discussion::find($feedback->discussion_id);
+                $discussion = $feedback->discussion;
                 
                 if ($discussion) {
                     // Tartışma var ve kullanıcı görebiliyor mu?

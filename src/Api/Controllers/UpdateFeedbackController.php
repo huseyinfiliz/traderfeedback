@@ -4,12 +4,15 @@ namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
 use Flarum\Api\Controller\AbstractShowController;
 use Flarum\Http\RequestUtil;
+use Flarum\Settings\SettingsRepositoryInterface;
+use Flarum\Foundation\ValidationException;
 use Illuminate\Support\Arr;
 use Psr\Http\Message\ServerRequestInterface;
 use Tobscure\JsonApi\Document;
 use HuseyinFiliz\TraderFeedback\Api\Serializers\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Validators\FeedbackValidator;
+use HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated;
 
 class UpdateFeedbackController extends AbstractShowController
 {
@@ -19,16 +22,28 @@ class UpdateFeedbackController extends AbstractShowController
     public $serializer = FeedbackSerializer::class;
 
     /**
+     * {@inheritdoc}
+     */
+    public $include = ['fromUser', 'toUser', 'discussion'];
+
+    /**
      * @var FeedbackValidator
      */
     protected $validator;
 
     /**
-     * @param FeedbackValidator $validator
+     * @var SettingsRepositoryInterface
      */
-    public function __construct(FeedbackValidator $validator)
+    protected $settings;
+
+    /**
+     * @param FeedbackValidator $validator
+     * @param SettingsRepositoryInterface $settings
+     */
+    public function __construct(FeedbackValidator $validator, SettingsRepositoryInterface $settings)
     {
         $this->validator = $validator;
+        $this->settings = $settings;
     }
 
     /**
@@ -47,6 +62,13 @@ class UpdateFeedbackController extends AbstractShowController
         $validationData = [];
         
         if (isset($data['type'])) {
+            $allowNegative = $this->settings->get('huseyinfiliz.traderfeedback.allowNegative');
+            if (($allowNegative === false || $allowNegative === "0" || $allowNegative === 0) && $data['type'] === Feedback::TYPE_NEGATIVE) {
+                throw new ValidationException([
+                    'type' => 'Negative feedback is not allowed.'
+                ]);
+            }
+
             $validationData['type'] = $data['type'];
             $feedback->type = $data['type'];
         }
@@ -62,17 +84,14 @@ class UpdateFeedbackController extends AbstractShowController
             $feedback->role = $data['role'];
         }
         
-        if (isset($data['transaction_id'])) {
-            $validationData['transaction_id'] = $data['transaction_id'];
-            $feedback->transaction_id = $data['transaction_id'];
-        }
-        
         if (!empty($validationData)) {
             $this->validator->assertValid($validationData);
         }
         
         $feedback->save();
         
+        event(new FeedbackUpdated($feedback, $actor));
+
         return $feedback;
     }
 }

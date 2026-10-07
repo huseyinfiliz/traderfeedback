@@ -19,7 +19,7 @@ class ListPendingFeedbacksController extends AbstractListController
     /**
      * {@inheritdoc}
      */
-    public $include = ['fromUser', 'toUser'];
+    public $include = ['fromUser', 'toUser', 'discussion'];
 
     /**
      * {@inheritdoc}
@@ -44,7 +44,7 @@ class ListPendingFeedbacksController extends AbstractListController
         $offset = $this->extractOffset($request);
 
         $results = Feedback::where('is_approved', false)
-            ->with(['fromUser', 'toUser'])
+            ->with(['fromUser', 'toUser', 'discussion'])
             ->orderBy('created_at', 'desc')
             ->skip($offset)
             ->take($limit + 1)

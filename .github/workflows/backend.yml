@@ -1,0 +1,13 @@
+name: Trader Feedback PHP
+
+on: [workflow_dispatch, push, pull_request]
+
+jobs:
+  run:
+    uses: flarum/framework/.github/workflows/REUSABLE_backend.yml@main
+    with:
+      enable_backend_testing: true
+
+      backend_directory: .
+
+      php_versions: '["8.0", "8.1", "8.2", "8.3"]'

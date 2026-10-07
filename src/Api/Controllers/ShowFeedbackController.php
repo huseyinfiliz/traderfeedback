@@ -20,16 +20,19 @@ class ShowFeedbackController extends AbstractShowController
     /**
      * {@inheritdoc}
      */
-    public $include = ['fromUser', 'toUser'];
+    public $include = ['fromUser', 'toUser', 'discussion'];
 
     /**
      * {@inheritdoc}
      */
     protected function data(ServerRequestInterface $request, Document $document)
     {
+        $actor = RequestUtil::getActor($request);
         $id = Arr::get($request->getQueryParams(), 'id');
 
         $feedback = Feedback::findOrFail($id);
+
+        $actor->assertCan('view', $feedback);
 
         return $feedback;
     }

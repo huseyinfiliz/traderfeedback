@@ -19,7 +19,7 @@ use Carbon\Carbon;
 class CreateFeedbackController extends AbstractCreateController
 {
     public $serializer = FeedbackSerializer::class;
-    public $include = ['fromUser', 'toUser'];
+    public $include = ['fromUser', 'toUser', 'discussion'];
     
     protected $validator;
     protected $settings;
@@ -40,6 +40,31 @@ class CreateFeedbackController extends AbstractCreateController
         $actor->assertRegistered();
         $actor->assertCan('huseyinfiliz-traderfeedback.give');
 
+        // Check account age requirement (minDays)
+        $minDays = (int) $this->settings->get('huseyinfiliz.traderfeedback.minDays', 0);
+        if ($minDays > 0 && $actor->joined_at) {
+            $daysSinceJoined = $actor->joined_at->diffInDays(Carbon::now());
+            if ($daysSinceJoined < $minDays) {
+                throw new ValidationException([
+                    'user' => app('translator')->trans(
+                        'huseyinfiliz-traderfeedback.api.validation.min_days',
+                        ['days' => $minDays]
+                    )
+                ]);
+            }
+        }
+
+        // Check post count requirement (minPosts)
+        $minPosts = (int) $this->settings->get('huseyinfiliz.traderfeedback.minPosts', 0);
+        if ($minPosts > 0 && (int) $actor->comment_count < $minPosts) {
+            throw new ValidationException([
+                'user' => app('translator')->trans(
+                    'huseyinfiliz-traderfeedback.api.validation.min_posts',
+                    ['posts' => $minPosts]
+                )
+            ]);
+        }
+
         $data = Arr::get($request->getParsedBody(), 'data.attributes', []);
         
         // Rate Limit Check: Max 1 feedback per minute
@@ -56,9 +81,22 @@ class CreateFeedbackController extends AbstractCreateController
             ]);
         }
         
+        // Parse discussion ID from URL or input if provided BEFORE validator runs
+        $rawDiscussionId = Arr::get($data, 'discussion_id');
+        $discussionId = null;
+        if ($rawDiscussionId) {
+            if (is_string($rawDiscussionId) && preg_match('/\/d\/(\d+)/', $rawDiscussionId, $matches)) {
+                $discussionId = (int) $matches[1];
+                $data['discussion_id'] = $discussionId;
+            } elseif (is_numeric($rawDiscussionId)) {
+                $discussionId = (int) $rawDiscussionId;
+                $data['discussion_id'] = $discussionId;
+            }
+        }
+
         // Check if discussion is required
         $requireDiscussion = $this->settings->get('huseyinfiliz.traderfeedback.requireDiscussion', false);
-        if ($requireDiscussion && !Arr::get($data, 'discussion_id')) {
+        if ($requireDiscussion && !$discussionId) {
             throw new ValidationException([
                 'discussion_id' => 'Discussion URL or ID is required for feedback.'
             ]);
@@ -86,17 +124,6 @@ class CreateFeedbackController extends AbstractCreateController
             throw new ValidationException([
                 'to_user_id' => 'You cannot give feedback to yourself.'
             ]);
-        }
-        
-        // Parse discussion ID from URL if needed
-        $discussionId = Arr::get($data, 'discussion_id');
-        if ($discussionId) {
-            // Check if it's a URL
-            if (preg_match('/\/d\/(\d+)/', $discussionId, $matches)) {
-                $discussionId = (int) $matches[1];
-            } else {
-                $discussionId = (int) $discussionId;
-            }
         }
         
         // Check one per discussion rule
@@ -144,14 +171,9 @@ class CreateFeedbackController extends AbstractCreateController
         $feedback->save();
         
         // Load relationships
-        $feedback->load(['fromUser', 'toUser']);
+        $feedback->load(['fromUser', 'toUser', 'discussion']);
         
-        // Update stats if feedback is approved
-        if ($feedback->is_approved) {
-            StatsService::updateUserStats($feedback->to_user_id);
-        }
-        
-        // Fire the event - listener will handle the notification
+        // Fire the event - listener will handle stats update and notifications
         event(new FeedbackCreated($feedback, $actor));
         
         return $feedback;
