@@ -5,6 +5,9 @@ namespace HuseyinFiliz\TraderFeedback\Tests\Integration;
 use Carbon\Carbon;
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase;
+use Flarum\User\User;
+use Flarum\Discussion\Discussion;
+use Flarum\Post\Post;
 
 class TraderStatsApiTest extends TestCase
 {
@@ -17,7 +20,7 @@ class TraderStatsApiTest extends TestCase
         $this->extension('huseyinfiliz-traderfeedback');
 
         $this->prepareDatabase([
-            'users' => [
+            User::class => [
                 $this->normalUser(), // id 2
                 [
                     'id'                 => 3,
@@ -30,7 +33,7 @@ class TraderStatsApiTest extends TestCase
             'group_user' => [
                 ['user_id' => 1, 'group_id' => 1],
             ],
-            'discussions' => [
+            Discussion::class => [
                 [
                     'id'            => 1,
                     'title'         => 'Test Discussion',
@@ -40,7 +43,7 @@ class TraderStatsApiTest extends TestCase
                     'comment_count' => 1,
                 ],
             ],
-            'posts' => [
+            Post::class => [
                 [
                     'id'            => 1,
                     'discussion_id' => 1,

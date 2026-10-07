@@ -5,6 +5,9 @@ namespace HuseyinFiliz\TraderFeedback\Tests\Integration;
 use Carbon\Carbon;
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase;
+use Flarum\User\User;
+use Flarum\Discussion\Discussion;
+use Flarum\Post\Post;
 
 class FeedbackApiTest extends TestCase
 {
@@ -17,7 +20,7 @@ class FeedbackApiTest extends TestCase
         $this->extension('huseyinfiliz-traderfeedback');
 
         $this->prepareDatabase([
-            'users' => [
+            User::class => [
                 array_merge($this->normalUser(), [
                     'joined_at'     => Carbon::now()->subDays(10)->toDateTimeString(),
                     'comment_count' => 10,
@@ -48,7 +51,7 @@ class FeedbackApiTest extends TestCase
                 ['group_id' => 3, 'permission' => 'huseyinfiliz-traderfeedback.give'],
                 ['group_id' => 3, 'permission' => 'huseyinfiliz-traderfeedback.view'],
             ],
-            'discussions' => [
+            Discussion::class => [
                 [
                     'id'            => 1,
                     'title'         => 'Test Discussion',
@@ -58,7 +61,7 @@ class FeedbackApiTest extends TestCase
                     'comment_count' => 1,
                 ],
             ],
-            'posts' => [
+            Post::class => [
                 [
                     'id'            => 1,
                     'discussion_id' => 1,
