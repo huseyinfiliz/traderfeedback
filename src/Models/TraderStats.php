@@ -15,15 +15,15 @@ class TraderStats extends AbstractModel
         'negative_count',
         'neutral_count',
         'score',
-        'last_updated'
+        'last_updated',
     ];
 
     protected $casts = [
         'positive_count' => 'integer',
         'negative_count' => 'integer',
-        'neutral_count' => 'integer',
-        'score' => 'float',
-        'last_updated' => 'datetime'
+        'neutral_count'  => 'integer',
+        'score'          => 'float',
+        'last_updated'   => 'datetime',
     ];
 
     public function user()

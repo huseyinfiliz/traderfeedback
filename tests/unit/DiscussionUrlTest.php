@@ -13,9 +13,9 @@ class DiscussionUrlTest extends TestCase
     {
         $urls = [
             'https://forum.example.com/d/123-some-discussion-title' => 123,
-            'http://localhost/d/456' => 456,
-            '/d/789-test' => 789,
-            'https://community.com/d/999/5' => 999,
+            'http://localhost/d/456'                                => 456,
+            '/d/789-test'                                           => 789,
+            'https://community.com/d/999/5'                         => 999,
         ];
 
         foreach ($urls as $url => $expectedId) {

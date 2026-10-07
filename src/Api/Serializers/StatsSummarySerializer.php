@@ -11,9 +11,9 @@ class StatsSummarySerializer extends AbstractSerializer
     protected function getDefaultAttributes($stats)
     {
         return [
-            'total' => (int) $stats->total,
+            'total'    => (int) $stats->total,
             'positive' => (int) $stats->positive,
-            'neutral' => (int) $stats->neutral,
+            'neutral'  => (int) $stats->neutral,
             'negative' => (int) $stats->negative,
         ];
     }

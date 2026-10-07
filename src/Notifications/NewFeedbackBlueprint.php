@@ -32,10 +32,10 @@ class NewFeedbackBlueprint implements BlueprintInterface
     {
         // Frontend'in beklediği data formatı
         return [
-            'feedbackId' => $this->feedback->id,
+            'feedbackId'   => $this->feedback->id,
             'feedbackType' => $this->feedback->type,
-            'role' => $this->feedback->role,
-            'comment' => substr($this->feedback->comment, 0, 50) . '...' // İlk 50 karakter
+            'role'         => $this->feedback->role,
+            'comment'      => substr($this->feedback->comment, 0, 50).'...', // İlk 50 karakter
         ];
     }
 

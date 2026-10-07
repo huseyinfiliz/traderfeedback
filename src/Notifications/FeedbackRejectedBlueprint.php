@@ -33,8 +33,8 @@ class FeedbackRejectedBlueprint implements BlueprintInterface
     {
         // Sadeleştirilmiş data - frontend fromUser'dan username'i alacak
         return [
-            'feedbackId' => $this->feedback->id,
-            'feedbackType' => $this->feedback->type
+            'feedbackId'   => $this->feedback->id,
+            'feedbackType' => $this->feedback->type,
         ];
     }
 

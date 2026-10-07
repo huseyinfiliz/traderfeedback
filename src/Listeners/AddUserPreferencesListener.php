@@ -3,11 +3,11 @@
 namespace HuseyinFiliz\TraderFeedback\Listeners;
 
 use Flarum\User\Event\Saving;
-use Illuminate\Support\Arr;
 use Flarum\User\User;
-use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackRejectedBlueprint;
+use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
+use Illuminate\Support\Arr;
 
 /**
  * Update user notification preferences when their profile is saved.
@@ -45,7 +45,7 @@ class AddUserPreferencesListener
         foreach ($blueprints as $blueprint) {
             $type = $blueprint::getType();
             $key = User::getNotificationPreferenceKey($type, 'alert');
-            $prefPath = "attributes.preferences." . $key;
+            $prefPath = 'attributes.preferences.'.$key;
             if (Arr::has($data, $prefPath)) {
                 $user->setPreference(
                     $key,

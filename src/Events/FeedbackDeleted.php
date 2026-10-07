@@ -2,8 +2,8 @@
 
 namespace HuseyinFiliz\TraderFeedback\Events;
 
-use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use Flarum\User\User;
+use HuseyinFiliz\TraderFeedback\Models\Feedback;
 
 class FeedbackDeleted
 {
@@ -19,7 +19,7 @@ class FeedbackDeleted
 
     /**
      * @param Feedback $feedback
-     * @param User $actor
+     * @param User     $actor
      */
     public function __construct(Feedback $feedback, User $actor)
     {

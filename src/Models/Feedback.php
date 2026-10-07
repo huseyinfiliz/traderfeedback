@@ -5,32 +5,33 @@ namespace HuseyinFiliz\TraderFeedback\Models;
 use Carbon\Carbon;
 use Flarum\Database\AbstractModel;
 use Flarum\Database\ScopeVisibilityTrait;
-use Flarum\User\User;
 use Flarum\Discussion\Discussion;
+use Flarum\User\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * @property int $id
- * @property int $from_user_id
- * @property int $to_user_id
- * @property string $type
- * @property string $role
- * @property string $comment
- * @property int|null $discussion_id
- * @property bool $is_approved
- * @property int|null $approved_by_id
- * @property Carbon $created_at
- * @property Carbon $updated_at
- * @property Carbon|null $deleted_at
- * @property User $fromUser
- * @property User $toUser
- * @property User|null $approvedBy
+ * @property int             $id
+ * @property int             $from_user_id
+ * @property int             $to_user_id
+ * @property string          $type
+ * @property string          $role
+ * @property string          $comment
+ * @property int|null        $discussion_id
+ * @property bool            $is_approved
+ * @property int|null        $approved_by_id
+ * @property Carbon          $created_at
+ * @property Carbon          $updated_at
+ * @property Carbon|null     $deleted_at
+ * @property User            $fromUser
+ * @property User            $toUser
+ * @property User|null       $approvedBy
  * @property Discussion|null $discussion
  */
 class Feedback extends AbstractModel
 {
-    use ScopeVisibilityTrait, SoftDeletes;
+    use ScopeVisibilityTrait;
+    use SoftDeletes;
 
     protected $table = 'tfb_feedbacks';
 
@@ -39,14 +40,14 @@ class Feedback extends AbstractModel
     protected $dates = ['created_at', 'updated_at', 'deleted_at'];
 
     protected $casts = [
-        'from_user_id' => 'integer',
-        'to_user_id' => 'integer',
-        'discussion_id' => 'integer',
+        'from_user_id'   => 'integer',
+        'to_user_id'     => 'integer',
+        'discussion_id'  => 'integer',
         'approved_by_id' => 'integer',
-        'is_approved' => 'boolean',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
+        'is_approved'    => 'boolean',
+        'created_at'     => 'datetime',
+        'updated_at'     => 'datetime',
+        'deleted_at'     => 'datetime',
     ];
 
     protected $fillable = [
@@ -57,18 +58,18 @@ class Feedback extends AbstractModel
         'comment',
         'discussion_id',
         'is_approved',
-        'approved_by_id'
+        'approved_by_id',
     ];
 
     /**
-     * Feedback types
+     * Feedback types.
      */
     const TYPE_POSITIVE = 'positive';
     const TYPE_NEUTRAL = 'neutral';
     const TYPE_NEGATIVE = 'negative';
 
     /**
-     * Feedback roles
+     * Feedback roles.
      */
     const ROLE_BUYER = 'buyer';
     const ROLE_SELLER = 'seller';
@@ -163,7 +164,7 @@ class Feedback extends AbstractModel
     }
 
     /**
-     * Check if feedback is positive
+     * Check if feedback is positive.
      */
     public function isPositive(): bool
     {
@@ -171,7 +172,7 @@ class Feedback extends AbstractModel
     }
 
     /**
-     * Check if feedback is negative
+     * Check if feedback is negative.
      */
     public function isNegative(): bool
     {
@@ -179,7 +180,7 @@ class Feedback extends AbstractModel
     }
 
     /**
-     * Check if feedback is neutral
+     * Check if feedback is neutral.
      */
     public function isNeutral(): bool
     {

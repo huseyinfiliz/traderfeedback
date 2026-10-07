@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Database\Schema\Builder;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Schema\Builder;
 
 return [
     'up' => function (Builder $schema) {
@@ -31,7 +31,7 @@ return [
                 $table->index('feedback_id');
                 $table->index('resolved');
                 $table->index('created_at');
-                
+
                 // Unique constraint: bir kullanıcı bir feedback'i bir kez raporlayabilir
                 $table->unique(['user_id', 'feedback_id'], 'unique_report_per_user');
             });
