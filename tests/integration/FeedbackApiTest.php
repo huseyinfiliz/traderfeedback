@@ -169,17 +169,18 @@ class FeedbackApiTest extends TestCase
 
     public function test_guest_cannot_create_feedback()
     {
-        $req = $this->request('POST', '/api/trader/feedback');
-        $req = $this->requestWithJsonBody($req, [
-            'data' => [
-                'attributes' => [
-                    'to_user_id' => 3,
-                    'type'       => 'positive',
-                    'role'       => 'buyer',
-                    'comment'    => 'This is a test comment that meets length requirements.',
+        $req = $this->request('POST', '/api/trader/feedback', [
+            'json' => [
+                'data' => [
+                    'attributes' => [
+                        'to_user_id' => 3,
+                        'type'       => 'positive',
+                        'role'       => 'buyer',
+                        'comment'    => 'This is a test comment that meets length requirements.',
+                    ],
                 ],
             ],
-        ]);
+        ])->withAttribute('bypassCsrfToken', true);
 
         $response = $this->send($req);
         $this->assertContains($response->getStatusCode(), [401, 403]);
