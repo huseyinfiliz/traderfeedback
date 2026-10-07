@@ -9,24 +9,21 @@ export default class FeedbackRejectedNotification extends Notification {
   href() {
     const notification = this.attrs.notification;
     const fromUser = notification.fromUser();
-    
+
     if (!fromUser) return app.route('index');
-    
+
     return app.route('user.feedbacks', {
-      username: fromUser.slug()
+      username: fromUser.slug(),
     });
   }
 
   content() {
     const notification = this.attrs.notification;
     const fromUser = notification.fromUser();
-    
+
     if (!fromUser) return 'Your feedback was rejected';
-    
-    return app.translator.trans(
-      'huseyinfiliz-traderfeedback.forum.notifications.feedback_rejected_title',
-      { username: username(fromUser) }
-    );
+
+    return app.translator.trans('huseyinfiliz-traderfeedback.forum.notifications.feedback_rejected_title', { username: username(fromUser) });
   }
 
   excerpt() {

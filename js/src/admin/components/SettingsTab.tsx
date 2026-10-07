@@ -13,7 +13,7 @@ export default class SettingsTab extends Component {
             <i className="fas fa-cog"></i>
             {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_general')}
           </h3>
-          
+
           <div className="SettingsSection-content">
             <div className="Form-group">
               {buildSettingComponent({
@@ -39,7 +39,7 @@ export default class SettingsTab extends Component {
             <i className="fas fa-comments"></i>
             {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_discussion')}
           </h3>
-          
+
           <div className="SettingsSection-content">
             <div className="Form-group">
               {buildSettingComponent({
@@ -67,7 +67,7 @@ export default class SettingsTab extends Component {
             <i className="fas fa-comment-dots"></i>
             {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_comment')}
           </h3>
-          
+
           <div className="SettingsSection-content">
             <div className="Form-group">
               {buildSettingComponent({
@@ -97,7 +97,7 @@ export default class SettingsTab extends Component {
             <i className="fas fa-user-check"></i>
             {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_requirements')}
           </h3>
-          
+
           <div className="SettingsSection-content">
             <div className="Form-group">
               {buildSettingComponent({
@@ -129,7 +129,7 @@ export default class SettingsTab extends Component {
             <i className="fas fa-hand-pointer"></i>
             {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_post_feedback_actions')}
           </h3>
-          
+
           <div className="SettingsSection-content">
             {/* Post Menu Button */}
             <div className="Form-group">
@@ -160,8 +160,8 @@ export default class SettingsTab extends Component {
                 help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_feedback_in_post_footer_help'),
               })}
             </div>
-			  
-			{/* Post Footer Button */}
+
+            {/* Post Footer Button */}
             <div className="Form-group">
               {buildSettingComponent({
                 type: 'boolean',
@@ -186,9 +186,7 @@ export default class SettingsTab extends Component {
                   },
                 },
               })}
-              <p className="helpText">
-                {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.feedback_action_tag_filter_help')}
-              </p>
+              <p className="helpText">{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.feedback_action_tag_filter_help')}</p>
             </div>
 
             {/* Only When Locked */}
@@ -209,7 +207,7 @@ export default class SettingsTab extends Component {
             <i className="fas fa-tag"></i>
             {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.section_badge_display')}
           </h3>
-          
+
           <div className="SettingsSection-content">
             {/* Show Badge Toggle */}
             <div className="Form-group">
@@ -231,9 +229,7 @@ export default class SettingsTab extends Component {
                 oninput={(e) => page.setting('huseyinfiliz.traderfeedback.badgeCustomPrefix')(e.target.value)}
                 placeholder={app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_custom_prefix_placeholder')}
               />
-              <p className="helpText">
-                {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_custom_prefix_help')}
-              </p>
+              <p className="helpText">{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_custom_prefix_help')}</p>
             </div>
 
             {/* Format Selection */}
@@ -256,23 +252,17 @@ export default class SettingsTab extends Component {
                 <option value="letters">
                   {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_format_letters')} — 5P / 2N / 1N
                 </option>
-                <option value="symbols">
-                  {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_format_symbols')} — +5 =2 -1
-                </option>
-                <option value="custom">
-                  {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_format_custom')}
-                </option>
+                <option value="symbols">{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_format_symbols')} — +5 =2 -1</option>
+                <option value="custom">{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_format_custom')}</option>
               </select>
-              <p className="helpText">
-                {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_format_help')}
-              </p>
+              <p className="helpText">{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_format_help')}</p>
             </div>
 
             {/* Custom Format Editor */}
             {page.setting('huseyinfiliz.traderfeedback.badgeFormat')() === 'custom' && (
               <div className="Form-group TraderFeedback-customFormat">
                 <label>{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_custom_format_label')}</label>
-                
+
                 {/* Variable Toolbar */}
                 <div className="TraderFeedback-variableToolbar">
                   <button type="button" className="Button" onclick={() => page.insertVariable('{total}')}>
@@ -296,7 +286,9 @@ export default class SettingsTab extends Component {
                 <textarea
                   className={'FormControl' + (page.customFormatError ? ' error' : '')}
                   rows="3"
-                  oncreate={(vnode) => { page.customFormatTextarea = vnode.dom; }}
+                  oncreate={(vnode) => {
+                    page.customFormatTextarea = vnode.dom;
+                  }}
                   value={page.setting('huseyinfiliz.traderfeedback.badgeCustomFormat')()}
                   oninput={(e) => {
                     page.setting('huseyinfiliz.traderfeedback.badgeCustomFormat')(e.target.value);
@@ -331,9 +323,7 @@ export default class SettingsTab extends Component {
                   </div>
                 </div>
 
-                <p className="helpText">
-                  {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_custom_format_help')}
-                </p>
+                <p className="helpText">{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_custom_format_help')}</p>
               </div>
             )}
 
@@ -352,9 +342,7 @@ export default class SettingsTab extends Component {
                   },
                 },
               })}
-              <p className="helpText">
-                {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_tag_filter_help')}
-              </p>
+              <p className="helpText">{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_tag_filter_help')}</p>
             </div>
 
             {/* Only First Post - Switch olarak */}
@@ -370,9 +358,7 @@ export default class SettingsTab extends Component {
         </div>
 
         {/* Submit Button */}
-        <div className="Form-group">
-          {submitButton()}
-        </div>
+        <div className="Form-group">{submitButton()}</div>
       </div>
     );
   }

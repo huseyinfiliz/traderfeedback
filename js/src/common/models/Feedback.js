@@ -7,7 +7,7 @@ export default class Feedback extends Model {
   role = Model.attribute('role');
   isApproved = Model.attribute('isApproved');
   createdAt = Model.attribute('createdAt', Model.transformDate);
-  
+
   // Relationships
   fromUser = Model.hasOne('fromUser');
   toUser = Model.hasOne('toUser');

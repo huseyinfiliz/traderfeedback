@@ -35,8 +35,8 @@ export default function addDiscussionControls() {
           icon: 'fas fa-exchange-alt',
           onclick: () => {
             if (isDiscussionOwner) {
-              app.modal.show(SelectUserModal, { 
-                discussion
+              app.modal.show(SelectUserModal, {
+                discussion,
               });
             } else {
               // ✅ Sadece discussion ID gönder
@@ -58,7 +58,7 @@ export default function addDiscussionControls() {
 function shouldShowInDiscussion(discussion: any): boolean {
   const tagFilterJson = app.forum.attribute('huseyinfiliz.traderfeedback.feedbackActionTagFilter') || '[]';
   let allowedTags: string[] = [];
-  
+
   try {
     allowedTags = JSON.parse(tagFilterJson);
   } catch (e) {
@@ -70,23 +70,21 @@ function shouldShowInDiscussion(discussion: any): boolean {
   }
 
   if (!discussion) return false;
-  
+
   const discussionTags = discussion.tags ? discussion.tags() : [];
   if (!discussionTags || discussionTags.length === 0) return false;
 
-  return discussionTags.some((tag: any) => 
-    allowedTags.includes(tag.id())
-  );
+  return discussionTags.some((tag: any) => allowedTags.includes(tag.id()));
 }
 
 function shouldShowWhenLocked(discussion: any): boolean {
   const onlyWhenLocked = app.forum.attribute('huseyinfiliz.traderfeedback.feedbackOnlyWhenLocked');
-  
+
   if (!onlyWhenLocked) {
     return true;
   }
 
   if (!discussion) return false;
-  
+
   return discussion.isLocked && discussion.isLocked();
 }

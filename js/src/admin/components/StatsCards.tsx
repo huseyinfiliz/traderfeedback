@@ -15,7 +15,7 @@ export default class StatsCards extends Component {
           icon: 'fas fa-exchange-alt',
           value: stats.total,
           label: 'Total Feedbacks',
-          type: 'total'
+          type: 'total',
         })}
 
         {this.card({
@@ -23,7 +23,7 @@ export default class StatsCards extends Component {
           value: stats.positive,
           label: 'Positive',
           percentage: stats.total > 0 ? Math.round((stats.positive / stats.total) * 100) : 0,
-          type: 'positive'
+          type: 'positive',
         })}
 
         {this.card({
@@ -31,7 +31,7 @@ export default class StatsCards extends Component {
           value: stats.neutral,
           label: 'Neutral',
           percentage: stats.total > 0 ? Math.round((stats.neutral / stats.total) * 100) : 0,
-          type: 'neutral'
+          type: 'neutral',
         })}
 
         {this.card({
@@ -39,7 +39,7 @@ export default class StatsCards extends Component {
           value: stats.negative,
           label: 'Negative',
           percentage: stats.total > 0 ? Math.round((stats.negative / stats.total) * 100) : 0,
-          type: 'negative'
+          type: 'negative',
         })}
       </div>
     );
@@ -54,9 +54,7 @@ export default class StatsCards extends Component {
         <div className="StatsCard-content">
           <div className="StatsCard-value">{data.value}</div>
           <div className="StatsCard-label">{data.label}</div>
-          {data.percentage !== undefined && (
-            <div className="StatsCard-percentage">{data.percentage}%</div>
-          )}
+          {data.percentage !== undefined && <div className="StatsCard-percentage">{data.percentage}%</div>}
         </div>
       </div>
     );
