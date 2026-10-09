@@ -13,6 +13,7 @@ tests/.phpunit.result.cache
 .vagrant
 .idea/*
 .vscode
+.agents/
 js/coverage-ts
 
 # yarn
