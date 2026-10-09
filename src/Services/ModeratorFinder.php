@@ -13,6 +13,7 @@ class ModeratorFinder
      * Get all users who can moderate trader feedback, excluding a specific user ID.
      *
      * @param int|null $excludeUserId
+     *
      * @return Collection<int, User>
      */
     public static function getModerators(?int $excludeUserId = null): Collection
