@@ -52,7 +52,7 @@ class FeedbackPolicyTest extends TestCase
         $this->assertTrue($this->policy->view($guest, $feedback));
     }
 
-    public function test_author_can_view_own_unapproved_feedback()
+    public function test_author_cannot_view_own_unapproved_feedback()
     {
         $author = $this->createUser(10);
 
@@ -61,10 +61,10 @@ class FeedbackPolicyTest extends TestCase
         $feedback->from_user_id = 10;
         $feedback->to_user_id = 20;
 
-        $this->assertTrue($this->policy->view($author, $feedback));
+        $this->assertFalse((bool) $this->policy->view($author, $feedback));
     }
 
-    public function test_recipient_can_view_own_unapproved_feedback()
+    public function test_recipient_cannot_view_own_unapproved_feedback()
     {
         $recipient = $this->createUser(20);
 
@@ -73,7 +73,7 @@ class FeedbackPolicyTest extends TestCase
         $feedback->from_user_id = 10;
         $feedback->to_user_id = 20;
 
-        $this->assertTrue($this->policy->view($recipient, $feedback));
+        $this->assertFalse((bool) $this->policy->view($recipient, $feedback));
     }
 
     public function test_moderator_can_view_unapproved_feedback()

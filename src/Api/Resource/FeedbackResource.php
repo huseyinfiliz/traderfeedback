@@ -31,13 +31,7 @@ class FeedbackResource extends AbstractDatabaseResource
         $actor = $context->getActor();
 
         if (!$actor->hasPermission('huseyinfiliz-traderfeedback.moderate')) {
-            $query->where(function ($q) use ($actor) {
-                $q->where('is_approved', true);
-                if ($actor->id) {
-                    $q->orWhere('from_user_id', $actor->id)
-                      ->orWhere('to_user_id', $actor->id);
-                }
-            });
+            $query->where('is_approved', true);
         }
     }
 

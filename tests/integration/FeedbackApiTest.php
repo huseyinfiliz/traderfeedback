@@ -126,24 +126,24 @@ class FeedbackApiTest extends TestCase
         $this->assertSame(403, $response->getStatusCode());
     }
 
-    public function test_author_can_view_own_pending_feedback()
+    public function test_author_cannot_view_own_pending_feedback()
     {
         $response = $this->send(
             $this->request('GET', '/api/trader/feedback/2', [
                 'authenticatedAs' => 2,
             ])
         );
-        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame(403, $response->getStatusCode());
     }
 
-    public function test_recipient_can_view_own_pending_feedback()
+    public function test_recipient_cannot_view_own_pending_feedback()
     {
         $response = $this->send(
             $this->request('GET', '/api/trader/feedback/2', [
                 'authenticatedAs' => 3,
             ])
         );
-        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame(403, $response->getStatusCode());
     }
 
     public function test_admin_can_view_pending_feedback()

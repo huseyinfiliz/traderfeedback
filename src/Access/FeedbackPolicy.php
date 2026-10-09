@@ -92,12 +92,7 @@ class FeedbackPolicy extends AbstractPolicy
             return true;
         }
 
-        // Author and recipient can view unapproved feedback
-        if ($feedback->from_user_id === $actor->id || $feedback->to_user_id === $actor->id) {
-            return true;
-        }
-
-        // Moderators can view all feedback
+        // Unapproved feedback can only be viewed by users with the moderate permission
         return $actor->hasPermission('huseyinfiliz-traderfeedback.moderate');
     }
 }

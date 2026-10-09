@@ -31,19 +31,10 @@ class ListFeedbacksController implements RequestHandlerInterface
 
         if ($userId) {
             $query->where('to_user_id', (int) $userId);
-            // Public profile feedback list strictly shows approved feedbacks only
-            $query->where('is_approved', true);
-        } else {
-            // General listing visibility scoping
-            if (!$actor->hasPermission('huseyinfiliz-traderfeedback.moderate')) {
-                $query->where(function ($q) use ($actor) {
-                    $q->where('is_approved', true);
-                    if ($actor->id) {
-                        $q->orWhere('from_user_id', $actor->id);
-                    }
-                });
-            }
         }
+
+        // Onay bekleyen geri bildirimler ana listede (admin/moderatör dahil) HİÇ listelenmez; yalnızca onaylanmışlar listelenir.
+        $query->where('is_approved', true);
 
         if ($type && in_array($type, [Feedback::TYPE_POSITIVE, Feedback::TYPE_NEUTRAL, Feedback::TYPE_NEGATIVE], true)) {
             $query->where('type', $type);
