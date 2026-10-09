@@ -129,15 +129,18 @@ return [
                     if ($user->traderStats) {
                         return (int) ($user->traderStats->positive_count + $user->traderStats->neutral_count + $user->traderStats->negative_count);
                     }
+
                     return (int) Feedback::where('to_user_id', $user->id)->where('is_approved', true)->count();
                 }),
             Schema\Integer::make('pendingFeedbackCount')
-                ->get(fn (User $user, Context $context) => $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.moderate')
+                ->get(
+                    fn (User $user, Context $context) => $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.moderate')
                     ? Feedback::where('to_user_id', $user->id)->where('is_approved', false)->count()
                     : 0
                 ),
             Schema\Integer::make('pendingReportCount')
-                ->get(fn (User $user, Context $context) => $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.moderate')
+                ->get(
+                    fn (User $user, Context $context) => $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.moderate')
                     ? FeedbackReport::where('resolved', false)->whereHas('feedback', fn ($q) => $q->where('to_user_id', $user->id))->count()
                     : 0
                 ),
