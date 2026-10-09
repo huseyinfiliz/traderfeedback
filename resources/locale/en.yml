@@ -39,6 +39,7 @@ huseyinfiliz-traderfeedback:
       error_discussion_required: Discussion URL or ID is required
       error_submit: Error submitting feedback
       success: Feedback submitted successfully
+      success_pending_approval: "Feedback submitted successfully and is awaiting approval."
     
     user_card:
       score_tooltip: Trader Score
@@ -99,11 +100,36 @@ huseyinfiliz-traderfeedback:
       new_feedback_title: "{username} gave you {type} feedback"
       feedback_approved_title: "Your feedback to {username} was approved"
       feedback_rejected_title: "Your feedback to {username} was rejected"
+      feedback_needs_approval_title: "{username} left feedback for {recipient}, awaiting your approval"
+      feedback_reported_title: "{username}'s feedback for {recipient} was reported"
     
     settings:
       notify_new_feedback_label: "Someone gives me feedback"
       notify_feedback_approved_label: "My feedback is approved"
       notify_feedback_rejected_label: "My feedback is rejected"
+      notify_feedback_needs_approval_label: "A feedback requires moderator approval"
+      notify_feedback_reported_label: "A feedback is reported"
+    
+    moderation:
+      actions_button: Actions
+      title: "Trader Feedback Moderation — {username}"
+      pending_tab: Pending Approvals
+      reports_tab: Reports
+      no_pending: "No pending feedbacks awaiting approval for this user."
+      no_reports: "No pending reports for this user."
+      approve_button: Approve
+      reject_button: Reject
+      dismiss_button: Dismiss Report
+      delete_button: Delete Feedback
+      confirm_approve: "Are you sure you want to approve this feedback?"
+      confirm_reject: "Are you sure you want to reject this feedback?"
+      confirm_dismiss: "Are you sure you want to dismiss this report?"
+      confirm_delete: "Are you sure you want to delete this feedback?"
+      approved_success: Feedback approved successfully
+      rejected_success: Feedback rejected successfully
+      dismissed_success: Report dismissed successfully
+      deleted_success: Feedback deleted successfully
+      error: An error occurred
     
     # Badge format translations
     badge:
@@ -270,3 +296,12 @@ huseyinfiliz-traderfeedback:
       approved_error: Failed to approve feedback
       rejected_success: Feedback rejected successfully
       rejected_error: Failed to reject feedback
+
+flarum-audit:
+  lib:
+    browser:
+      traderfeedback:
+        approved: "Approved feedback from {author} for {recipient}"
+        rejected: "Rejected feedback from {author} for {recipient}"
+        deleted: "Deleted feedback from {author} for {recipient}"
+        report_dismissed: "Dismissed report on feedback for {recipient}"

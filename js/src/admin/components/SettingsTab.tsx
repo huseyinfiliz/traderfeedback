@@ -7,7 +7,7 @@ export default class SettingsTab extends Component {
     const { buildSettingComponent, submitButton, page } = this.attrs;
 
     return (
-      <div className="TraderFeedbackSettings">
+      <form className="TraderFeedbackSettings" onsubmit={page.saveSettings.bind(page)}>
         {/* General Settings */}
         <div className="SettingsSection">
           <h3>
@@ -16,21 +16,17 @@ export default class SettingsTab extends Component {
           </h3>
 
           <div className="SettingsSection-content">
-            <div className="Form-group">
-              {buildSettingComponent({
-                type: 'boolean',
-                setting: 'huseyinfiliz.traderfeedback.requireApproval',
-                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.require_approval_label'),
-              })}
-            </div>
+            {buildSettingComponent({
+              type: 'boolean',
+              setting: 'huseyinfiliz.traderfeedback.requireApproval',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.require_approval_label'),
+            })}
 
-            <div className="Form-group">
-              {buildSettingComponent({
-                type: 'boolean',
-                setting: 'huseyinfiliz.traderfeedback.allowNegative',
-                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.allow_negative_label'),
-              })}
-            </div>
+            {buildSettingComponent({
+              type: 'boolean',
+              setting: 'huseyinfiliz.traderfeedback.allowNegative',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.allow_negative_label'),
+            })}
           </div>
         </div>
 
@@ -42,23 +38,19 @@ export default class SettingsTab extends Component {
           </h3>
 
           <div className="SettingsSection-content">
-            <div className="Form-group">
-              {buildSettingComponent({
-                type: 'boolean',
-                setting: 'huseyinfiliz.traderfeedback.requireDiscussion',
-                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.require_discussion_label'),
-                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.require_discussion_help'),
-              })}
-            </div>
+            {buildSettingComponent({
+              type: 'boolean',
+              setting: 'huseyinfiliz.traderfeedback.requireDiscussion',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.require_discussion_label'),
+              help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.require_discussion_help'),
+            })}
 
-            <div className="Form-group">
-              {buildSettingComponent({
-                type: 'boolean',
-                setting: 'huseyinfiliz.traderfeedback.onePerDiscussion',
-                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.one_per_discussion_label'),
-                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.one_per_discussion_help'),
-              })}
-            </div>
+            {buildSettingComponent({
+              type: 'boolean',
+              setting: 'huseyinfiliz.traderfeedback.onePerDiscussion',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.one_per_discussion_label'),
+              help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.one_per_discussion_help'),
+            })}
           </div>
         </div>
 
@@ -70,25 +62,21 @@ export default class SettingsTab extends Component {
           </h3>
 
           <div className="SettingsSection-content">
-            <div className="Form-group">
-              {buildSettingComponent({
-                type: 'number',
-                setting: 'huseyinfiliz.traderfeedback.minLength',
-                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_length_label'),
-                placeholder: '10',
-                min: 1,
-              })}
-            </div>
+            {buildSettingComponent({
+              type: 'number',
+              setting: 'huseyinfiliz.traderfeedback.minLength',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_length_label'),
+              placeholder: '10',
+              min: 1,
+            })}
 
-            <div className="Form-group">
-              {buildSettingComponent({
-                type: 'number',
-                setting: 'huseyinfiliz.traderfeedback.maxLength',
-                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.max_length_label'),
-                placeholder: '1000',
-                min: 1,
-              })}
-            </div>
+            {buildSettingComponent({
+              type: 'number',
+              setting: 'huseyinfiliz.traderfeedback.maxLength',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.max_length_label'),
+              placeholder: '1000',
+              min: 1,
+            })}
           </div>
         </div>
 
@@ -100,31 +88,27 @@ export default class SettingsTab extends Component {
           </h3>
 
           <div className="SettingsSection-content">
-            <div className="Form-group">
-              {buildSettingComponent({
-                type: 'number',
-                setting: 'huseyinfiliz.traderfeedback.minDays',
-                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_days_label'),
-                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_days_help'),
-                placeholder: '0',
-                min: 0,
-              })}
-            </div>
+            {buildSettingComponent({
+              type: 'number',
+              setting: 'huseyinfiliz.traderfeedback.minDays',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_days_label'),
+              help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_days_help'),
+              placeholder: '0',
+              min: 0,
+            })}
 
-            <div className="Form-group">
-              {buildSettingComponent({
-                type: 'number',
-                setting: 'huseyinfiliz.traderfeedback.minPosts',
-                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_posts_label'),
-                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_posts_help'),
-                placeholder: '0',
-                min: 0,
-              })}
-            </div>
+            {buildSettingComponent({
+              type: 'number',
+              setting: 'huseyinfiliz.traderfeedback.minPosts',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_posts_label'),
+              help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.min_posts_help'),
+              placeholder: '0',
+              min: 0,
+            })}
           </div>
         </div>
 
-        {/* Post Feedback Actions Settings (YENİ BÖLÜM) */}
+        {/* Post Feedback Actions Settings */}
         <div className="SettingsSection">
           <h3>
             <Icon name="fas fa-hand-pointer" />
@@ -132,73 +116,55 @@ export default class SettingsTab extends Component {
           </h3>
 
           <div className="SettingsSection-content">
-            {/* Post Menu Button */}
-            <div className="Form-group">
-              {buildSettingComponent({
-                type: 'boolean',
-                setting: 'huseyinfiliz.traderfeedback.showFeedbackInPostMenu',
-                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_feedback_in_post_menu_label'),
-                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_feedback_in_post_menu_help'),
-              })}
-            </div>
+            {buildSettingComponent({
+              type: 'boolean',
+              setting: 'huseyinfiliz.traderfeedback.showFeedbackInPostMenu',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_feedback_in_post_menu_label'),
+              help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_feedback_in_post_menu_help'),
+            })}
 
-            {/* Below Reply/Follow Button */}
-            <div className="Form-group">
-              {buildSettingComponent({
-                type: 'boolean',
-                setting: 'huseyinfiliz.traderfeedback.showFeedbackBelowReply',
-                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_feedback_below_reply_label'),
-                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_feedback_below_reply_help'),
-              })}
-            </div>
+            {buildSettingComponent({
+              type: 'boolean',
+              setting: 'huseyinfiliz.traderfeedback.showFeedbackBelowReply',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_feedback_below_reply_label'),
+              help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_feedback_below_reply_help'),
+            })}
 
-            {/* Post Footer Button */}
-            <div className="Form-group">
-              {buildSettingComponent({
-                type: 'boolean',
-                setting: 'huseyinfiliz.traderfeedback.showFeedbackInPostFooter',
-                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_feedback_in_post_footer_label'),
-                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_feedback_in_post_footer_help'),
-              })}
-            </div>
+            {buildSettingComponent({
+              type: 'boolean',
+              setting: 'huseyinfiliz.traderfeedback.showFeedbackInPostFooter',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_feedback_in_post_footer_label'),
+              help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_feedback_in_post_footer_help'),
+            })}
 
-            {/* Post Footer Button */}
-            <div className="Form-group">
-              {buildSettingComponent({
-                type: 'boolean',
-                setting: 'huseyinfiliz.traderfeedback.footerOnlyFirstPost',
-                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.footer_only_first_post_label'),
-                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.footer_only_first_post_help'),
-              })}
-            </div>
+            {buildSettingComponent({
+              type: 'boolean',
+              setting: 'huseyinfiliz.traderfeedback.footerOnlyFirstPost',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.footer_only_first_post_label'),
+              help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.footer_only_first_post_help'),
+            })}
 
-            {/* Tag Filter for Actions */}
-            <div className="Form-group">
-              <label>{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.feedback_action_tag_filter_label')}</label>
-              {buildSettingComponent({
-                type: 'flarum-tags.select-tags',
-                setting: 'huseyinfiliz.traderfeedback.feedbackActionTagFilter',
-                options: {
-                  requireParentTag: false,
-                  limits: {
-                    max: {
-                      secondary: 0,
-                    },
+            {buildSettingComponent({
+              type: 'flarum-tags.select-tags',
+              setting: 'huseyinfiliz.traderfeedback.feedbackActionTagFilter',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.feedback_action_tag_filter_label'),
+              help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.feedback_action_tag_filter_help'),
+              options: {
+                requireParentTag: false,
+                limits: {
+                  max: {
+                    secondary: 0,
                   },
                 },
-              })}
-              <p className="helpText">{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.feedback_action_tag_filter_help')}</p>
-            </div>
+              },
+            })}
 
-            {/* Only When Locked */}
-            <div className="Form-group">
-              {buildSettingComponent({
-                type: 'boolean',
-                setting: 'huseyinfiliz.traderfeedback.feedbackOnlyWhenLocked',
-                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.feedback_only_when_locked_label'),
-                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.feedback_only_when_locked_help'),
-              })}
-            </div>
+            {buildSettingComponent({
+              type: 'boolean',
+              setting: 'huseyinfiliz.traderfeedback.feedbackOnlyWhenLocked',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.feedback_only_when_locked_label'),
+              help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.feedback_only_when_locked_help'),
+            })}
           </div>
         </div>
 
@@ -210,15 +176,12 @@ export default class SettingsTab extends Component {
           </h3>
 
           <div className="SettingsSection-content">
-            {/* Show Badge Toggle */}
-            <div className="Form-group">
-              {buildSettingComponent({
-                type: 'boolean',
-                setting: 'huseyinfiliz.traderfeedback.showBadgeInPosts',
-                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_badge_in_posts_label'),
-                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_badge_in_posts_help'),
-              })}
-            </div>
+            {buildSettingComponent({
+              type: 'boolean',
+              setting: 'huseyinfiliz.traderfeedback.showBadgeInPosts',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_badge_in_posts_label'),
+              help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.show_badge_in_posts_help'),
+            })}
 
             {/* Custom Prefix */}
             <div className="Form-group">
@@ -227,7 +190,7 @@ export default class SettingsTab extends Component {
                 type="text"
                 className="FormControl"
                 value={page.setting('huseyinfiliz.traderfeedback.badgeCustomPrefix')()}
-                oninput={(e) => page.setting('huseyinfiliz.traderfeedback.badgeCustomPrefix')(e.target.value)}
+                oninput={(e: any) => page.setting('huseyinfiliz.traderfeedback.badgeCustomPrefix')(e.target.value)}
                 placeholder={app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_custom_prefix_placeholder')}
               />
               <p className="helpText">{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_custom_prefix_help')}</p>
@@ -239,7 +202,7 @@ export default class SettingsTab extends Component {
               <select
                 className="FormControl"
                 value={page.setting('huseyinfiliz.traderfeedback.badgeFormat')()}
-                onchange={(e) => {
+                onchange={(e: any) => {
                   page.setting('huseyinfiliz.traderfeedback.badgeFormat')(e.target.value);
                   m.redraw();
                 }}
@@ -286,12 +249,12 @@ export default class SettingsTab extends Component {
                 {/* Textarea */}
                 <textarea
                   className={'FormControl' + (page.customFormatError ? ' error' : '')}
-                  rows="3"
-                  oncreate={(vnode) => {
+                  rows={3}
+                  oncreate={(vnode: any) => {
                     page.customFormatTextarea = vnode.dom;
                   }}
                   value={page.setting('huseyinfiliz.traderfeedback.badgeCustomFormat')()}
-                  oninput={(e) => {
+                  oninput={(e: any) => {
                     page.setting('huseyinfiliz.traderfeedback.badgeCustomFormat')(e.target.value);
                     page.validateAndPreview(e.target.value);
                   }}
@@ -328,39 +291,33 @@ export default class SettingsTab extends Component {
               </div>
             )}
 
-            {/* Tag Filter */}
-            <div className="Form-group">
-              <label>{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_tag_filter_label')}</label>
-              {buildSettingComponent({
-                type: 'flarum-tags.select-tags',
-                setting: 'huseyinfiliz.traderfeedback.badgeTagFilter',
-                options: {
-                  requireParentTag: false,
-                  limits: {
-                    max: {
-                      secondary: 0,
-                    },
+            {buildSettingComponent({
+              type: 'flarum-tags.select-tags',
+              setting: 'huseyinfiliz.traderfeedback.badgeTagFilter',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_tag_filter_label'),
+              help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_tag_filter_help'),
+              options: {
+                requireParentTag: false,
+                limits: {
+                  max: {
+                    secondary: 0,
                   },
                 },
-              })}
-              <p className="helpText">{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_tag_filter_help')}</p>
-            </div>
+              },
+            })}
 
-            {/* Only First Post - Switch olarak */}
-            <div className="Form-group">
-              {buildSettingComponent({
-                type: 'boolean',
-                setting: 'huseyinfiliz.traderfeedback.badgeOnlyFirstPost',
-                label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_only_first_post_label'),
-                help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_only_first_post_help'),
-              })}
-            </div>
+            {buildSettingComponent({
+              type: 'boolean',
+              setting: 'huseyinfiliz.traderfeedback.badgeOnlyFirstPost',
+              label: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_only_first_post_label'),
+              help: app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_only_first_post_help'),
+            })}
           </div>
         </div>
 
         {/* Submit Button */}
-        <div className="Form-group">{submitButton()}</div>
-      </div>
+        <div className="Form-group Form-controls">{submitButton()}</div>
+      </form>
     );
   }
 }

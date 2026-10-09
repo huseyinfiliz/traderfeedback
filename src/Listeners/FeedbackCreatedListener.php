@@ -4,7 +4,9 @@ namespace HuseyinFiliz\TraderFeedback\Listeners;
 
 use Flarum\Notification\NotificationSyncer;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackCreated;
+use HuseyinFiliz\TraderFeedback\Notifications\FeedbackNeedsApprovalBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
+use HuseyinFiliz\TraderFeedback\Services\ModeratorFinder;
 use HuseyinFiliz\TraderFeedback\Services\StatsService;
 
 class FeedbackCreatedListener
@@ -17,35 +19,35 @@ class FeedbackCreatedListener
     {
         $feedback = $event->feedback;
 
-        // İlişkileri yükle
+        // Load relationships
         if (!$feedback->relationLoaded('toUser')) {
             $feedback->load('toUser');
         }
+        if (!$feedback->relationLoaded('fromUser')) {
+            $feedback->load('fromUser');
+        }
 
-        // SADECE ONAYLI İSE İŞLEM YAP
         if ($feedback->is_approved) {
-            // Stats güncelle
+            // Stats update
             $this->updateUserStats($feedback->to_user_id);
 
-            // Bildirim gönder
+            // Notify feedback recipient
             if ($feedback->toUser && $feedback->toUser->id !== $feedback->from_user_id) {
-                app('log')->info('Sending newFeedback notification (approved)', [
-                    'feedback_id' => $feedback->id,
-                    'to_user'     => $feedback->toUser->id,
-                    'is_approved' => $feedback->is_approved,
-                ]);
-
                 $this->notifications->sync(
                     new NewFeedbackBlueprint($feedback),
                     [$feedback->toUser]
                 );
             }
         } else {
-            // ONAYLI DEĞİLSE BİLDİRİM GÖNDERME!
-            app('log')->info('Feedback not approved, skipping notification', [
-                'feedback_id' => $feedback->id,
-                'is_approved' => $feedback->is_approved,
-            ]);
+            // Feedback requires approval -> notify moderators
+            $moderators = ModeratorFinder::getModerators($feedback->from_user_id);
+
+            if ($moderators->isNotEmpty()) {
+                $this->notifications->sync(
+                    new FeedbackNeedsApprovalBlueprint($feedback),
+                    $moderators->all()
+                );
+            }
         }
     }
 

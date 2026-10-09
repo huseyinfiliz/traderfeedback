@@ -2,7 +2,7 @@ import app from 'flarum/forum/app';
 import Notification from 'flarum/forum/components/Notification';
 import username from 'flarum/common/helpers/username';
 
-export default class FeedbackApprovedNotification extends Notification {
+export default class FeedbackNeedsApprovalNotification extends Notification {
   getData() {
     const notification = this.attrs.notification;
     if (typeof notification.content === 'function') {
@@ -18,35 +18,36 @@ export default class FeedbackApprovedNotification extends Notification {
   }
 
   icon() {
-    return 'fas fa-circle-check';
+    return 'fas fa-clock';
   }
 
   href() {
-    const notification = this.attrs.notification;
-    const fromUser = notification.fromUser();
     const data = this.getData();
-    const userSlug =
-      data.toUserSlug ||
-      (fromUser && typeof fromUser.slug === 'function' ? fromUser.slug() : null) ||
-      (data.toUserId ? String(data.toUserId) : null);
+    const toUserSlug = data.toUserSlug || (data.toUserId ? String(data.toUserId) : null);
 
-    if (!userSlug) return app.route('index');
+    if (!toUserSlug) return app.route('index');
 
     return app.route('user.feedbacks', {
-      username: userSlug,
+      username: toUserSlug,
     });
   }
 
   content() {
     const notification = this.attrs.notification;
     const fromUser = notification.fromUser();
+    const data = this.getData();
 
-    if (!fromUser) return 'Your feedback was approved';
+    const authorName = fromUser ? username(fromUser) : data.fromUserName || 'Someone';
+    const recipientName = data.toUserName || 'a user';
 
-    return app.translator.trans('huseyinfiliz-traderfeedback.forum.notifications.feedback_approved_title', { username: username(fromUser) });
+    return app.translator.trans('huseyinfiliz-traderfeedback.forum.notifications.feedback_needs_approval_title', {
+      username: authorName,
+      recipient: recipientName,
+    });
   }
 
   excerpt() {
-    return '';
+    const data = this.getData();
+    return data.comment || '';
   }
 }

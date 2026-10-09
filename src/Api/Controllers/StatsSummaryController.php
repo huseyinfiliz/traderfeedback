@@ -4,6 +4,7 @@ namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
 use Flarum\Http\RequestUtil;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
+use HuseyinFiliz\TraderFeedback\Models\FeedbackReport;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -26,11 +27,16 @@ class StatsSummaryController implements RequestHandlerInterface
         $negative = (int) ($counts['negative'] ?? 0);
         $total = $positive + $neutral + $negative;
 
+        $pendingFeedbacks = Feedback::where('is_approved', false)->count();
+        $pendingReports = FeedbackReport::where('resolved', false)->count();
+
         $attributes = [
-            'total'    => $total,
-            'positive' => $positive,
-            'neutral'  => $neutral,
-            'negative' => $negative,
+            'total'             => $total,
+            'positive'          => $positive,
+            'neutral'           => $neutral,
+            'negative'          => $negative,
+            'pending_feedbacks' => $pendingFeedbacks,
+            'pending_reports'   => $pendingReports,
         ];
 
         return new JsonResponse([
@@ -39,10 +45,12 @@ class StatsSummaryController implements RequestHandlerInterface
                 'id'         => 'summary',
                 'attributes' => $attributes,
             ],
-            'total'    => $total,
-            'positive' => $positive,
-            'neutral'  => $neutral,
-            'negative' => $negative,
+            'total'             => $total,
+            'positive'          => $positive,
+            'neutral'           => $neutral,
+            'negative'          => $negative,
+            'pending_feedbacks' => $pendingFeedbacks,
+            'pending_reports'   => $pendingReports,
         ]);
     }
 }

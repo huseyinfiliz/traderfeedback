@@ -18,7 +18,7 @@ export default class FeedbackItem extends Component {
     const feedbackDate = attrs.createdAt || attrs.created_at || new Date().toISOString();
 
     return (
-      <div className={`FeedbackItem FeedbackItem--${attrs.type}`} key={feedback.id}>
+      <div className={`FeedbackItem FeedbackItem--${attrs.type}`}>
         <div className="FeedbackItem-header">
           <div className="FeedbackItem-headerLeft">
             {FeedbackUserDisplay.view({

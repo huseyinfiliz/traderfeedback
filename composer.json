@@ -26,6 +26,9 @@
         "php": "^8.3 || ^8.4",
         "flarum/core": "^2.0.0-beta || ^2.0"
     },
+    "suggest": {
+        "flarum/audit": "Logs trader feedback moderation actions in the moderator audit log."
+    },
     "autoload": {
         "psr-4": {
             "HuseyinFiliz\\TraderFeedback\\": "src/"
@@ -39,7 +42,10 @@
                 "name": "fas fa-right-left",
                 "backgroundColor": "#3498db",
                 "color": "#fff"
-            }
+            },
+            "optional-dependencies": [
+                "flarum/audit"
+            ]
         },
         "flarum-cli": {
             "modules": {

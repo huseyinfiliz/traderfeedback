@@ -6,9 +6,12 @@ use Flarum\Http\RequestUtil;
 use Flarum\Notification\NotificationSyncer;
 use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
+use HuseyinFiliz\TraderFeedback\Events\FeedbackApproved;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
+use HuseyinFiliz\TraderFeedback\Notifications\FeedbackNeedsApprovalBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
 use HuseyinFiliz\TraderFeedback\Services\StatsService;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Arr;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
@@ -20,7 +23,8 @@ class ApproveFeedbackController implements RequestHandlerInterface
 {
     public function __construct(
         protected NotificationSyncer $notifications,
-        protected LoggerInterface $log
+        protected LoggerInterface $log,
+        protected Dispatcher $events
     ) {
     }
 
@@ -58,12 +62,18 @@ class ApproveFeedbackController implements RequestHandlerInterface
                     $newFeedbackBlueprint = new NewFeedbackBlueprint($feedback);
                     $this->notifications->sync($newFeedbackBlueprint, [$feedback->toUser]);
                 }
+
+                // 3. Clear pending approval notifications for moderators
+                $this->notifications->sync(new FeedbackNeedsApprovalBlueprint($feedback), []);
             } catch (\Exception $e) {
                 $this->log->error('Failed to send approval notifications', [
                     'feedback_id' => $feedback->id,
                     'error'       => $e->getMessage(),
                 ]);
             }
+
+            // Dispatch event for audit logs
+            $this->events->dispatch(new FeedbackApproved($feedback, $actor));
         }
 
         return new JsonResponse([

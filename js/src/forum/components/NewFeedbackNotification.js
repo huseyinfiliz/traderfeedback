@@ -3,9 +3,22 @@ import Notification from 'flarum/forum/components/Notification';
 import username from 'flarum/common/helpers/username';
 
 export default class NewFeedbackNotification extends Notification {
-  icon() {
+  getData() {
     const notification = this.attrs.notification;
-    const data = notification.data || {};
+    if (typeof notification.content === 'function') {
+      return notification.content() || {};
+    }
+    if (notification.content) {
+      return notification.content || {};
+    }
+    if (typeof notification.data === 'function') {
+      return notification.data() || {};
+    }
+    return notification.data || {};
+  }
+
+  icon() {
+    const data = this.getData();
     const feedbackType = data.feedbackType || 'neutral';
 
     if (feedbackType === 'positive') return 'fas fa-thumbs-up';
@@ -15,19 +28,24 @@ export default class NewFeedbackNotification extends Notification {
 
   href() {
     const notification = this.attrs.notification;
-    const fromUser = notification.fromUser();
+    const data = this.getData();
+    const recipient = notification.user() || app.session.user;
+    const userSlug =
+      data.toUserSlug ||
+      (recipient && typeof recipient.slug === 'function' ? recipient.slug() : null) ||
+      (data.toUserId ? String(data.toUserId) : null);
 
-    if (!fromUser) return app.route('index');
+    if (!userSlug) return app.route('index');
 
     return app.route('user.feedbacks', {
-      username: fromUser.slug(),
+      username: userSlug,
     });
   }
 
   content() {
     const notification = this.attrs.notification;
     const fromUser = notification.fromUser();
-    const data = notification.data || {};
+    const data = this.getData();
 
     if (!fromUser) return 'Someone gave you feedback';
 
@@ -49,8 +67,7 @@ export default class NewFeedbackNotification extends Notification {
   }
 
   excerpt() {
-    const notification = this.attrs.notification;
-    const data = notification.data || {};
+    const data = this.getData();
     return data.comment || '';
   }
 }

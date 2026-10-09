@@ -5,9 +5,12 @@ namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 use Flarum\Http\RequestUtil;
 use Flarum\Notification\NotificationSyncer;
 use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
+use HuseyinFiliz\TraderFeedback\Events\FeedbackRejected;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
+use HuseyinFiliz\TraderFeedback\Notifications\FeedbackNeedsApprovalBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackRejectedBlueprint;
 use HuseyinFiliz\TraderFeedback\Services\StatsService;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Arr;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
@@ -19,7 +22,8 @@ class RejectFeedbackController implements RequestHandlerInterface
 {
     public function __construct(
         protected NotificationSyncer $notifications,
-        protected LoggerInterface $log
+        protected LoggerInterface $log,
+        protected Dispatcher $events
     ) {
     }
 
@@ -46,12 +50,22 @@ class RejectFeedbackController implements RequestHandlerInterface
             }
         }
 
+        // Clear pending approval notifications for moderators
+        try {
+            $this->notifications->sync(new FeedbackNeedsApprovalBlueprint($feedback), []);
+        } catch (\Exception $e) {
+            // Ignore if notification cannot be synced
+        }
+
         // Soft delete the feedback
         $feedback->is_approved = false;
         $feedback->delete();
 
         // Update stats
         StatsService::updateUserStats($feedback->to_user_id);
+
+        // Dispatch event for audit logs
+        $this->events->dispatch(new FeedbackRejected($feedback, $actor));
 
         return new JsonResponse([
             'data' => FeedbackSerializer::feedback($feedback, $actor),

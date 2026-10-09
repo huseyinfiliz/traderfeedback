@@ -105,6 +105,30 @@
     }
   }
   
+  &-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  &-modBtn {
+    white-space: nowrap;
+
+    @media @phone {
+      padding: 8px 12px;
+    }
+
+    .Button-badge {
+      margin-left: 6px;
+      background: #fff;
+      color: var(--danger-color, #f44336);
+      font-weight: bold;
+      border-radius: 10px;
+      padding: 1px 6px;
+      font-size: 11px;
+    }
+  }
+
   &-giveBtn {
     white-space: nowrap;
     
@@ -114,6 +138,7 @@
     }
   }
   
+  &-modBtnIcon,
   &-giveBtnIcon {
     margin-right: 6px;
     
@@ -236,29 +261,11 @@
   }
   
   &-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
+    .Avatar--size(32px);
     flex-shrink: 0;
     
     @media @phone {
-      width: 28px;
-      height: 28px;
-    }
-    
-    &--placeholder {
-      background: var(--primary-color);
-      color: #fff;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 14px;
-      
-      @media @phone {
-        font-size: 12px;
-      }
+      .Avatar--size(28px);
     }
   }
   
@@ -617,6 +624,16 @@
       box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
     }
   }
+
+  .TabButton {
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    &.active {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+  }
 }
 
 // ============================================
@@ -731,6 +748,7 @@
   }
 
   .UserListItem-avatar {
+    .Avatar--size(32px);
     margin-right: 12px;
     flex-shrink: 0;
   }
@@ -745,5 +763,375 @@
     text-align: center;
     color: var(--muted-color);
     font-style: italic;
+  }
+}
+
+// ============================================
+// Moderation Modal
+// ============================================
+.ModerateUserFeedbackModal {
+  .Modal-body {
+    padding: 20px;
+  }
+
+  &-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: var(--control-bg);
+    padding: 4px;
+    border-radius: 10px;
+    border-bottom: none;
+
+    @media (max-width: 640px) {
+      flex-wrap: wrap;
+    }
+  }
+
+  .TabButton {
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--muted-color);
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    flex: 1;
+    white-space: nowrap;
+    min-height: 44px;
+
+    .icon, i {
+      font-size: 15px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &:hover {
+      color: var(--text-color);
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
+
+    &.active {
+      color: var(--primary-color);
+      background: var(--body-bg);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      font-weight: 700;
+    }
+
+    &-badge {
+      background: var(--primary-color);
+      color: #fff;
+      border-radius: 12px;
+      padding: 2px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      min-width: 20px;
+      text-align: center;
+      line-height: 1.2;
+
+      &--warning {
+        background: #ef4444;
+      }
+    }
+
+    @media (max-width: 640px) {
+      flex: 1 1 auto;
+      min-width: 110px;
+    }
+  }
+
+  &-loading {
+    padding: 40px;
+    text-align: center;
+  }
+
+  &-empty {
+    padding: 40px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted-color);
+
+    &Icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px auto;
+      width: 48px;
+      height: 48px;
+    }
+
+    .icon, i {
+      font-size: 36px;
+      margin: 0 auto 12px auto;
+      opacity: 0.5;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+      text-align: center;
+    }
+  }
+
+  &-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: 550px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  &-userLink,
+  &-userPlaceholder {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+    min-width: 0;
+
+    .Avatar {
+      .Avatar--size(28px);
+      flex-shrink: 0;
+    }
+
+    strong {
+      font-weight: 600;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  &-userLink:hover {
+    text-decoration: underline;
+  }
+
+  &-userPlaceholder {
+    color: var(--muted-color);
+  }
+
+  .FeedbackCard,
+  .ReportCard {
+    background: var(--body-bg);
+    border: 1px solid var(--control-bg);
+    border-radius: 8px;
+    padding: 16px;
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      border-radius: 8px 0 0 8px;
+    }
+
+    &--positive::before {
+      background: #4caf50;
+    }
+
+    &--neutral::before {
+      background: #ff9800;
+    }
+
+    &--negative::before {
+      background: #f44336;
+    }
+
+    &-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--control-bg);
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    &-users {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    &-user {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      background: var(--control-bg);
+      border-radius: 6px;
+    }
+
+    &-arrow {
+      color: var(--muted-color);
+    }
+
+    &-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    &-roleBadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      background: var(--control-bg);
+      color: var(--muted-color);
+    }
+
+    &-dateBadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--muted-color);
+    }
+
+    &-comment {
+      background: var(--control-bg);
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+
+      p {
+        margin: 0;
+      }
+    }
+
+    &-discussion {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      margin-bottom: 12px;
+      color: var(--primary-color);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    &-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+  }
+
+  .ReportCard {
+    border-left: 4px solid #f44336;
+
+    &-reporter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    &-reason {
+      margin-bottom: 12px;
+      padding: 10px 14px;
+      background: rgba(244, 67, 54, 0.08);
+      border-radius: 6px;
+      font-size: 13px;
+
+      strong {
+        display: block;
+        margin-bottom: 4px;
+        color: #f44336;
+      }
+
+      p {
+        margin: 0;
+      }
+    }
+
+    &-feedback {
+      border: 1px solid var(--control-bg);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    &-feedbackHeader {
+      margin-bottom: 8px;
+
+      &-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted-color);
+
+        .Badge {
+          margin: 0;
+          flex-shrink: 0;
+        }
+      }
+    }
+
+    &-feedbackUsers {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+
+      .icon, i, .FeedbackCard-arrow {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted-color);
+        font-size: 13px;
+        flex-shrink: 0;
+      }
+    }
+
+    &-feedbackComment {
+      font-size: 13px;
+      color: var(--text-color);
+      font-style: italic;
+
+      p {
+        margin: 0;
+      }
+    }
   }
 }

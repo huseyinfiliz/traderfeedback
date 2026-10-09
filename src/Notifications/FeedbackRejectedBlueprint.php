@@ -29,10 +29,14 @@ class FeedbackRejectedBlueprint implements BlueprintInterface, AlertableInterfac
 
     public function getData(): mixed
     {
-        // Sadeleştirilmiş data - frontend fromUser'dan username'i alacak
+        $toUser = $this->feedback->toUser ?? User::find($this->feedback->to_user_id);
+        $toUserSlug = $toUser ? \HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer::getUserSlug($toUser) : null;
+
         return [
             'feedbackId'   => $this->feedback->id,
             'feedbackType' => $this->feedback->type,
+            'toUserId'     => $this->feedback->to_user_id,
+            'toUserSlug'   => $toUserSlug ?: ($toUser?->username ?? (string) $this->feedback->to_user_id),
         ];
     }
 

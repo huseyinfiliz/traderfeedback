@@ -37,9 +37,12 @@ use HuseyinFiliz\TraderFeedback\Listeners\FeedbackCreatedListener;
 use HuseyinFiliz\TraderFeedback\Listeners\FeedbackUpdatedListener;
 use HuseyinFiliz\TraderFeedback\Listeners\UserDeletedListener;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
+use HuseyinFiliz\TraderFeedback\Models\FeedbackReport;
 use HuseyinFiliz\TraderFeedback\Models\TraderStats;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
+use HuseyinFiliz\TraderFeedback\Notifications\FeedbackNeedsApprovalBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackRejectedBlueprint;
+use HuseyinFiliz\TraderFeedback\Notifications\FeedbackReportedBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
 
 return [
@@ -118,6 +121,26 @@ return [
                 ->get(fn (User $user, Context $context) => (bool) $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.delete')),
             Schema\Boolean::make('canModerateFeedback')
                 ->get(fn (User $user, Context $context) => (bool) $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.moderate')),
+            Schema\Integer::make('traderFeedbackCount')
+                ->get(function (User $user) {
+                    if ($user->relationLoaded('traderStats') && $user->traderStats) {
+                        return (int) ($user->traderStats->positive_count + $user->traderStats->neutral_count + $user->traderStats->negative_count);
+                    }
+                    if ($user->traderStats) {
+                        return (int) ($user->traderStats->positive_count + $user->traderStats->neutral_count + $user->traderStats->negative_count);
+                    }
+                    return (int) Feedback::where('to_user_id', $user->id)->where('is_approved', true)->count();
+                }),
+            Schema\Integer::make('pendingFeedbackCount')
+                ->get(fn (User $user, Context $context) => $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.moderate')
+                    ? Feedback::where('to_user_id', $user->id)->where('is_approved', false)->count()
+                    : 0
+                ),
+            Schema\Integer::make('pendingReportCount')
+                ->get(fn (User $user, Context $context) => $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.moderate')
+                    ? FeedbackReport::where('resolved', false)->whereHas('feedback', fn ($q) => $q->where('to_user_id', $user->id))->count()
+                    : 0
+                ),
         ])
         ->endpoint(Endpoint\Show::class, fn (Endpoint\Show $endpoint) => $endpoint->eagerLoad(['traderStats']))
         ->endpoint(Endpoint\Index::class, fn (Endpoint\Index $endpoint) => $endpoint->eagerLoad(['traderStats'])),
@@ -133,7 +156,9 @@ return [
     (new Extend\User())
         ->registerPreference('notify_newFeedback_alert', 'boolval', true)
         ->registerPreference('notify_feedbackApproved_alert', 'boolval', true)
-        ->registerPreference('notify_feedbackRejected_alert', 'boolval', true),
+        ->registerPreference('notify_feedbackRejected_alert', 'boolval', true)
+        ->registerPreference('notify_feedbackNeedsApproval_alert', 'boolval', true)
+        ->registerPreference('notify_feedbackReported_alert', 'boolval', true),
 
     // Permissions with defaults
     (new Extend\Policy())
@@ -144,7 +169,55 @@ return [
     (new Extend\Notification())
         ->type(NewFeedbackBlueprint::class, ['alert'])
         ->type(FeedbackApprovedBlueprint::class, ['alert'])
-        ->type(FeedbackRejectedBlueprint::class, ['alert']),
+        ->type(FeedbackRejectedBlueprint::class, ['alert'])
+        ->type(FeedbackNeedsApprovalBlueprint::class, ['alert'])
+        ->type(FeedbackReportedBlueprint::class, ['alert']),
+
+    // Flarum Audit integration
+    (new Extend\Conditional())
+        ->whenExtensionEnabled('flarum-audit', fn () => [
+            (new \Flarum\Audit\Extend\Audit())
+                ->listen(
+                    Events\FeedbackApproved::class,
+                    'traderfeedback.approved',
+                    fn (Events\FeedbackApproved $event) => [
+                        'feedback_id' => $event->feedback->id,
+                        'author'      => $event->feedback->fromUser?->username ?? 'Unknown',
+                        'recipient'   => $event->feedback->toUser?->username ?? 'Unknown',
+                        'user_id'     => $event->feedback->to_user_id,
+                    ]
+                )
+                ->listen(
+                    Events\FeedbackRejected::class,
+                    'traderfeedback.rejected',
+                    fn (Events\FeedbackRejected $event) => [
+                        'feedback_id' => $event->feedback->id,
+                        'author'      => $event->feedback->fromUser?->username ?? 'Unknown',
+                        'recipient'   => $event->feedback->toUser?->username ?? 'Unknown',
+                        'user_id'     => $event->feedback->to_user_id,
+                    ]
+                )
+                ->listen(
+                    Events\FeedbackDeleted::class,
+                    'traderfeedback.deleted',
+                    fn (Events\FeedbackDeleted $event) => [
+                        'feedback_id' => $event->feedback->id,
+                        'author'      => $event->feedback->fromUser?->username ?? 'Unknown',
+                        'recipient'   => $event->feedback->toUser?->username ?? 'Unknown',
+                        'user_id'     => $event->feedback->to_user_id,
+                    ]
+                )
+                ->listen(
+                    Events\ReportDismissed::class,
+                    'traderfeedback.report_dismissed',
+                    fn (Events\ReportDismissed $event) => [
+                        'report_id'   => $event->report->id,
+                        'feedback_id' => $event->report->feedback_id,
+                        'recipient'   => $event->report->feedback?->toUser?->username ?? 'Unknown',
+                        'user_id'     => $event->report->feedback?->to_user_id,
+                    ]
+                ),
+        ]),
 
     // Event listeners
     (new Extend\Event())

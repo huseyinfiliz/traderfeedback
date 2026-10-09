@@ -92,8 +92,8 @@ class FeedbackPolicy extends AbstractPolicy
             return true;
         }
 
-        // User can view their own unapproved feedback
-        if ($feedback->from_user_id === $actor->id || $feedback->to_user_id === $actor->id) {
+        // Feedback author can view their own unapproved feedback
+        if ($feedback->from_user_id === $actor->id) {
             return true;
         }
 

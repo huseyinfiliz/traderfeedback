@@ -25,9 +25,17 @@ class ListReportsController implements RequestHandlerInterface
         }
         $offset = max((int) Arr::get($params, 'page.offset', 0), 0);
 
-        $reports = FeedbackReport::where('resolved', false)
-            ->with(['reporter', 'feedback.fromUser', 'feedback.toUser'])
-            ->orderBy('created_at', 'desc')
+        $query = FeedbackReport::where('resolved', false)
+            ->with(['reporter', 'feedback.fromUser', 'feedback.toUser']);
+
+        $userId = Arr::get($params, 'filter.user');
+        if ($userId) {
+            $query->whereHas('feedback', function ($q) use ($userId) {
+                $q->where('to_user_id', (int) $userId);
+            });
+        }
+
+        $reports = $query->orderBy('created_at', 'desc')
             ->skip($offset)
             ->take($limit)
             ->get();

@@ -25,9 +25,15 @@ class ListPendingFeedbacksController implements RequestHandlerInterface
         }
         $offset = max((int) Arr::get($params, 'page.offset', 0), 0);
 
-        $feedbacks = Feedback::where('is_approved', false)
-            ->with(['fromUser', 'toUser', 'discussion'])
-            ->orderBy('created_at', 'desc')
+        $query = Feedback::where('is_approved', false)
+            ->with(['fromUser', 'toUser', 'discussion']);
+
+        $userId = Arr::get($params, 'filter.user');
+        if ($userId) {
+            $query->where('to_user_id', (int) $userId);
+        }
+
+        $feedbacks = $query->orderBy('created_at', 'desc')
             ->skip($offset)
             ->take($limit)
             ->get();

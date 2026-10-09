@@ -12,6 +12,8 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
   loading: boolean = false;
   reports: any[] = [];
   pendingFeedbacks: any[] = [];
+  pendingFeedbacksCount: number = 0;
+  reportsCount: number = 0;
   stats: any = null;
   included: any[] = [];
 
@@ -30,12 +32,10 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
     this.setting('huseyinfiliz.traderfeedback.badgeTagFilter', '[]');
     this.setting('huseyinfiliz.traderfeedback.badgeOnlyFirstPost', false);
 
-    this.loadStats();
+    // Initial preview synchronously
+    this.validateAndPreview(this.setting('huseyinfiliz.traderfeedback.badgeCustomFormat')() || '');
 
-    // Initial preview
-    setTimeout(() => {
-      this.validateAndPreview(this.setting('huseyinfiliz.traderfeedback.badgeCustomFormat')());
-    }, 0);
+    this.loadStats();
   }
 
   content() {
@@ -43,7 +43,9 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
       <div className="TraderFeedbackPage">
         <StatsCards stats={this.stats} />
         {this.tabs()}
-        <div className="TraderFeedbackPage-content">{this.activeTabContent()}</div>
+        <div className="TraderFeedbackPage-content">
+          {this.activeTabContent()}
+        </div>
       </div>
     );
   }
@@ -52,6 +54,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
     return (
       <div className="TraderFeedbackTabs">
         <button
+          type="button"
           className={'TabButton' + (this.activeTab === 'settings' ? ' active' : '')}
           onclick={() => {
             this.activeTab = 'settings';
@@ -62,6 +65,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
         </button>
 
         <button
+          type="button"
           className={'TabButton' + (this.activeTab === 'approvals' ? ' active' : '')}
           onclick={() => {
             this.activeTab = 'approvals';
@@ -70,10 +74,11 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
         >
           <Icon name="fas fa-circle-check" />
           <span>{app.translator.trans('huseyinfiliz-traderfeedback.admin.tabs.approvals')}</span>
-          {this.pendingFeedbacks.length > 0 && <span className="TabButton-badge">{this.pendingFeedbacks.length}</span>}
+          {this.pendingFeedbacksCount > 0 && <span className="TabButton-badge">{this.pendingFeedbacksCount}</span>}
         </button>
 
         <button
+          type="button"
           className={'TabButton' + (this.activeTab === 'reports' ? ' active' : '')}
           onclick={() => {
             this.activeTab = 'reports';
@@ -82,7 +87,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
         >
           <Icon name="fas fa-flag" />
           <span>{app.translator.trans('huseyinfiliz-traderfeedback.admin.tabs.reports')}</span>
-          {this.reports.length > 0 && <span className="TabButton-badge TabButton-badge--warning">{this.reports.length}</span>}
+          {this.reportsCount > 0 && <span className="TabButton-badge TabButton-badge--warning">{this.reportsCount}</span>}
         </button>
       </div>
     );
@@ -183,7 +188,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
         } else if (response.total !== undefined) {
           attrs = response;
         } else {
-          attrs = { total: 0, positive: 0, neutral: 0, negative: 0 };
+          attrs = { total: 0, positive: 0, neutral: 0, negative: 0, pending_feedbacks: 0, pending_reports: 0 };
         }
 
         this.stats = {
@@ -192,6 +197,13 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
           neutral: attrs.neutral || 0,
           negative: attrs.negative || 0,
         };
+
+        if (attrs.pending_feedbacks !== undefined) {
+          this.pendingFeedbacksCount = attrs.pending_feedbacks;
+        }
+        if (attrs.pending_reports !== undefined) {
+          this.reportsCount = attrs.pending_reports;
+        }
 
         m.redraw();
       })
@@ -213,6 +225,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
       })
       .then((response: any) => {
         this.pendingFeedbacks = response.data || [];
+        this.pendingFeedbacksCount = this.pendingFeedbacks.length;
         this.included = response.included || [];
         this.processIncluded(response);
         this.loading = false;
@@ -236,6 +249,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
       })
       .then((response: any) => {
         this.reports = response.data || [];
+        this.reportsCount = this.reports.length;
         this.included = response.included || [];
         this.processIncluded(response);
         this.loading = false;
@@ -253,10 +267,10 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
       response.included.forEach((item: any) => {
         if (item.type === 'users' && item.id) {
           const existing = app.store.getById('users', item.id);
-          if (!existing) {
-            const user = app.store.createRecord('users');
-            user.pushAttributes(item.attributes || {});
-            user.id(item.id);
+          if (existing) {
+            existing.pushAttributes(item.attributes || {});
+          } else {
+            app.store.pushPayload({ data: item });
           }
         }
       });
@@ -273,8 +287,10 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
       })
       .then(() => {
         app.alerts.show({ type: 'success' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.approved_success'));
-        this.loadPendingFeedbacks();
+        this.pendingFeedbacks = this.pendingFeedbacks.filter((f) => f.id !== feedback.id);
+        this.pendingFeedbacksCount = this.pendingFeedbacks.length;
         this.loadStats();
+        m.redraw();
       })
       .catch((error) => {
         app.alerts.show({ type: 'error' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.approved_error'));
@@ -291,8 +307,10 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
       })
       .then(() => {
         app.alerts.show({ type: 'success' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.rejected_success'));
-        this.loadPendingFeedbacks();
+        this.pendingFeedbacks = this.pendingFeedbacks.filter((f) => f.id !== feedback.id);
+        this.pendingFeedbacksCount = this.pendingFeedbacks.length;
         this.loadStats();
+        m.redraw();
       })
       .catch((error) => {
         app.alerts.show({ type: 'error' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.rejected_error'));
@@ -309,7 +327,10 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
       })
       .then(() => {
         app.alerts.show({ type: 'success' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.dismissed_success'));
-        this.loadReports();
+        this.reports = this.reports.filter((r) => r.id !== report.id);
+        this.reportsCount = this.reports.length;
+        this.loadStats();
+        m.redraw();
       })
       .catch((error) => {
         app.alerts.show({ type: 'error' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.dismissed_error'));
@@ -326,8 +347,10 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
       })
       .then(() => {
         app.alerts.show({ type: 'success' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.deleted_success'));
-        this.loadReports();
+        this.reports = this.reports.filter((r) => r.id !== report.id);
+        this.reportsCount = this.reports.length;
         this.loadStats();
+        m.redraw();
       })
       .catch((error) => {
         app.alerts.show({ type: 'error' }, app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.deleted_error'));

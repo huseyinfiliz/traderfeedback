@@ -2,35 +2,38 @@ import app from 'flarum/forum/app';
 import UserPage from 'flarum/forum/components/UserPage';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import FeedbackModal from '../modals/FeedbackModal';
+import ModerateUserFeedbackModal from '../modals/ModerateUserFeedbackModal';
 import FeedbackStats from '../components/TraderFeedback/FeedbackStats';
 import FeedbackFilters from '../components/TraderFeedback/FeedbackFilters';
 import FeedbackList from '../components/TraderFeedback/FeedbackList';
+import type Mithril from 'mithril';
+import type User from 'flarum/common/models/User';
 
 export default class ProfilePage extends UserPage {
   feedbacks: any[] = [];
   stats: any = null;
-  loading: boolean = false;
-  statsLoading: boolean = false;
+  loading: boolean = true;
+  statsLoading: boolean = true;
   filter: string = 'all';
   includedUsers: Map<string, any> = new Map();
 
-  oninit(vnode) {
+  oninit(vnode: Mithril.Vnode) {
     super.oninit(vnode);
     this.loading = true;
     this.statsLoading = true;
-    this.loadUser(this.attrs.username);
+    this.loadUser(m.route.param('username'));
   }
 
-  oncreate(vnode) {
-    super.oncreate(vnode);
+  show(user: User): void {
+    super.show(user);
     this.loadFeedbacks();
     this.loadStats();
   }
 
-  content() {
-    if (this.loading || !this.user) {
+  content(): Mithril.Children {
+    if (this.loading) {
       return (
-        <div className="TraderFeedbackPage">
+        <div className="TraderFeedbackPage TraderFeedbackPage--loading">
           <LoadingIndicator />
         </div>
       );
@@ -45,21 +48,22 @@ export default class ProfilePage extends UserPage {
         <FeedbackFilters
           filter={this.filter}
           user={this.user}
-          onFilterChange={(value) => this.handleFilterChange(value)}
+          onFilterChange={(value: string) => this.handleFilterChange(value)}
           onGiveFeedback={() => this.showFeedbackModal()}
+          onModerate={() => this.showModerationModal()}
         />
 
         <FeedbackList
           feedbacks={this.feedbacks}
           includedUsers={this.includedUsers}
-          onDelete={(feedback) => this.deleteFeedback(feedback)}
-          onReport={(feedback) => this.reportFeedback(feedback)}
+          onDelete={(feedback: any) => this.deleteFeedback(feedback)}
+          onReport={(feedback: any) => this.reportFeedback(feedback)}
         />
       </div>
     );
   }
 
-  handleFilterChange(value) {
+  handleFilterChange(value: string) {
     this.filter = value;
     this.loadFeedbacks();
   }
@@ -70,15 +74,28 @@ export default class ProfilePage extends UserPage {
       onSubmit: () => {
         this.loadFeedbacks();
         this.loadStats();
+        if (this.user) {
+          app.store.find('users', this.user.id()).then(() => m.redraw());
+        }
+      },
+    });
+  }
+
+  showModerationModal() {
+    app.modal.show(ModerateUserFeedbackModal, {
+      user: this.user,
+      onAction: () => {
+        this.loadFeedbacks();
+        this.loadStats();
+        if (this.user) {
+          app.store.find('users', this.user.id()).then(() => m.redraw());
+        }
       },
     });
   }
 
   loadFeedbacks() {
-    if (!this.user) {
-      setTimeout(() => this.loadFeedbacks(), 100);
-      return;
-    }
+    if (!this.user) return;
 
     this.loading = true;
 
@@ -93,7 +110,7 @@ export default class ProfilePage extends UserPage {
           },
         },
       })
-      .then((response) => {
+      .then((response: any) => {
         this.processIncludedUsers(response);
         this.feedbacks = Array.isArray(response.data) ? response.data : [];
         this.loading = false;
@@ -107,10 +124,7 @@ export default class ProfilePage extends UserPage {
   }
 
   loadStats() {
-    if (!this.user) {
-      setTimeout(() => this.loadStats(), 100);
-      return;
-    }
+    if (!this.user) return;
 
     this.statsLoading = true;
 
@@ -119,7 +133,7 @@ export default class ProfilePage extends UserPage {
         method: 'GET',
         url: app.forum.attribute('apiUrl') + '/trader/stats/' + this.user.id(),
       })
-      .then((response) => {
+      .then((response: any) => {
         if (response && response.data) {
           const data = response.data.attributes || response.data;
           this.stats = {
@@ -141,7 +155,7 @@ export default class ProfilePage extends UserPage {
       });
   }
 
-  processIncludedUsers(response) {
+  processIncludedUsers(response: any) {
     if (response.included) {
       response.included.forEach((item) => {
         if (item.type === 'users') {
@@ -149,7 +163,7 @@ export default class ProfilePage extends UserPage {
 
           const storeUser = app.store.getById('users', item.id);
           if (storeUser) {
-            storeUser.pushData(item.attributes);
+            storeUser.pushAttributes(item.attributes);
           } else {
             app.store.pushPayload({ data: item });
           }

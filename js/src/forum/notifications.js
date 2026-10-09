@@ -1,6 +1,8 @@
 import app from 'flarum/forum/app';
 import FeedbackApprovedNotification from './components/FeedbackApprovedNotification';
 import FeedbackRejectedNotification from './components/FeedbackRejectedNotification';
+import FeedbackNeedsApprovalNotification from './components/FeedbackNeedsApprovalNotification';
+import FeedbackReportedNotification from './components/FeedbackReportedNotification';
 import NewFeedbackNotification from './components/NewFeedbackNotification';
 
 export default function registerNotifications() {
@@ -8,5 +10,7 @@ export default function registerNotifications() {
   // Type names must match exactly with Blueprint's getType() return values
   app.notificationComponents.feedbackApproved = FeedbackApprovedNotification;
   app.notificationComponents.feedbackRejected = FeedbackRejectedNotification;
+  app.notificationComponents.feedbackNeedsApproval = FeedbackNeedsApprovalNotification;
+  app.notificationComponents.feedbackReported = FeedbackReportedNotification;
   app.notificationComponents.newFeedback = NewFeedbackNotification;
 }

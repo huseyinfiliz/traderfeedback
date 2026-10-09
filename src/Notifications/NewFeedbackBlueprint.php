@@ -28,12 +28,16 @@ class NewFeedbackBlueprint implements BlueprintInterface, AlertableInterface
 
     public function getData(): mixed
     {
-        // Frontend'in beklediği data formatı
+        $toUser = $this->feedback->toUser ?? User::find($this->feedback->to_user_id);
+        $toUserSlug = $toUser ? \HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer::getUserSlug($toUser) : null;
+
         return [
             'feedbackId'   => $this->feedback->id,
             'feedbackType' => $this->feedback->type,
             'role'         => $this->feedback->role,
-            'comment'      => substr($this->feedback->comment, 0, 50).'...', // İlk 50 karakter
+            'toUserId'     => $this->feedback->to_user_id,
+            'toUserSlug'   => $toUserSlug ?: ($toUser?->username ?? (string) $this->feedback->to_user_id),
+            'comment'      => mb_substr($this->feedback->comment, 0, 50).'...',
         ];
     }
 

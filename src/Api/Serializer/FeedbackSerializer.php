@@ -87,6 +87,30 @@ class FeedbackSerializer
     }
 
     /**
+     * Resolve user slug via Flarum SlugManager with fallbacks.
+     */
+    public static function getUserSlug(User $user): string
+    {
+        try {
+            return resolve(\Flarum\Http\SlugManager::class)->forResource(User::class)->toSlug($user) ?: ($user->username ?? (string) $user->id);
+        } catch (\Throwable) {
+            return $user->username ?: (string) $user->id;
+        }
+    }
+
+    /**
+     * Resolve discussion slug via Flarum SlugManager with fallbacks.
+     */
+    public static function getDiscussionSlug(Discussion $discussion): string
+    {
+        try {
+            return resolve(\Flarum\Http\SlugManager::class)->forResource(Discussion::class)->toSlug($discussion) ?: (string) ($discussion->slug ?? $discussion->id);
+        } catch (\Throwable) {
+            return (string) ($discussion->slug ?: $discussion->id);
+        }
+    }
+
+    /**
      * Serialize a User model into minimal JSON:API resource array.
      */
     public static function user(User $user): array
@@ -98,7 +122,7 @@ class FeedbackSerializer
                 'username'    => $user->username,
                 'displayName' => $user->display_name,
                 'avatarUrl'   => $user->avatar_url,
-                'slug'        => $user->slug,
+                'slug'        => self::getUserSlug($user),
             ],
         ];
     }
@@ -113,7 +137,7 @@ class FeedbackSerializer
             'id'         => (string) $discussion->id,
             'attributes' => [
                 'title' => $discussion->title,
-                'slug'  => $discussion->slug,
+                'slug'  => self::getDiscussionSlug($discussion),
             ],
         ];
     }

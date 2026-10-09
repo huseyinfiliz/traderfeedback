@@ -15,7 +15,7 @@ export default class FeedbackStats extends Component {
     }
 
     if (!stats) {
-      return null;
+      return <div className="TraderFeedbackPage-stats TraderFeedbackPage-stats--empty" />;
     }
 
     const total = stats.positive_count + stats.neutral_count + stats.negative_count;

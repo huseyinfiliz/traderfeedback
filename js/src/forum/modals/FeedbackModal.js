@@ -196,7 +196,16 @@ export default class FeedbackModal extends FormModal {
       .createRecord('trader-feedbacks')
       .save(data)
       .then((feedback) => {
-        app.alerts.show({ type: 'success' }, app.translator.trans('huseyinfiliz-traderfeedback.forum.form.success'));
+        const isApproved =
+          typeof feedback.isApproved === 'function'
+            ? Boolean(feedback.isApproved())
+            : !app.forum.attribute('huseyinfiliz.traderfeedback.requireApproval');
+
+        const message = isApproved
+          ? app.translator.trans('huseyinfiliz-traderfeedback.forum.form.success')
+          : app.translator.trans('huseyinfiliz-traderfeedback.forum.form.success_pending_approval');
+
+        app.alerts.show({ type: 'success' }, message);
         this.isSubmitting = false;
         this.loading = false;
         this.hide();

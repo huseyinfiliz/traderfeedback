@@ -4,9 +4,11 @@ namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
 use Carbon\Carbon;
 use Flarum\Http\RequestUtil;
+use Flarum\Notification\NotificationSyncer;
 use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackDeleted;
 use HuseyinFiliz\TraderFeedback\Models\FeedbackReport;
+use HuseyinFiliz\TraderFeedback\Notifications\FeedbackReportedBlueprint;
 use HuseyinFiliz\TraderFeedback\Services\StatsService;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Arr;
@@ -17,8 +19,10 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class RejectReportController implements RequestHandlerInterface
 {
-    public function __construct(protected Dispatcher $events)
-    {
+    public function __construct(
+        protected Dispatcher $events,
+        protected NotificationSyncer $notifications
+    ) {
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -36,6 +40,13 @@ class RejectReportController implements RequestHandlerInterface
         $report->resolved_by_id = $actor->id;
         $report->updated_at = Carbon::now();
         $report->save();
+
+        // Clear report notifications for moderators
+        try {
+            $this->notifications->sync(new FeedbackReportedBlueprint($report), []);
+        } catch (\Exception $e) {
+            // Ignore if notification cannot be synced
+        }
 
         if ($feedback) {
             $toUserId = (int) $feedback->to_user_id;

@@ -526,9 +526,8 @@
     min-width: 0;
     
     .Avatar {
+      .Avatar--size(32px);
       flex-shrink: 0;
-      width: 32px !important;
-      height: 32px !important;
     }
     
     strong {
@@ -709,8 +708,7 @@
     min-width: 0;
     
     .Avatar {
-      width: 28px !important;
-      height: 28px !important;
+      .Avatar--size(28px);
       flex-shrink: 0;
     }
     
@@ -781,8 +779,7 @@
       font-size: 13px;
       
       .Avatar {
-        width: 24px !important;
-        height: 24px !important;
+        .Avatar--size(24px);
         flex-shrink: 0;
       }
       
@@ -858,14 +855,6 @@
 // ACCESSIBILITY
 // ==========================================
 
-// Avatar initials - smaller font size
-.Avatar {
-  font-size: 14px !important;
-  
-  &--small {
-    font-size: 11px !important;
-  }
-}
 
 .Button,
 .TabButton,
