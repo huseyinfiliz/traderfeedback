@@ -72,10 +72,10 @@ class FeedbackValidator extends AbstractValidator
     protected function getMessages(): array
     {
         return [
-            'to_user_id.required' => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.user_required'),
-            'to_user_id.exists' => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.user_not_found'),
-            'type.in' => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.invalid_type'),
-            'role.in' => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.invalid_role'),
+            'to_user_id.required'  => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.user_required'),
+            'to_user_id.exists'    => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.user_not_found'),
+            'type.in'              => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.invalid_type'),
+            'role.in'              => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.invalid_role'),
             'discussion_id.exists' => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.discussion_not_found'),
         ];
     }

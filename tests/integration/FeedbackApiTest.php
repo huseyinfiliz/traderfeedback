@@ -470,7 +470,7 @@ class FeedbackApiTest extends TestCase
             $users[] = array_merge($this->normalUser(), ['id' => $id, 'username' => 'member'.$id, 'email' => 'member'.$id.'@machine.local']);
         }
         $this->prepareDatabase([
-            User::class => $users,
+            User::class   => $users,
             'tfb_reports' => [['id' => 1, 'user_id' => 4, 'feedback_id' => 1, 'reason' => 'Needs review.', 'resolved' => false]],
         ]);
         $response = $this->send($this->request('GET', '/api/users', ['authenticatedAs' => 1])->withQueryParams(['page' => ['limit' => 20]]));
