@@ -7,13 +7,13 @@ use Flarum\Database\AbstractModel;
 use Flarum\User\User;
 
 /**
- * @property int $user_id
- * @property int $positive_count
- * @property int $negative_count
- * @property int $neutral_count
- * @property float $score
+ * @property int         $user_id
+ * @property int         $positive_count
+ * @property int         $negative_count
+ * @property int         $neutral_count
+ * @property float       $score
  * @property Carbon|null $last_updated
- * @property User|null $user
+ * @property User|null   $user
  */
 class TraderStats extends AbstractModel
 {

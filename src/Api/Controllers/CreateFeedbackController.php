@@ -65,7 +65,7 @@ class CreateFeedbackController implements RequestHandlerInterface
         $this->events->dispatch(new FeedbackCreated($feedback, $actor));
 
         return new JsonResponse([
-            'data' => FeedbackSerializer::feedback($feedback, $actor),
+            'data'     => FeedbackSerializer::feedback($feedback, $actor),
             'included' => array_values(array_filter([
                 $feedback->fromUser ? FeedbackSerializer::user($feedback->fromUser) : null,
                 $feedback->toUser ? FeedbackSerializer::user($feedback->toUser) : null,

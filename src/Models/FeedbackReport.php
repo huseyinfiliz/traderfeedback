@@ -7,16 +7,16 @@ use Flarum\Database\AbstractModel;
 use Flarum\User\User;
 
 /**
- * @property int      $id
- * @property int      $feedback_id
- * @property int      $user_id
- * @property string   $reason
- * @property bool     $resolved
- * @property int|null $resolved_by_id
- * @property Carbon   $created_at
- * @property Carbon   $updated_at
- * @property User|null $reporter
- * @property User|null $resolvedBy
+ * @property int           $id
+ * @property int           $feedback_id
+ * @property int           $user_id
+ * @property string        $reason
+ * @property bool          $resolved
+ * @property int|null      $resolved_by_id
+ * @property Carbon        $created_at
+ * @property Carbon        $updated_at
+ * @property User|null     $reporter
+ * @property User|null     $resolvedBy
  * @property Feedback|null $feedback
  */
 class FeedbackReport extends AbstractModel

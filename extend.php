@@ -86,7 +86,10 @@ return [
         ->hasMany('feedbacksGiven', Feedback::class, 'from_user_id')
         ->hasMany('pendingFeedbacksReceived', Feedback::class, 'to_user_id')
         ->relationship('feedbackReportsReceived', fn (User $user) => $user->hasManyThrough(
-            FeedbackReport::class, Feedback::class, 'to_user_id', 'feedback_id'
+            FeedbackReport::class,
+            Feedback::class,
+            'to_user_id',
+            'feedback_id'
         ))
         ->hasOne('traderStats', TraderStats::class, 'user_id'),
 
