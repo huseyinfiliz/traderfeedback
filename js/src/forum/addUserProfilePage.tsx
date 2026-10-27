@@ -5,11 +5,11 @@ import app from 'flarum/forum/app';
 import type ItemList from 'flarum/common/utils/ItemList';
 
 export default function addUserProfilePage() {
-  extend(UserPage.prototype, 'navItems', function (items: ItemList) {
-    const user = (this as any).user;
+  extend(UserPage.prototype, 'navItems', function (items) {
+    const user = this.user;
     if (!user) return;
 
-    const feedbackCount = user.attribute('traderFeedbackCount') || 0;
+    const feedbackCount = user.attribute<number>('traderFeedbackCount') || 0;
 
     items.add(
       'traderFeedbacksLink',
@@ -21,9 +21,8 @@ export default function addUserProfilePage() {
     );
   });
 
-
-  // NotificationGrid'e feedback notification tiplerini ekle
-  extend('flarum/forum/components/NotificationGrid', 'notificationTypes', function (items: ItemList) {
+  // Extend the lazy-loaded notification preferences grid.
+  extend('flarum/forum/components/NotificationGrid', 'notificationTypes', function (items: ItemList<unknown>) {
     items.add('newFeedback', {
       name: 'newFeedback',
       icon: 'fas fa-right-left',

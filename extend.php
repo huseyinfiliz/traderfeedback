@@ -36,6 +36,7 @@ use HuseyinFiliz\TraderFeedback\Listeners\AddUserPreferencesListener;
 use HuseyinFiliz\TraderFeedback\Listeners\FeedbackCreatedListener;
 use HuseyinFiliz\TraderFeedback\Listeners\FeedbackUpdatedListener;
 use HuseyinFiliz\TraderFeedback\Listeners\UserDeletedListener;
+use HuseyinFiliz\TraderFeedback\Listeners\UserDeletingListener;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Models\FeedbackReport;
 use HuseyinFiliz\TraderFeedback\Models\TraderStats;
@@ -83,6 +84,10 @@ return [
     (new Extend\Model(User::class))
         ->hasMany('feedbacksReceived', Feedback::class, 'to_user_id')
         ->hasMany('feedbacksGiven', Feedback::class, 'from_user_id')
+        ->hasMany('pendingFeedbacksReceived', Feedback::class, 'to_user_id')
+        ->relationship('feedbackReportsReceived', fn (User $user) => $user->hasManyThrough(
+            FeedbackReport::class, Feedback::class, 'to_user_id', 'feedback_id'
+        ))
         ->hasOne('traderStats', TraderStats::class, 'user_id'),
 
     // Extend the Feedback model with relationships
@@ -122,38 +127,25 @@ return [
             Schema\Boolean::make('canModerateFeedback')
                 ->get(fn (User $user, Context $context) => (bool) $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.moderate')),
             Schema\Integer::make('traderFeedbackCount')
-                ->get(function (User $user) {
-                    if ($user->relationLoaded('traderStats') && $user->traderStats) {
-                        return (int) ($user->traderStats->positive_count + $user->traderStats->neutral_count + $user->traderStats->negative_count);
-                    }
-                    if ($user->traderStats) {
-                        return (int) ($user->traderStats->positive_count + $user->traderStats->neutral_count + $user->traderStats->negative_count);
-                    }
-
-                    return (int) Feedback::where('to_user_id', $user->id)->where('is_approved', true)->count();
-                }),
+                ->countRelation('feedbacksReceived', fn ($query) => $query->where('is_approved', true)),
             Schema\Integer::make('pendingFeedbackCount')
-                ->get(
-                    fn (User $user, Context $context) => $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.moderate')
-                    ? Feedback::where('to_user_id', $user->id)->where('is_approved', false)->count()
-                    : 0
-                ),
+                ->visible(fn (User $user, Context $context) => $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.moderate'))
+                ->countRelation('pendingFeedbacksReceived', fn ($query) => $query->where('is_approved', false)),
             Schema\Integer::make('pendingReportCount')
-                ->get(
-                    fn (User $user, Context $context) => $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.moderate')
-                    ? FeedbackReport::where('resolved', false)->whereHas('feedback', fn ($q) => $q->where('to_user_id', $user->id))->count()
-                    : 0
-                ),
+                ->visible(fn (User $user, Context $context) => $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.moderate'))
+                ->countRelation('feedbackReportsReceived', fn ($query) => $query->where('resolved', false)),
         ])
-        ->endpoint(Endpoint\Show::class, fn (Endpoint\Show $endpoint) => $endpoint->eagerLoad(['traderStats']))
-        ->endpoint(Endpoint\Index::class, fn (Endpoint\Index $endpoint) => $endpoint->eagerLoad(['traderStats'])),
+        ->endpoint(Endpoint\Show::class, fn (Endpoint\Show $endpoint) => $endpoint->addDefaultInclude(['traderStats'])->eagerLoad(['traderStats']))
+        ->endpoint(Endpoint\Index::class, fn (Endpoint\Index $endpoint) => $endpoint->addDefaultInclude(['traderStats'])->eagerLoad(['traderStats'])),
 
     (new Extend\ApiResource(Resource\DiscussionResource::class))
-        ->endpoint(Endpoint\Show::class, fn (Endpoint\Show $endpoint) => $endpoint->eagerLoad(['posts.user.traderStats'])),
+        ->endpoint(Endpoint\Show::class, fn (Endpoint\Show $endpoint) => $endpoint
+            ->addDefaultInclude(['user.traderStats', 'firstPost.user.traderStats'])
+            ->eagerLoad(['user.traderStats', 'firstPost.user.traderStats'])),
 
     (new Extend\ApiResource(Resource\PostResource::class))
-        ->endpoint(Endpoint\Index::class, fn (Endpoint\Index $endpoint) => $endpoint->eagerLoad(['user.traderStats']))
-        ->endpoint(Endpoint\Show::class, fn (Endpoint\Show $endpoint) => $endpoint->eagerLoad(['user.traderStats'])),
+        ->endpoint(Endpoint\Index::class, fn (Endpoint\Index $endpoint) => $endpoint->addDefaultInclude(['user.traderStats'])->eagerLoad(['user.traderStats']))
+        ->endpoint(Endpoint\Show::class, fn (Endpoint\Show $endpoint) => $endpoint->addDefaultInclude(['user.traderStats'])->eagerLoad(['user.traderStats'])),
 
     // Register notification preferences
     (new Extend\User())
@@ -185,8 +177,8 @@ return [
                     'traderfeedback.approved',
                     fn (Events\FeedbackApproved $event) => [
                         'feedback_id' => $event->feedback->id,
-                        'author'      => $event->feedback->fromUser?->username ?? 'Unknown',
-                        'recipient'   => $event->feedback->toUser?->username ?? 'Unknown',
+                        'author'      => $event->feedback->fromUser->username ?? 'Unknown',
+                        'recipient'   => $event->feedback->toUser->username ?? 'Unknown',
                         'user_id'     => $event->feedback->to_user_id,
                     ]
                 )
@@ -195,8 +187,8 @@ return [
                     'traderfeedback.rejected',
                     fn (Events\FeedbackRejected $event) => [
                         'feedback_id' => $event->feedback->id,
-                        'author'      => $event->feedback->fromUser?->username ?? 'Unknown',
-                        'recipient'   => $event->feedback->toUser?->username ?? 'Unknown',
+                        'author'      => $event->feedback->fromUser->username ?? 'Unknown',
+                        'recipient'   => $event->feedback->toUser->username ?? 'Unknown',
                         'user_id'     => $event->feedback->to_user_id,
                     ]
                 )
@@ -205,8 +197,8 @@ return [
                     'traderfeedback.deleted',
                     fn (Events\FeedbackDeleted $event) => [
                         'feedback_id' => $event->feedback->id,
-                        'author'      => $event->feedback->fromUser?->username ?? 'Unknown',
-                        'recipient'   => $event->feedback->toUser?->username ?? 'Unknown',
+                        'author'      => $event->feedback->fromUser->username ?? 'Unknown',
+                        'recipient'   => $event->feedback->toUser->username ?? 'Unknown',
                         'user_id'     => $event->feedback->to_user_id,
                     ]
                 )
@@ -216,7 +208,7 @@ return [
                     fn (Events\ReportDismissed $event) => [
                         'report_id'   => $event->report->id,
                         'feedback_id' => $event->report->feedback_id,
-                        'recipient'   => $event->report->feedback?->toUser?->username ?? 'Unknown',
+                        'recipient'   => $event->report->feedback->toUser->username ?? 'Unknown',
                         'user_id'     => $event->report->feedback?->to_user_id,
                     ]
                 ),
@@ -226,6 +218,7 @@ return [
     (new Extend\Event())
         ->listen(\Flarum\User\Event\Saving::class, AddUserPreferencesListener::class)
         ->listen(\Flarum\User\Event\Deleted::class, UserDeletedListener::class)
+        ->listen('eloquent.deleting: '.User::class, UserDeletingListener::class)
         ->listen(FeedbackCreated::class, FeedbackCreatedListener::class)
         ->listen(FeedbackUpdated::class, FeedbackUpdatedListener::class),
 

@@ -5,12 +5,15 @@ namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 use Carbon\Carbon;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
+use Flarum\Locale\TranslatorInterface;
 use Flarum\Notification\NotificationSyncer;
+use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Models\FeedbackReport;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackReportedBlueprint;
 use HuseyinFiliz\TraderFeedback\Services\ModeratorFinder;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Arr;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
@@ -21,7 +24,9 @@ class ReportFeedbackController implements RequestHandlerInterface
 {
     public function __construct(
         protected TranslatorInterface $translator,
-        protected NotificationSyncer $notifications
+        protected NotificationSyncer $notifications,
+        protected ConnectionInterface $db,
+        protected ModeratorFinder $moderatorFinder
     ) {
     }
 
@@ -36,57 +41,50 @@ class ReportFeedbackController implements RequestHandlerInterface
 
         $feedback = Feedback::findOrFail($id);
 
-        // Check if user can report this feedback
+        $actor->assertCan('view', $feedback);
         $actor->assertCan('report', $feedback);
-
-        // Check if already reported by this user
-        $existingReport = FeedbackReport::where('feedback_id', $feedback->id)
-            ->where('user_id', $actor->id)
-            ->where('resolved', false)
-            ->first();
-
-        if ($existingReport) {
-            throw new ValidationException([
-                'feedback' => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.already_reported'),
-            ]);
-        }
-
-        // Rate Limit Check: Max 1 report per minute
-        $recentReport = FeedbackReport::where('user_id', $actor->id)
-            ->where('created_at', '>', Carbon::now()->subMinute())
-            ->exists();
-
-        if ($recentReport) {
-            throw new ValidationException([
-                'rate_limit' => $this->translator->trans(
-                    'huseyinfiliz-traderfeedback.api.validation.rate_limit_report',
-                    ['seconds' => 60]
-                ),
-            ]);
-        }
 
         $reason = Arr::get($body, 'data.attributes.reason')
             ?? Arr::get($body, 'data.reason')
             ?? Arr::get($body, 'reason')
-            ?? 'No reason provided';
+            ?? '';
 
-        $sanitizedReason = mb_substr(trim(strip_tags((string) $reason)), 0, 1000);
-        if (empty($sanitizedReason)) {
-            $sanitizedReason = 'No reason provided';
+        $sanitizedReason = is_string($reason) ? trim(strip_tags($reason)) : '';
+        if ($sanitizedReason === '' || mb_strlen($sanitizedReason) > 1000) {
+            throw new ValidationException([
+                'reason' => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.invalid_report_reason'),
+            ]);
         }
 
-        // Create the report
-        $report = new FeedbackReport();
-        $report->user_id = $actor->id;
-        $report->feedback_id = $feedback->id;
-        $report->reason = $sanitizedReason;
-        $report->resolved = false;
-        $report->save();
+        $report = $this->db->transaction(function () use ($actor, $feedback, $sanitizedReason) {
+            User::whereKey($actor->id)->select('id')->lockForUpdate()->firstOrFail();
+
+            // Reports are unique per user and feedback, including resolved reports.
+            if (FeedbackReport::where('feedback_id', $feedback->id)->where('user_id', $actor->id)->exists()) {
+                throw new ValidationException([
+                    'feedback' => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.already_reported'),
+                ]);
+            }
+            if (FeedbackReport::where('user_id', $actor->id)->where('created_at', '>', Carbon::now()->subMinute())->exists()) {
+                throw new ValidationException([
+                    'rate_limit' => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.rate_limit_report', ['seconds' => 60]),
+                ]);
+            }
+
+            $report = new FeedbackReport();
+            $report->user_id = $actor->id;
+            $report->feedback_id = $feedback->id;
+            $report->reason = $sanitizedReason;
+            $report->resolved = false;
+            $report->save();
+
+            return $report;
+        }, 3);
 
         $report->load(['reporter', 'feedback.fromUser', 'feedback.toUser']);
 
         // Notify moderators about the report
-        $moderators = ModeratorFinder::getModerators($actor->id);
+        $moderators = $this->moderatorFinder->getModerators($actor->id);
         if ($moderators->isNotEmpty()) {
             $this->notifications->sync(
                 new FeedbackReportedBlueprint($report),

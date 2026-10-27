@@ -15,22 +15,19 @@ class GlobalPolicy extends AbstractPolicy
      */
     public function can(User $actor, string $ability)
     {
-        // Give feedback - varsayılan olarak tüm kullanıcılar
+        // Respect the configured group permissions.
         if ($ability === 'huseyinfiliz-traderfeedback.give') {
             return $actor->hasPermission('huseyinfiliz-traderfeedback.give');
         }
 
-        // Report feedback - varsayılan olarak tüm kullanıcılar
         if ($ability === 'huseyinfiliz-traderfeedback.report') {
             return $actor->hasPermission('huseyinfiliz-traderfeedback.report');
         }
 
-        // Delete feedbacks - sadece yetkililer
         if ($ability === 'huseyinfiliz-traderfeedback.delete') {
             return $actor->hasPermission('huseyinfiliz-traderfeedback.delete');
         }
 
-        // Moderate feedbacks - admin ve moderatörler
         if ($ability === 'huseyinfiliz-traderfeedback.moderate') {
             return $actor->hasPermission('huseyinfiliz-traderfeedback.moderate');
         }

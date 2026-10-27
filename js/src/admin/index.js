@@ -14,7 +14,7 @@ app.initializers.add('huseyinfiliz-traderfeedback', () => {
       },
       'reply',
       true
-    ) // true = varsayılan olarak Members grubuna verilir
+    ) // Grant this permission to members by default.
     .registerPermission(
       {
         icon: 'fas fa-flag',
@@ -23,7 +23,7 @@ app.initializers.add('huseyinfiliz-traderfeedback', () => {
       },
       'reply',
       true
-    ) // true = varsayılan olarak Members grubuna verilir
+    ) // Grant this permission to members by default.
     .registerPermission(
       {
         icon: 'fas fa-trash',

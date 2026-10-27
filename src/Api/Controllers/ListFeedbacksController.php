@@ -27,13 +27,13 @@ class ListFeedbacksController implements RequestHandlerInterface
         }
         $offset = max((int) Arr::get($params, 'page.offset', 0), 0);
 
-        $query = Feedback::query()->with(['fromUser', 'toUser', 'discussion']);
+        $query = Feedback::query()->with(['fromUser', 'toUser', 'discussion' => fn ($query) => $query->whereVisibleTo($actor)]);
 
         if ($userId) {
             $query->where('to_user_id', (int) $userId);
         }
 
-        // Onay bekleyen geri bildirimler ana listede (admin/moderatör dahil) HİÇ listelenmez; yalnızca onaylanmışlar listelenir.
+        // Pending feedback belongs exclusively in the moderation queue, including for moderators.
         $query->where('is_approved', true);
 
         if ($type && in_array($type, [Feedback::TYPE_POSITIVE, Feedback::TYPE_NEUTRAL, Feedback::TYPE_NEGATIVE], true)) {

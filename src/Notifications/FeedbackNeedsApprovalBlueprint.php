@@ -21,12 +21,12 @@ class FeedbackNeedsApprovalBlueprint implements BlueprintInterface, AlertableInt
 
     public function getFromUser(): ?User
     {
-        return $this->feedback->fromUser ?? User::find($this->feedback->from_user_id);
+        return $this->feedback->fromUser;
     }
 
     public function getData(): mixed
     {
-        $toUser = $this->feedback->toUser ?? User::find($this->feedback->to_user_id);
+        $toUser = $this->feedback->toUser;
         $fromUser = $this->getFromUser();
 
         $toUserSlug = $toUser ? \HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer::getUserSlug($toUser) : null;
@@ -34,10 +34,10 @@ class FeedbackNeedsApprovalBlueprint implements BlueprintInterface, AlertableInt
         return [
             'feedbackId'   => $this->feedback->id,
             'fromUserId'   => $this->feedback->from_user_id,
-            'fromUserName' => $fromUser?->display_name ?? $fromUser?->username,
+            'fromUserName' => $fromUser->display_name ?? $fromUser?->username,
             'toUserId'     => $this->feedback->to_user_id,
-            'toUserSlug'   => $toUserSlug ?: ($toUser?->username ?? (string) $this->feedback->to_user_id),
-            'toUserName'   => $toUser?->display_name ?? $toUser?->username,
+            'toUserSlug'   => $toUserSlug ?: ($toUser->username ?? (string) $this->feedback->to_user_id),
+            'toUserName'   => $toUser->display_name ?? $toUser?->username,
             'feedbackType' => $this->feedback->type,
             'role'         => $this->feedback->role,
             'comment'      => mb_substr($this->feedback->comment, 0, 50).'...',

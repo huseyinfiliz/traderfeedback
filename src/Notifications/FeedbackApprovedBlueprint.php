@@ -4,7 +4,6 @@ namespace HuseyinFiliz\TraderFeedback\Notifications;
 
 use Flarum\Notification\AlertableInterface;
 use Flarum\Notification\Blueprint\BlueprintInterface;
-use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 
 class FeedbackApprovedBlueprint implements BlueprintInterface, AlertableInterface
@@ -20,19 +19,19 @@ class FeedbackApprovedBlueprint implements BlueprintInterface, AlertableInterfac
 
     public function getFromUser(): ?\Flarum\User\User
     {
-        return User::find($this->feedback->to_user_id);
+        return $this->feedback->toUser;
     }
 
     public function getData(): mixed
     {
-        $toUser = $this->feedback->toUser ?? User::find($this->feedback->to_user_id);
+        $toUser = $this->feedback->toUser;
         $toUserSlug = $toUser ? \HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer::getUserSlug($toUser) : null;
 
         return [
             'feedbackId'   => $this->feedback->id,
             'feedbackType' => $this->feedback->type,
             'toUserId'     => $this->feedback->to_user_id,
-            'toUserSlug'   => $toUserSlug ?: ($toUser?->username ?? (string) $this->feedback->to_user_id),
+            'toUserSlug'   => $toUserSlug ?: ($toUser->username ?? (string) $this->feedback->to_user_id),
         ];
     }
 

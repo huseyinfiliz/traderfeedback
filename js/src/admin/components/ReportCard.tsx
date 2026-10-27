@@ -4,18 +4,27 @@ import Button from 'flarum/common/components/Button';
 import Avatar from 'flarum/common/components/Avatar';
 import Icon from 'flarum/common/components/Icon';
 import humanTime from 'flarum/common/helpers/humanTime';
+import type { ComponentAttrs } from 'flarum/common/Component';
+import type User from 'flarum/common/models/User';
 
-export default class ReportCard extends Component {
+interface ReportCardAttrs extends ComponentAttrs {
+  report: any;
+  included: any[];
+  onDismiss: (report: any) => void;
+  onDelete: (report: any) => void;
+}
+
+export default class ReportCard extends Component<ReportCardAttrs> {
   view() {
     const { report, included, onDismiss, onDelete } = this.attrs;
 
     const reporterId = report.relationships?.reporter?.data?.id || report.relationships?.user?.data?.id;
 
-    let reporter = reporterId ? app.store.getById('users', reporterId) : null;
+    let reporter = reporterId ? app.store.getById<User>('users', reporterId) : undefined;
     if (!reporter && reporterId) {
       const reporterData = included?.find((item: any) => item.type === 'users' && item.id === reporterId);
       if (reporterData) {
-        reporter = app.store.pushPayload({ data: reporterData });
+        reporter = app.store.pushPayload<User>({ data: reporterData });
       }
     }
 
@@ -25,27 +34,32 @@ export default class ReportCard extends Component {
     const fromUserId = feedback?.relationships?.fromUser?.data?.id || feedback?.relationships?.from?.data?.id;
     const toUserId = feedback?.relationships?.toUser?.data?.id || feedback?.relationships?.to?.data?.id;
 
-    let fromUser = fromUserId ? app.store.getById('users', fromUserId) : null;
-    let toUser = toUserId ? app.store.getById('users', toUserId) : null;
+    let fromUser = fromUserId ? app.store.getById<User>('users', fromUserId) : undefined;
+    let toUser = toUserId ? app.store.getById<User>('users', toUserId) : undefined;
 
     if (!fromUser && fromUserId) {
       const fromData = included?.find((item: any) => item.type === 'users' && item.id === fromUserId);
       if (fromData) {
-        fromUser = app.store.pushPayload({ data: fromData });
+        fromUser = app.store.pushPayload<User>({ data: fromData });
       }
     }
 
     if (!toUser && toUserId) {
       const toData = included?.find((item: any) => item.type === 'users' && item.id === toUserId);
       if (toData) {
-        toUser = app.store.pushPayload({ data: toData });
+        toUser = app.store.pushPayload<User>({ data: toData });
       }
     }
 
     const badgeClass =
-      feedback?.attributes.type === 'positive' ? 'Badge--success' : feedback?.attributes.type === 'negative' ? 'Badge--danger' : 'Badge--warning';
+      feedback?.attributes.type === 'positive'
+        ? 'Badge--success'
+        : feedback?.attributes.type === 'negative'
+          ? 'Badge--danger'
+          : 'Badge--warning';
 
-    const typeIcon = feedback?.attributes.type === 'positive' ? 'thumbs-up' : feedback?.attributes.type === 'negative' ? 'thumbs-down' : 'minus';
+    const typeIcon =
+      feedback?.attributes.type === 'positive' ? 'thumbs-up' : feedback?.attributes.type === 'negative' ? 'thumbs-down' : 'minus';
 
     return (
       <div className="ReportCard">
@@ -61,10 +75,10 @@ export default class ReportCard extends Component {
             </strong>
           </div>
 
-          {(report.attributes.created_at || report.attributes.updated_at) && (
+          {(report.attributes.createdAt || report.attributes.updatedAt) && (
             <span className="ReportCard-dateBadge">
               <Icon name="far fa-clock" />
-              <span>{humanTime(new Date(report.attributes.created_at || report.attributes.updated_at))}</span>
+              <span>{humanTime(new Date(report.attributes.createdAt || report.attributes.updatedAt))}</span>
             </span>
           )}
         </div>
@@ -97,7 +111,9 @@ export default class ReportCard extends Component {
               <Icon name="fas fa-arrow-right" />
               {toUser && <Avatar user={toUser} />}
               <span>
-                {toUser ? toUser.displayName() : app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.user_id_format', { id: toUserId })}
+                {toUser
+                  ? toUser.displayName()
+                  : app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.user_id_format', { id: toUserId })}
               </span>
             </div>
 

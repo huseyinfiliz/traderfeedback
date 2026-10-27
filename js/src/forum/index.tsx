@@ -10,7 +10,6 @@ import Feedback from '../common/models/Feedback';
 
 export { default as extend } from './extend';
 
-// YENİ importlar
 import addPostControls from './addPostControls';
 import addDiscussionControls from './addDiscussionControls';
 import addPostFooterButton from './addPostFooterButton';
@@ -31,7 +30,7 @@ app.initializers.add('huseyinfiliz-traderfeedback', () => {
   addUserCardStats();
   addPostBadge();
 
-  // YENİ: Post ve discussion feedback butonlarını ekle
+  // Add feedback actions to posts and discussions.
   addPostControls();
   addDiscussionControls();
   addPostFooterButton();

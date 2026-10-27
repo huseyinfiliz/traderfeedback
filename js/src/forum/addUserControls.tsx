@@ -2,12 +2,11 @@ import { extend } from 'flarum/common/extend';
 import app from 'flarum/forum/app';
 import Button from 'flarum/common/components/Button';
 import UserControls from 'flarum/forum/utils/UserControls';
-import FeedbackModal from './modals/FeedbackModal'; // Modal'ı import et
+import FeedbackModal from './modals/FeedbackModal';
 
 export default function addUserControls() {
-  extend(UserControls, 'userControls', (items, user) => {
-    // Kendine feedback veremez
-    if (app.session.user && app.session.user.id() !== user.id()) {
+  extend(UserControls, 'controls', (items, user) => {
+    if (app.session.user && user.attribute('canGiveFeedback')) {
       items.add(
         'giveFeedback',
         Button.component(

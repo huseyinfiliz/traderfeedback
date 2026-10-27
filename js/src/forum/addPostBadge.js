@@ -5,7 +5,6 @@ import Icon from 'flarum/common/components/Icon';
 
 export default function addPostBadge() {
   extend(CommentPost.prototype, 'headerItems', function (items) {
-    // Ayar kapalıysa gösterme
     if (!app.forum.attribute('huseyinfiliz.traderfeedback.showBadgeInPosts')) {
       return;
     }
@@ -18,16 +17,13 @@ export default function addPostBadge() {
     const stats = user.traderStats();
     const total = stats.positiveCount() + stats.neutralCount() + stats.negativeCount();
 
-    // En az 1 feedback olmalı
     if (total === 0) return;
 
-    // Only first post kontrolü
     const onlyFirstPost = app.forum.attribute('huseyinfiliz.traderfeedback.badgeOnlyFirstPost');
     if (onlyFirstPost && post.number() !== 1) {
       return;
     }
 
-    // Tag filtering kontrolü
     const tagFilterJson = app.forum.attribute('huseyinfiliz.traderfeedback.badgeTagFilter') || '[]';
     let allowedTags = [];
 
@@ -37,7 +33,6 @@ export default function addPostBadge() {
       allowedTags = [];
     }
 
-    // Eğer tag filter varsa, kontrolü yap
     if (allowedTags.length > 0) {
       const discussion = post.discussion();
 
@@ -46,18 +41,16 @@ export default function addPostBadge() {
       const discussionTags = discussion.tags ? discussion.tags() : [];
 
       if (!discussionTags || discussionTags.length === 0) {
-        return; // Discussion'ın tag'i yoksa badge gösterme
+        return;
       }
 
-      // Discussion'ın tag'lerinden en az biri allowed tags içinde olmalı
       const hasAllowedTag = discussionTags.some((tag) => allowedTags.includes(tag.id()));
 
       if (!hasAllowedTag) {
-        return; // İzin verilen tag yoksa badge gösterme
+        return;
       }
     }
 
-    // Badge text'ini oluştur
     const badgeText = getBadgeText(stats);
     const customPrefix = app.forum.attribute('huseyinfiliz.traderfeedback.badgeCustomPrefix') || '';
 
@@ -74,7 +67,7 @@ export default function addPostBadge() {
 }
 
 /**
- * Badge text'ini format'a göre oluşturur
+ * Format the trader badge using the configured template.
  */
 function getBadgeText(stats) {
   const format = app.forum.attribute('huseyinfiliz.traderfeedback.badgeFormat') || 'percentage';
@@ -113,7 +106,8 @@ function getBadgeText(stats) {
 
     case 'custom':
       const customTemplate =
-        app.forum.attribute('huseyinfiliz.traderfeedback.badgeCustomFormat') || '{total} ({score}%) - {positive}P / {neutral}N / {negative}N';
+        app.forum.attribute('huseyinfiliz.traderfeedback.badgeCustomFormat') ||
+        '{total} ({score}%) - {positive}P / {neutral}N / {negative}N';
       return customTemplate
         .replace(/\{total\}/g, total)
         .replace(/\{score\}/g, score)

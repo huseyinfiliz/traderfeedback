@@ -15,7 +15,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class DeleteFeedbackController implements RequestHandlerInterface
 {
-    public function __construct(protected Dispatcher $events)
+    public function __construct(protected Dispatcher $events, protected StatsService $stats)
     {
     }
 
@@ -37,7 +37,7 @@ class DeleteFeedbackController implements RequestHandlerInterface
         $this->events->dispatch(new FeedbackDeleted($feedback, $actor));
 
         if ($isApproved) {
-            StatsService::updateUserStats($toUserId);
+            $this->stats->updateUserStats($toUserId);
         }
 
         return new EmptyResponse(204);

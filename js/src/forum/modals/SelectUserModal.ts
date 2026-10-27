@@ -6,9 +6,25 @@ import KeyboardNavigatable from 'flarum/common/utils/KeyboardNavigatable';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import FeedbackModal from './FeedbackModal';
 import app from 'flarum/forum/app';
+import type { IInternalModalAttrs } from 'flarum/common/components/Modal';
+import type Discussion from 'flarum/common/models/Discussion';
+import type User from 'flarum/common/models/User';
+import type Mithril from 'mithril';
+import type { SavedModelData } from 'flarum/common/Model';
 
-export default class SelectUserModal extends Modal {
-  oninit(vnode) {
+interface SelectUserModalAttrs extends IInternalModalAttrs {
+  discussion: Discussion;
+}
+
+export default class SelectUserModal extends Modal<SelectUserModalAttrs> {
+  discussion!: Discussion;
+  users: User[] = [];
+  filter: string = '';
+  selectedIndex: number = 0;
+  navigator!: KeyboardNavigatable;
+  displayLimit: number = 5;
+
+  oninit(vnode: Mithril.Vnode<SelectUserModalAttrs, this>) {
     super.oninit(vnode);
 
     this.discussion = this.attrs.discussion;
@@ -18,7 +34,7 @@ export default class SelectUserModal extends Modal {
     this.selectedIndex = 0;
     this.navigator = new KeyboardNavigatable();
 
-    // ✅ Her zaman ilk 5 kullanıcı limiti
+    // Show a small initial selection; search can narrow the results.
     this.displayLimit = 5;
 
     this.navigator
@@ -37,18 +53,18 @@ export default class SelectUserModal extends Modal {
 
   async loadParticipants() {
     try {
-      const response = await app.request({
+      const response = await app.request<{ data: SavedModelData[] }>({
         method: 'GET',
         url: app.forum.attribute('apiUrl') + `/trader/discussions/${this.discussion.id()}/participants`,
       });
 
-      const users = [];
+      const users: User[] = [];
 
       if (response.data && Array.isArray(response.data)) {
         response.data.forEach((userData) => {
-          let user = app.store.getById('users', userData.id);
+          let user = app.store.getById<User>('users', userData.id);
           if (!user) {
-            user = app.store.pushPayload({ data: userData });
+            user = app.store.pushPayload<User>({ data: userData });
           }
           users.push(user);
         });
@@ -89,7 +105,7 @@ export default class SelectUserModal extends Modal {
         {
           type: 'error',
         },
-        'Could not load participants'
+        app.translator.trans('huseyinfiliz-traderfeedback.forum.discussion_actions.load_error')
       );
     }
   }
@@ -98,25 +114,26 @@ export default class SelectUserModal extends Modal {
     if (!this.filter) return this.users;
     const query = this.filter.toLowerCase();
     return this.users.filter((u) => {
-      const userName = u.username ? u.username() : '';
-      const displayName = u.displayName ? u.displayName() : '';
+      const userName = u.username() || '';
+      const displayName = u.displayName() || '';
       return userName.toLowerCase().includes(query) || displayName.toLowerCase().includes(query);
     });
   }
 
-  // ✅ Her zaman ilk 5'i göster
+  // Limit the visible selection to five users.
   displayUsers() {
     const filtered = this.filteredUsers();
     return filtered.slice(0, this.displayLimit);
   }
 
-  selectUser(user) {
+  selectUser(user: User | undefined) {
+    if (!user) return;
     this.hide();
 
     setTimeout(() => {
       app.modal.show(FeedbackModal, {
         user,
-        discussionId: this.discussion.id(), // ✅ URL yerine ID
+        discussionId: this.discussion.id(),
         autoFillDiscussion: true,
       });
     }, 200);
@@ -150,17 +167,20 @@ export default class SelectUserModal extends Modal {
     return m('.Modal-body', [
       m('.Form-group', [
         m('input.FormControl', {
-          placeholder: app.translator.trans('huseyinfiliz-traderfeedback.forum.discussion_actions.search_user_placeholder') || 'Search users...',
+          placeholder:
+            app.translator.trans('huseyinfiliz-traderfeedback.forum.discussion_actions.search_user_placeholder') || 'Search users...',
           value: this.filter,
-          oninput: (e) => {
-            this.filter = e.target.value;
+          oninput: (e: InputEvent) => {
+            this.filter = (e.target as HTMLInputElement).value;
             this.selectedIndex = 0;
             m.redraw();
           },
           onkeydown: this.navigator.navigate.bind(this.navigator),
-          oncreate: (vnode) => vnode.dom.focus(),
+          oncreate: (vnode: Mithril.VnodeDOM) => {
+            if (vnode.dom instanceof HTMLInputElement) vnode.dom.focus();
+          },
         }),
-        // ✅ Bilgilendirme mesajı - her zaman
+        // Explain how to find additional participants.
         hasMoreResults &&
           m(
             '.helpText',
@@ -200,7 +220,8 @@ export default class SelectUserModal extends Modal {
           : m(
               '.UserList-empty',
               this.filter
-                ? app.translator.trans('huseyinfiliz-traderfeedback.forum.discussion_actions.no_matching_users') || 'No matching users found'
+                ? app.translator.trans('huseyinfiliz-traderfeedback.forum.discussion_actions.no_matching_users') ||
+                    'No matching users found'
                 : app.translator.trans('huseyinfiliz-traderfeedback.forum.discussion_actions.no_users_found')
             )
       ),

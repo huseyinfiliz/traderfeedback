@@ -5,10 +5,15 @@
     "dev": "webpack --mode development --watch",
     "build": "webpack --mode production",
     "clean": "rm -rf js/dist",
-    "format": "prettier --write js/src"
+    "format": "prettier --write src",
+    "format:check": "prettier --check src",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "flarum-webpack-config": "^3.0.0",
+    "flarum-tsconfig": "^2.0.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
     "webpack": "^5.65.0",
     "webpack-cli": "^4.9.1"
   }

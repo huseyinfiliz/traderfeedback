@@ -1,8 +1,18 @@
 import Component from 'flarum/common/Component';
 import Icon from 'flarum/common/components/Icon';
 import app from 'flarum/admin/app';
+import type { ComponentAttrs } from 'flarum/common/Component';
 
-export default class StatsCards extends Component {
+interface StatsCardsAttrs extends ComponentAttrs {
+  stats: {
+    total: number;
+    positive: number;
+    neutral: number;
+    negative: number;
+  } | null;
+}
+
+export default class StatsCards extends Component<StatsCardsAttrs> {
   view() {
     const stats = this.attrs.stats || {
       total: 0,

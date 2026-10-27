@@ -19,7 +19,7 @@ class ShowFeedbackController implements RequestHandlerInterface
         $routeParams = $request->getAttribute('routeParameters') ?? [];
         $id = $routeParams['id'] ?? Arr::get($request->getQueryParams(), 'id');
 
-        $feedback = Feedback::with(['fromUser', 'toUser', 'discussion'])->findOrFail($id);
+        $feedback = Feedback::with(['fromUser', 'toUser', 'discussion' => fn ($query) => $query->whereVisibleTo($actor)])->findOrFail($id);
 
         $actor->assertCan('view', $feedback);
 

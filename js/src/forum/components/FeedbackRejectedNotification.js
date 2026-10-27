@@ -43,7 +43,9 @@ export default class FeedbackRejectedNotification extends Notification {
 
     if (!fromUser) return 'Your feedback was rejected';
 
-    return app.translator.trans('huseyinfiliz-traderfeedback.forum.notifications.feedback_rejected_title', { username: username(fromUser) });
+    return app.translator.trans('huseyinfiliz-traderfeedback.forum.notifications.feedback_rejected_title', {
+      username: username(fromUser),
+    });
   }
 
   excerpt() {

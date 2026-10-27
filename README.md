@@ -20,6 +20,8 @@ A comprehensive trader feedback and reputation system for [Flarum](https://flaru
 
 ```bash
 composer require huseyinfiliz/traderfeedback
+php flarum migrate
+php flarum cache:clear
 ```
 
 You can also install with Extension Manager: `huseyinfiliz/traderfeedback`
@@ -28,6 +30,8 @@ You can also install with Extension Manager: `huseyinfiliz/traderfeedback`
 
 ```sh
 composer update huseyinfiliz/traderfeedback
+php flarum migrate
+php flarum cache:clear
 ```
 To remove simply run `composer remove huseyinfiliz/traderfeedback`
 
@@ -46,7 +50,7 @@ This extension sponsored by [@andrewjs18](https://discuss.flarum.org/u/andrewjs1
 ### For Admins
 Navigate to **Admin → Extensions → Trader Feedback** to configure:
 - Enable/disable negative feedback
-- Require approval for all feedback
+- Require approval for new and edited feedback
 - Set comment length limits
 - Configure discussion linking rules
 

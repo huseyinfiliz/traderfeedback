@@ -23,8 +23,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon          $created_at
  * @property Carbon          $updated_at
  * @property Carbon|null     $deleted_at
- * @property User            $fromUser
- * @property User            $toUser
+ * @property User|null       $fromUser
+ * @property User|null       $toUser
  * @property User|null       $approvedBy
  * @property Discussion|null $discussion
  */
@@ -62,16 +62,16 @@ class Feedback extends AbstractModel
     /**
      * Feedback types.
      */
-    const TYPE_POSITIVE = 'positive';
-    const TYPE_NEUTRAL = 'neutral';
-    const TYPE_NEGATIVE = 'negative';
+    public const TYPE_POSITIVE = 'positive';
+    public const TYPE_NEUTRAL = 'neutral';
+    public const TYPE_NEGATIVE = 'negative';
 
     /**
      * Feedback roles.
      */
-    const ROLE_BUYER = 'buyer';
-    const ROLE_SELLER = 'seller';
-    const ROLE_TRADER = 'trader';
+    public const ROLE_BUYER = 'buyer';
+    public const ROLE_SELLER = 'seller';
+    public const ROLE_TRADER = 'trader';
 
     /**
      * Get the user who gave the feedback.

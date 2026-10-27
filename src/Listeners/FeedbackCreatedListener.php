@@ -11,8 +11,11 @@ use HuseyinFiliz\TraderFeedback\Services\StatsService;
 
 class FeedbackCreatedListener
 {
-    public function __construct(protected NotificationSyncer $notifications)
-    {
+    public function __construct(
+        protected NotificationSyncer $notifications,
+        protected StatsService $stats,
+        protected ModeratorFinder $moderatorFinder
+    ) {
     }
 
     public function handle(FeedbackCreated $event)
@@ -40,7 +43,7 @@ class FeedbackCreatedListener
             }
         } else {
             // Feedback requires approval -> notify moderators
-            $moderators = ModeratorFinder::getModerators($feedback->from_user_id);
+            $moderators = $this->moderatorFinder->getModerators($feedback->from_user_id);
 
             if ($moderators->isNotEmpty()) {
                 $this->notifications->sync(
@@ -53,6 +56,6 @@ class FeedbackCreatedListener
 
     protected function updateUserStats($userId)
     {
-        StatsService::updateUserStats((int) $userId);
+        $this->stats->updateUserStats((int) $userId);
     }
 }

@@ -6,11 +6,13 @@ import ModerateUserFeedbackModal from '../modals/ModerateUserFeedbackModal';
 import FeedbackStats from '../components/TraderFeedback/FeedbackStats';
 import FeedbackFilters from '../components/TraderFeedback/FeedbackFilters';
 import FeedbackList from '../components/TraderFeedback/FeedbackList';
+import ReportModal from '../components/ReportModal';
 import type Mithril from 'mithril';
 import type User from 'flarum/common/models/User';
+import type { FeedbackData } from '../../common/types';
 
 export default class ProfilePage extends UserPage {
-  feedbacks: any[] = [];
+  feedbacks: FeedbackData[] = [];
   stats: any = null;
   loading: boolean = true;
   statsLoading: boolean = true;
@@ -74,8 +76,8 @@ export default class ProfilePage extends UserPage {
       onSubmit: () => {
         this.loadFeedbacks();
         this.loadStats();
-        if (this.user) {
-          app.store.find('users', this.user.id()).then(() => m.redraw());
+        if (this.user?.id()) {
+          app.store.find('users', this.user.id()!).then(() => m.redraw());
         }
       },
     });
@@ -87,8 +89,8 @@ export default class ProfilePage extends UserPage {
       onAction: () => {
         this.loadFeedbacks();
         this.loadStats();
-        if (this.user) {
-          app.store.find('users', this.user.id()).then(() => m.redraw());
+        if (this.user?.id()) {
+          app.store.find('users', this.user.id()!).then(() => m.redraw());
         }
       },
     });
@@ -111,6 +113,7 @@ export default class ProfilePage extends UserPage {
         },
       })
       .then((response: any) => {
+        app.store.pushPayload(response);
         this.processIncludedUsers(response);
         this.feedbacks = Array.isArray(response.data) ? response.data : [];
         this.loading = false;
@@ -135,12 +138,13 @@ export default class ProfilePage extends UserPage {
       })
       .then((response: any) => {
         if (response && response.data) {
+          app.store.pushPayload(response);
           const data = response.data.attributes || response.data;
           this.stats = {
             score: data.score || 0,
-            positive_count: data.positive_count || 0,
-            neutral_count: data.neutral_count || 0,
-            negative_count: data.negative_count || 0,
+            positive_count: data.positiveCount || 0,
+            neutral_count: data.neutralCount || 0,
+            negative_count: data.negativeCount || 0,
           };
         } else {
           this.stats = this.getDefaultStats();
@@ -157,16 +161,9 @@ export default class ProfilePage extends UserPage {
 
   processIncludedUsers(response: any) {
     if (response.included) {
-      response.included.forEach((item) => {
+      response.included.forEach((item: any) => {
         if (item.type === 'users') {
           this.includedUsers.set(item.id, item.attributes);
-
-          const storeUser = app.store.getById('users', item.id);
-          if (storeUser) {
-            storeUser.pushAttributes(item.attributes);
-          } else {
-            app.store.pushPayload({ data: item });
-          }
         }
       });
     }
@@ -181,39 +178,12 @@ export default class ProfilePage extends UserPage {
     };
   }
 
-  reportFeedback(feedback) {
-    const reason = prompt(app.translator.trans('huseyinfiliz-traderfeedback.forum.report_modal.reason_placeholder'));
-    if (!reason || !reason.trim()) return;
-
-    this.loading = true;
-    m.redraw();
-
-    app
-      .request({
-        method: 'POST',
-        url: app.forum.attribute('apiUrl') + '/trader/feedback/' + feedback.id + '/report',
-        body: {
-          data: {
-            attributes: {
-              reason: reason.trim(),
-            },
-          },
-        },
-      })
-      .then(() => {
-        this.loading = false;
-        app.alerts.show({ type: 'success' }, app.translator.trans('huseyinfiliz-traderfeedback.forum.report_modal.success'));
-        m.redraw();
-      })
-      .catch(() => {
-        this.loading = false;
-        app.alerts.show({ type: 'error' }, app.translator.trans('huseyinfiliz-traderfeedback.forum.report_modal.error'));
-        m.redraw();
-      });
+  reportFeedback(feedback: FeedbackData) {
+    app.modal.show(ReportModal, { feedback });
   }
 
-  deleteFeedback(feedback) {
-    if (!confirm(app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.confirm_delete'))) {
+  deleteFeedback(feedback: FeedbackData) {
+    if (!confirm(String(app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.confirm_delete')))) {
       return;
     }
 
@@ -228,7 +198,10 @@ export default class ProfilePage extends UserPage {
       .then(() => {
         this.loading = false;
         this.feedbacks = this.feedbacks.filter((f) => f.id !== feedback.id);
+        const record = app.store.getById('trader-feedbacks', feedback.id);
+        if (record) app.store.remove(record);
         this.loadStats();
+        if (this.user?.id()) app.store.find('users', this.user.id()!).then(() => m.redraw());
         app.alerts.show({ type: 'success' }, app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.delete_success'));
         m.redraw();
       })

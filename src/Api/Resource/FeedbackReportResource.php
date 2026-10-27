@@ -41,22 +41,14 @@ class FeedbackReportResource extends AbstractDatabaseResource
                 ->defaultInclude(['reporter', 'feedback', 'feedback.fromUser', 'feedback.toUser'])
                 ->eagerLoad(['reporter', 'feedback', 'feedback.fromUser', 'feedback.toUser']),
             Endpoint\Show::make(),
-            Endpoint\Create::make()
-                ->authenticated(),
-            Endpoint\Delete::make()
-                ->authenticated()
-                ->can('huseyinfiliz-traderfeedback.moderate'),
         ];
     }
 
     public function fields(): array
     {
         return [
-            Schema\Str::make('reason')
-                ->requiredOnCreate()
-                ->writable(),
-            Schema\Boolean::make('resolved')
-                ->writable(),
+            Schema\Str::make('reason'),
+            Schema\Boolean::make('resolved'),
             Schema\DateTime::make('createdAt')
                 ->property('created_at'),
             Schema\DateTime::make('updatedAt')

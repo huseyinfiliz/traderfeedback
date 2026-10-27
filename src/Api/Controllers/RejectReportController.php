@@ -21,7 +21,8 @@ class RejectReportController implements RequestHandlerInterface
 {
     public function __construct(
         protected Dispatcher $events,
-        protected NotificationSyncer $notifications
+        protected NotificationSyncer $notifications,
+        protected StatsService $stats
     ) {
     }
 
@@ -55,7 +56,7 @@ class RejectReportController implements RequestHandlerInterface
 
             $feedback->delete();
 
-            StatsService::updateUserStats($toUserId);
+            $this->stats->updateUserStats($toUserId);
         }
 
         return new JsonResponse([

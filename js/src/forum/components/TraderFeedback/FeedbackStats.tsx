@@ -1,8 +1,15 @@
 import Component from 'flarum/common/Component';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import app from 'flarum/forum/app';
+import type { ComponentAttrs } from 'flarum/common/Component';
+import type { ProfileStats } from '../../../common/types';
 
-export default class FeedbackStats extends Component {
+interface FeedbackStatsAttrs extends ComponentAttrs {
+  stats: ProfileStats | null;
+  loading: boolean;
+}
+
+export default class FeedbackStats extends Component<FeedbackStatsAttrs> {
   view() {
     const { stats, loading } = this.attrs;
 
@@ -25,7 +32,9 @@ export default class FeedbackStats extends Component {
       <div className="TraderFeedbackPage-stats">
         <div className="TraderFeedbackPage-stat TraderFeedbackPage-stat--score">
           <div className="TraderFeedbackPage-stat-value">{scorePercentage}%</div>
-          <div className="TraderFeedbackPage-stat-label">{app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.stats.score')}</div>
+          <div className="TraderFeedbackPage-stat-label">
+            {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.stats.score')}
+          </div>
         </div>
 
         <div className="TraderFeedbackPage-stat TraderFeedbackPage-stat--positive">
@@ -37,7 +46,9 @@ export default class FeedbackStats extends Component {
 
         <div className="TraderFeedbackPage-stat TraderFeedbackPage-stat--neutral">
           <div className="TraderFeedbackPage-stat-value">{stats.neutral_count}</div>
-          <div className="TraderFeedbackPage-stat-label">{app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.stats.neutral')}</div>
+          <div className="TraderFeedbackPage-stat-label">
+            {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_page.stats.neutral')}
+          </div>
         </div>
 
         <div className="TraderFeedbackPage-stat TraderFeedbackPage-stat--negative">

@@ -3,8 +3,18 @@ import Select from 'flarum/common/components/Select';
 import Button from 'flarum/common/components/Button';
 import Icon from 'flarum/common/components/Icon';
 import app from 'flarum/forum/app';
+import type { ComponentAttrs } from 'flarum/common/Component';
+import type User from 'flarum/common/models/User';
 
-export default class FeedbackFilters extends Component {
+interface FeedbackFiltersAttrs extends ComponentAttrs {
+  filter: string;
+  user: User | null;
+  onFilterChange: (value: string) => void;
+  onGiveFeedback: () => void;
+  onModerate: () => void;
+}
+
+export default class FeedbackFilters extends Component<FeedbackFiltersAttrs> {
   view() {
     const { filter, user, onFilterChange, onGiveFeedback, onModerate } = this.attrs;
     const allowNegative = app.forum.attribute('huseyinfiliz.traderfeedback.allowNegative') !== false;
@@ -20,12 +30,9 @@ export default class FeedbackFilters extends Component {
     }
 
     const actor = app.session.user;
-    const canModerate = Boolean(
-      (actor && (actor.attribute('canModerateFeedback') || actor.attribute('huseyinfilizTraderAdmin'))) ||
-      (user && user.attribute('canModerateFeedback'))
-    );
-    const pendingFeedbackCount = (user && user.attribute('pendingFeedbackCount')) || 0;
-    const pendingReportCount = (user && user.attribute('pendingReportCount')) || 0;
+    const canModerate = Boolean(actor && actor.attribute('canModerateFeedback'));
+    const pendingFeedbackCount = (user && user.attribute<number>('pendingFeedbackCount')) || 0;
+    const pendingReportCount = (user && user.attribute<number>('pendingReportCount')) || 0;
     const totalPending = pendingFeedbackCount + pendingReportCount;
 
     return (
@@ -45,7 +52,7 @@ export default class FeedbackFilters extends Component {
             </Button>
           )}
 
-          {app.session.user && user && app.session.user.id() !== user.id() && (
+          {app.session.user && user && user.attribute('canGiveFeedback') && (
             <Button className="Button Button--primary TraderFeedbackPage-giveBtn" onclick={onGiveFeedback}>
               <Icon name="fas fa-plus" className="TraderFeedbackPage-giveBtnIcon" />
               <span className="TraderFeedbackPage-giveBtnText">

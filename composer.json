@@ -17,10 +17,10 @@
             "role": "Developer"
         }
     ],
-    "homepage": "https://github.com/huseyinfiliz/flarum-trader-feedback",
+    "homepage": "https://github.com/huseyinfiliz/traderfeedback",
     "support": {
-        "issues": "https://github.com/huseyinfiliz/flarum-trader-feedback/issues",
-        "source": "https://github.com/huseyinfiliz/flarum-trader-feedback"
+        "issues": "https://github.com/huseyinfiliz/traderfeedback/issues",
+        "source": "https://github.com/huseyinfiliz/traderfeedback"
     },
     "require": {
         "php": "^8.3 || ^8.4",
@@ -65,7 +65,10 @@
         }
     },
     "require-dev": {
+        "flarum/audit": "^2.0",
+        "flarum/lock": "^2.0",
         "flarum/phpstan": "^2.0.0",
+        "flarum/tags": "^2.0",
         "flarum/testing": "^2.0.0"
     },
     "scripts": {

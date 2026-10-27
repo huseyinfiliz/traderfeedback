@@ -43,7 +43,9 @@ export default class FeedbackApprovedNotification extends Notification {
 
     if (!fromUser) return 'Your feedback was approved';
 
-    return app.translator.trans('huseyinfiliz-traderfeedback.forum.notifications.feedback_approved_title', { username: username(fromUser) });
+    return app.translator.trans('huseyinfiliz-traderfeedback.forum.notifications.feedback_approved_title', {
+      username: username(fromUser),
+    });
   }
 
   excerpt() {

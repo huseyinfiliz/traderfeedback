@@ -2,6 +2,7 @@ import app from 'flarum/forum/app';
 import username from 'flarum/common/helpers/username';
 import Avatar from 'flarum/common/components/Avatar';
 import Link from 'flarum/common/components/Link';
+import type User from 'flarum/common/models/User';
 
 export interface FeedbackUserDisplayProps {
   userId: string | number;
@@ -13,10 +14,10 @@ export interface FeedbackUserDisplayProps {
 
 export default class FeedbackUserDisplay {
   static getUserInfo(props: FeedbackUserDisplayProps) {
-    let displayName = props.displayName || app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.unknown_user');
+    let displayName = props.displayName || String(app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.unknown_user'));
     let avatarColor = props.avatarColor || '#888';
     let avatarUrl = props.avatarUrl || null;
-    let fromUser = null;
+    let fromUser: User | undefined;
 
     // Try to get from included users first
     if (props.userId) {
@@ -32,7 +33,7 @@ export default class FeedbackUserDisplay {
       }
 
       // Try to get from store
-      fromUser = app.store.getById('users', String(props.userId));
+      fromUser = app.store.getById<User>('users', String(props.userId));
       if (fromUser) {
         displayName = fromUser.displayName() || displayName;
         avatarColor = fromUser.color() || avatarColor;
@@ -60,7 +61,6 @@ export default class FeedbackUserDisplay {
 
     const usernameElement = <span className="FeedbackItem-username">{displayName}</span>;
 
-    // Eğer user link varsa, tıklanabilir yap
     if (userProfileLink) {
       return (
         <div className="FeedbackItem-user">
@@ -74,7 +74,6 @@ export default class FeedbackUserDisplay {
       );
     }
 
-    // User link yoksa normal göster
     return (
       <div className="FeedbackItem-user">
         {avatarElement}

@@ -2,14 +2,15 @@
 
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
-use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
 use Flarum\Settings\SettingsRepositoryInterface;
 use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
+use HuseyinFiliz\TraderFeedback\Services\FeedbackGuard;
 use HuseyinFiliz\TraderFeedback\Validators\FeedbackValidator;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Arr;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
@@ -21,7 +22,9 @@ class UpdateFeedbackController implements RequestHandlerInterface
     public function __construct(
         protected FeedbackValidator $validator,
         protected SettingsRepositoryInterface $settings,
-        protected Dispatcher $events
+        protected Dispatcher $events,
+        protected FeedbackGuard $guard,
+        protected ConnectionInterface $db
     ) {
     }
 
@@ -37,42 +40,36 @@ class UpdateFeedbackController implements RequestHandlerInterface
         $routeParams = $request->getAttribute('routeParameters') ?? [];
         $id = $routeParams['id'] ?? Arr::get($request->getQueryParams(), 'id');
 
-        $feedback = Feedback::with(['fromUser', 'toUser', 'discussion'])->findOrFail($id);
+        $feedback = $this->db->transaction(function () use ($id, $actor, $data) {
+            $feedback = Feedback::whereKey($id)->lockForUpdate()->firstOrFail();
+            $actor->assertCan('edit', $feedback);
 
-        $actor->assertCan('edit', $feedback);
-
-        $validationData = [];
-
-        if (isset($data['type'])) {
-            $allowNegative = $this->settings->get('huseyinfiliz.traderfeedback.allowNegative');
-            if (($allowNegative === false || $allowNegative === '0' || $allowNegative === 0) && $data['type'] === Feedback::TYPE_NEGATIVE) {
-                throw new ValidationException([
-                    'type' => 'Negative feedback is not allowed.',
-                ]);
+            $changes = Arr::only($data, ['type', 'comment', 'role']);
+            if (isset($changes['comment']) && is_string($changes['comment'])) {
+                $changes['comment'] = trim(strip_tags($changes['comment']));
+            }
+            $this->validator->validateMissingKeys(false)->assertValid($changes);
+            if (isset($changes['type'])) {
+                $this->guard->assertType($changes['type']);
             }
 
-            $validationData['type'] = $data['type'];
-            $feedback->type = $data['type'];
+            $feedback->fill($changes);
+            if ($feedback->isDirty(['type', 'comment', 'role'])) {
+                if (!$actor->hasPermission('huseyinfiliz-traderfeedback.moderate')
+                    && (bool) $this->settings->get('huseyinfiliz.traderfeedback.requireApproval', false)) {
+                    $feedback->is_approved = false;
+                    $feedback->approved_by_id = null;
+                }
+                $feedback->save();
+            }
+
+            return $feedback;
+        }, 3);
+
+        $feedback->load(['fromUser', 'toUser', 'discussion' => fn ($query) => $query->whereVisibleTo($actor)]);
+        if ($feedback->wasChanged()) {
+            $this->events->dispatch(new FeedbackUpdated($feedback, $actor));
         }
-
-        if (isset($data['comment'])) {
-            $sanitizedComment = strip_tags($data['comment']);
-            $validationData['comment'] = $sanitizedComment;
-            $feedback->comment = $sanitizedComment;
-        }
-
-        if (isset($data['role'])) {
-            $validationData['role'] = $data['role'];
-            $feedback->role = $data['role'];
-        }
-
-        if (!empty($validationData)) {
-            $this->validator->assertValid($validationData);
-        }
-
-        $feedback->save();
-
-        $this->events->dispatch(new FeedbackUpdated($feedback, $actor));
 
         $included = [];
         if ($feedback->fromUser) {

@@ -3,6 +3,7 @@ import Button from 'flarum/common/components/Button';
 import Select from 'flarum/common/components/Select';
 import Stream from 'flarum/common/utils/Stream';
 import app from 'flarum/forum/app';
+import { requiresFeedbackDiscussion } from '../utils/discussionRestrictions';
 
 export default class FeedbackModal extends FormModal {
   oninit(vnode) {
@@ -37,7 +38,7 @@ export default class FeedbackModal extends FormModal {
   }
 
   content() {
-    const requireDiscussion = app.forum.attribute('huseyinfiliz.traderfeedback.requireDiscussion') || false;
+    const requireDiscussion = requiresFeedbackDiscussion();
     const allowNegative = app.forum.attribute('huseyinfiliz.traderfeedback.allowNegative') !== false;
 
     const typeOptions = {
@@ -151,7 +152,7 @@ export default class FeedbackModal extends FormModal {
 
     if (!this.comment().trim()) return;
 
-    const requireDiscussion = app.forum.attribute('huseyinfiliz.traderfeedback.requireDiscussion') || false;
+    const requireDiscussion = requiresFeedbackDiscussion();
     if (requireDiscussion && !this.discussionId) {
       app.alerts.show({ type: 'error' }, app.translator.trans('huseyinfiliz-traderfeedback.forum.form.error_discussion_required'));
       return;
@@ -161,7 +162,10 @@ export default class FeedbackModal extends FormModal {
     const maxLength = app.forum.attribute('huseyinfiliz.traderfeedback.maxLength') || 1000;
 
     if (this.comment().length < minLength) {
-      app.alerts.show({ type: 'error' }, app.translator.trans('huseyinfiliz-traderfeedback.forum.form.error_too_short', { min: minLength }));
+      app.alerts.show(
+        { type: 'error' },
+        app.translator.trans('huseyinfiliz-traderfeedback.forum.form.error_too_short', { min: minLength })
+      );
       return;
     }
 

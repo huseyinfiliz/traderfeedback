@@ -8,8 +8,15 @@ import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import humanTime from 'flarum/common/helpers/humanTime';
 import username from 'flarum/common/helpers/username';
 import app from 'flarum/forum/app';
+import type { IInternalModalAttrs } from 'flarum/common/components/Modal';
+import type User from 'flarum/common/models/User';
 
-export default class ModerateUserFeedbackModal extends Modal {
+interface ModerateUserFeedbackModalAttrs extends IInternalModalAttrs {
+  user: User | null;
+  onAction?: () => void;
+}
+
+export default class ModerateUserFeedbackModal extends Modal<ModerateUserFeedbackModalAttrs> {
   user: any;
   activeTab: string = 'pending';
   loadingPending: boolean = true;
@@ -131,7 +138,7 @@ export default class ModerateUserFeedbackModal extends Modal {
   }
 
   approveFeedback(feedback: any) {
-    if (!confirm(app.translator.trans('huseyinfiliz-traderfeedback.forum.moderation.confirm_approve'))) {
+    if (!confirm(String(app.translator.trans('huseyinfiliz-traderfeedback.forum.moderation.confirm_approve')))) {
       return;
     }
 
@@ -158,7 +165,7 @@ export default class ModerateUserFeedbackModal extends Modal {
   }
 
   rejectFeedback(feedback: any) {
-    if (!confirm(app.translator.trans('huseyinfiliz-traderfeedback.forum.moderation.confirm_reject'))) {
+    if (!confirm(String(app.translator.trans('huseyinfiliz-traderfeedback.forum.moderation.confirm_reject')))) {
       return;
     }
 
@@ -185,7 +192,7 @@ export default class ModerateUserFeedbackModal extends Modal {
   }
 
   dismissReport(report: any) {
-    if (!confirm(app.translator.trans('huseyinfiliz-traderfeedback.forum.moderation.confirm_dismiss'))) {
+    if (!confirm(String(app.translator.trans('huseyinfiliz-traderfeedback.forum.moderation.confirm_dismiss')))) {
       return;
     }
 
@@ -212,7 +219,7 @@ export default class ModerateUserFeedbackModal extends Modal {
   }
 
   deleteReportFeedback(report: any) {
-    if (!confirm(app.translator.trans('huseyinfiliz-traderfeedback.forum.moderation.confirm_delete'))) {
+    if (!confirm(String(app.translator.trans('huseyinfiliz-traderfeedback.forum.moderation.confirm_delete')))) {
       return;
     }
 
@@ -297,8 +304,10 @@ export default class ModerateUserFeedbackModal extends Modal {
       <div className="ModerateUserFeedbackModal-list">
         {this.pendingFeedbacks.map((feedback) => {
           const attrs = feedback.attributes || {};
-          const fromUserId = feedback.relationships?.fromUser?.data?.id || feedback.relationships?.from?.data?.id || attrs.fromUserId || attrs.from_user_id;
-          const toUserId = feedback.relationships?.toUser?.data?.id || feedback.relationships?.to?.data?.id || attrs.toUserId || attrs.to_user_id;
+          const fromUserId =
+            feedback.relationships?.fromUser?.data?.id || feedback.relationships?.from?.data?.id || attrs.fromUserId || attrs.from_user_id;
+          const toUserId =
+            feedback.relationships?.toUser?.data?.id || feedback.relationships?.to?.data?.id || attrs.toUserId || attrs.to_user_id;
 
           const fromUser = this.getUser(fromUserId, this.pendingIncluded);
           const toUser = this.getUser(toUserId, this.pendingIncluded);
@@ -307,7 +316,7 @@ export default class ModerateUserFeedbackModal extends Modal {
           const typeIcon = type === 'positive' ? 'thumbs-up' : type === 'negative' ? 'thumbs-down' : 'minus';
           const role = attrs.role || 'buyer';
           const roleIcon = role === 'buyer' ? 'cart-shopping' : role === 'seller' ? 'store' : 'right-left';
-          const date = attrs.created_at || attrs.createdAt;
+          const date = attrs.createdAt;
 
           return (
             <div className={`FeedbackCard FeedbackCard--${type}`} key={feedback.id}>
@@ -319,10 +328,7 @@ export default class ModerateUserFeedbackModal extends Modal {
                 </div>
 
                 <div className="FeedbackCard-meta">
-                  <Badge
-                    type={type === 'positive' ? 'success' : type === 'negative' ? 'danger' : 'warning'}
-                    icon={`fas fa-${typeIcon}`}
-                  />
+                  <Badge type={type === 'positive' ? 'success' : type === 'negative' ? 'danger' : 'warning'} icon={`fas fa-${typeIcon}`} />
 
                   <span className="FeedbackCard-roleBadge">
                     <Icon name={`fas fa-${roleIcon}`} />
@@ -344,9 +350,9 @@ export default class ModerateUserFeedbackModal extends Modal {
                 </div>
               )}
 
-              {attrs.discussion_id && (
+              {attrs.discussionId && (
                 <a
-                  href={app.route('discussion', { id: attrs.discussion_id })}
+                  href={app.route('discussion', { id: attrs.discussionId })}
                   className="FeedbackCard-discussion"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -407,10 +413,12 @@ export default class ModerateUserFeedbackModal extends Modal {
           const reportAttrs = report.attributes || {};
           const reporterId = report.relationships?.reporter?.data?.id || report.relationships?.user?.data?.id;
           const reporter = this.getUser(reporterId, this.reportsIncluded);
-          const reportDate = reportAttrs.created_at || reportAttrs.createdAt;
+          const reportDate = reportAttrs.createdAt;
 
           const feedbackId = report.relationships?.feedback?.data?.id;
-          const feedback = this.reportsIncluded.find((item: any) => item.type === 'trader-feedbacks' && String(item.id) === String(feedbackId));
+          const feedback = this.reportsIncluded.find(
+            (item: any) => item.type === 'trader-feedbacks' && String(item.id) === String(feedbackId)
+          );
 
           let fromUser = null;
           let toUser = null;
@@ -422,8 +430,13 @@ export default class ModerateUserFeedbackModal extends Modal {
 
           if (feedback) {
             fbAttrs = feedback.attributes || {};
-            fromUserId = feedback.relationships?.fromUser?.data?.id || feedback.relationships?.from?.data?.id || fbAttrs.fromUserId || fbAttrs.from_user_id;
-            toUserId = feedback.relationships?.toUser?.data?.id || feedback.relationships?.to?.data?.id || fbAttrs.toUserId || fbAttrs.to_user_id;
+            fromUserId =
+              feedback.relationships?.fromUser?.data?.id ||
+              feedback.relationships?.from?.data?.id ||
+              fbAttrs.fromUserId ||
+              fbAttrs.from_user_id;
+            toUserId =
+              feedback.relationships?.toUser?.data?.id || feedback.relationships?.to?.data?.id || fbAttrs.toUserId || fbAttrs.to_user_id;
             fromUser = this.getUser(fromUserId, this.reportsIncluded);
             toUser = this.getUser(toUserId, this.reportsIncluded);
             fbType = fbAttrs.type || 'positive';
@@ -433,9 +446,7 @@ export default class ModerateUserFeedbackModal extends Modal {
           return (
             <div className="ReportCard" key={report.id}>
               <div className="ReportCard-header">
-                <div className="ReportCard-reporter">
-                  {this.renderUser(reporter, reporterId)}
-                </div>
+                <div className="ReportCard-reporter">{this.renderUser(reporter, reporterId)}</div>
 
                 {reportDate && (
                   <span className="ReportCard-dateBadge">

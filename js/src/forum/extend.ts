@@ -8,9 +8,7 @@ import UserPageResolver from 'flarum/forum/resolvers/UserPageResolver';
 
 export default [
   new Extend.Routes().add('user.feedbacks', '/u/:username/feedbacks', TraderFeedbackPage, UserPageResolver),
-  new Extend.Model(Forum)
-    .attribute('huseyinfilizTraderAdmin')
-    .attribute('huseyinfilizTraderUser'),
+  new Extend.Model(Forum).attribute('huseyinfilizTraderAdmin').attribute('huseyinfilizTraderUser'),
   new Extend.Model(User)
     .hasOne('traderStats')
     .hasMany('feedbacksReceived')
@@ -22,8 +20,5 @@ export default [
     .attribute('traderFeedbackCount')
     .attribute('pendingFeedbackCount')
     .attribute('pendingReportCount'),
-  new Extend.Store()
-    .add('trader-feedbacks', Feedback)
-    .add('trader-stats', TraderStats),
+  new Extend.Store().add('trader-feedbacks', Feedback).add('trader-stats', TraderStats),
 ];
-

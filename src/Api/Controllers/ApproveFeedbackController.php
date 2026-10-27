@@ -24,7 +24,8 @@ class ApproveFeedbackController implements RequestHandlerInterface
     public function __construct(
         protected NotificationSyncer $notifications,
         protected LoggerInterface $log,
-        protected Dispatcher $events
+        protected Dispatcher $events,
+        protected StatsService $stats
     ) {
     }
 
@@ -46,7 +47,7 @@ class ApproveFeedbackController implements RequestHandlerInterface
         $feedback->save();
 
         // Update stats
-        StatsService::updateUserStats($feedback->to_user_id);
+        $this->stats->updateUserStats($feedback->to_user_id);
 
         // Send notifications if newly approved
         if (!$wasApproved) {

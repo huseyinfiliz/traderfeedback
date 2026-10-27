@@ -2,8 +2,14 @@ import Component from 'flarum/common/Component';
 import Placeholder from 'flarum/common/components/Placeholder';
 import app from 'flarum/forum/app';
 import FeedbackItem from './FeedbackItem';
+import type { FeedbackItemAttrs } from './FeedbackItem';
+import type { FeedbackData } from '../../../common/types';
 
-export default class FeedbackList extends Component {
+interface FeedbackListAttrs extends Omit<FeedbackItemAttrs, 'feedback'> {
+  feedbacks: FeedbackData[];
+}
+
+export default class FeedbackList extends Component<FeedbackListAttrs> {
   view() {
     const { feedbacks, includedUsers, onDelete, onReport } = this.attrs;
 

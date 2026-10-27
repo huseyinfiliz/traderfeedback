@@ -45,33 +45,17 @@ class FeedbackResource extends AbstractDatabaseResource
             Endpoint\Show::make()
                 ->defaultInclude(['fromUser', 'toUser', 'discussion'])
                 ->eagerLoad(['fromUser', 'toUser', 'discussion']),
-            Endpoint\Create::make()
-                ->authenticated()
-                ->can('huseyinfiliz-traderfeedback.give'),
-            Endpoint\Update::make()
-                ->authenticated()
-                ->can('edit'),
-            Endpoint\Delete::make()
-                ->authenticated()
-                ->can('delete'),
         ];
     }
 
     public function fields(): array
     {
         return [
-            Schema\Str::make('type')
-                ->requiredOnCreate()
-                ->writable(),
-            Schema\Str::make('role')
-                ->requiredOnCreate()
-                ->writable(),
-            Schema\Str::make('comment')
-                ->requiredOnCreate()
-                ->writable(),
+            Schema\Str::make('type'),
+            Schema\Str::make('role'),
+            Schema\Str::make('comment'),
             Schema\Boolean::make('isApproved')
-                ->property('is_approved')
-                ->writable(fn (Feedback $feedback, Context $context) => $context->getActor()->hasPermission('huseyinfiliz-traderfeedback.moderate')),
+                ->property('is_approved'),
             Schema\DateTime::make('createdAt')
                 ->property('created_at'),
             Schema\DateTime::make('updatedAt')
@@ -81,8 +65,7 @@ class FeedbackResource extends AbstractDatabaseResource
             Schema\Integer::make('toUserId')
                 ->property('to_user_id'),
             Schema\Integer::make('discussionId')
-                ->property('discussion_id')
-                ->writable()
+                ->get(fn (Feedback $feedback) => $feedback->relationLoaded('discussion') && $feedback->discussion ? $feedback->discussion_id : null)
                 ->nullable(),
             Schema\Boolean::make('canEdit')
                 ->get(fn (Feedback $feedback, Context $context) => $context->getActor()->can('edit', $feedback)),

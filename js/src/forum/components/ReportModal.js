@@ -23,10 +23,17 @@ export default class ReportModal extends FormModal {
       <div className="Modal-body">
         <Form className="Form--centered">
           <div className="Form-group">
-            <label className="label">{app.translator.trans('huseyinfiliz-traderfeedback.forum.report_modal.reason_label')}</label>
+            <label className="label" for="TraderFeedback-reportReason">
+              {app.translator.trans('huseyinfiliz-traderfeedback.forum.report_modal.reason_label')}
+            </label>
             <textarea
+              id="TraderFeedback-reportReason"
+              name="reason"
               className="FormControl"
               rows="3"
+              required
+              maxlength="1000"
+              disabled={this.loading}
               value={this.reason}
               placeholder={app.translator.trans('huseyinfiliz-traderfeedback.forum.report_modal.reason_placeholder')}
               oninput={(e) => (this.reason = e.target.value)}
@@ -46,14 +53,20 @@ export default class ReportModal extends FormModal {
   onsubmit(e) {
     e.preventDefault();
 
+    if (this.loading || !this.reason.trim()) return;
+
     this.loading = true;
 
     app
       .request({
         method: 'POST',
-        url: app.forum.attribute('apiUrl') + '/trader/feedback/' + this.feedback.id() + '/report',
-        data: {
-          reason: this.reason,
+        url:
+          app.forum.attribute('apiUrl') +
+          '/trader/feedback/' +
+          (typeof this.feedback.id === 'function' ? this.feedback.id() : this.feedback.id) +
+          '/report',
+        body: {
+          data: { attributes: { reason: this.reason.trim() } },
         },
       })
       .then(() => {

@@ -4,6 +4,7 @@ import DiscussionPage from 'flarum/forum/components/DiscussionPage';
 import Button from 'flarum/common/components/Button';
 import FeedbackModal from './modals/FeedbackModal';
 import SelectUserModal from './modals/SelectUserModal';
+import { allowsFeedback } from './utils/discussionRestrictions';
 
 export default function addDiscussionControls() {
   extend(DiscussionPage.prototype, 'sidebarItems', function (items) {
@@ -17,15 +18,13 @@ export default function addDiscussionControls() {
       return;
     }
 
-    if (!shouldShowInDiscussion(discussion)) {
+    if (!discussion || !allowsFeedback(discussion)) {
       return;
     }
 
-    if (!shouldShowWhenLocked(discussion)) {
-      return;
-    }
-
-    const isDiscussionOwner = app.session.user.id() === discussion?.user()?.id();
+    const owner = discussion.user();
+    if (!owner) return;
+    const isDiscussionOwner = app.session.user.id() === owner.id();
 
     items.add(
       'giveFeedbackButton',
@@ -39,10 +38,9 @@ export default function addDiscussionControls() {
                 discussion,
               });
             } else {
-              // ✅ Sadece discussion ID gönder
               app.modal.show(FeedbackModal, {
                 user: discussion.user(),
-                discussionId: discussion.id(), // URL yerine ID
+                discussionId: discussion.id(),
                 autoFillDiscussion: true,
               });
             }
@@ -53,38 +51,4 @@ export default function addDiscussionControls() {
       99
     );
   });
-}
-
-function shouldShowInDiscussion(discussion: any): boolean {
-  const tagFilterJson = app.forum.attribute('huseyinfiliz.traderfeedback.feedbackActionTagFilter') || '[]';
-  let allowedTags: string[] = [];
-
-  try {
-    allowedTags = JSON.parse(tagFilterJson);
-  } catch (e) {
-    allowedTags = [];
-  }
-
-  if (allowedTags.length === 0) {
-    return true;
-  }
-
-  if (!discussion) return false;
-
-  const discussionTags = discussion.tags ? discussion.tags() : [];
-  if (!discussionTags || discussionTags.length === 0) return false;
-
-  return discussionTags.some((tag: any) => allowedTags.includes(tag.id()));
-}
-
-function shouldShowWhenLocked(discussion: any): boolean {
-  const onlyWhenLocked = app.forum.attribute('huseyinfiliz.traderfeedback.feedbackOnlyWhenLocked');
-
-  if (!onlyWhenLocked) {
-    return true;
-  }
-
-  if (!discussion) return false;
-
-  return discussion.isLocked && discussion.isLocked();
 }

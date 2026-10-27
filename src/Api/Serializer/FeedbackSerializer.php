@@ -24,10 +24,11 @@ class FeedbackSerializer
         $canViewDiscussion = false;
 
         if ($feedback->discussion_id) {
-            $discussion = $feedback->discussion;
+            // Controllers load this relation through the actor's visibility scope.
+            $discussion = $feedback->relationLoaded('discussion') ? $feedback->discussion : null;
             if ($discussion) {
                 $discussionExists = true;
-                $canViewDiscussion = $actor ? $actor->can('view', $discussion) : true;
+                $canViewDiscussion = $actor !== null;
             }
         }
 
@@ -45,22 +46,16 @@ class FeedbackSerializer
                 'isApproved'   => (bool) $feedback->is_approved,
                 'fromUserId'   => (int) $feedback->from_user_id,
                 'toUserId'     => (int) $feedback->to_user_id,
-                'discussionId' => $feedback->discussion_id ? (int) $feedback->discussion_id : null,
+                'discussionId' => $canViewDiscussion ? (int) $feedback->discussion_id : null,
                 'approvedById' => $feedback->approved_by_id ? (int) $feedback->approved_by_id : null,
                 'createdAt'    => $createdAtIso,
                 'updatedAt'    => $updatedAtIso,
-                // Duplicate fields for legacy / alternate frontend helper access
-                'created_at'        => $createdAtIso,
-                'from_user_id'      => (int) $feedback->from_user_id,
-                'to_user_id'        => (int) $feedback->to_user_id,
-                'discussion_id'     => $feedback->discussion_id ? (int) $feedback->discussion_id : null,
-                'is_approved'       => (bool) $feedback->is_approved,
                 'canEdit'           => $canEdit,
                 'canDelete'         => $canDelete,
                 'canReport'         => $canReport,
                 'canApprove'        => $canModerate,
                 'canModerate'       => $canModerate,
-                'discussionExists'  => $discussionExists,
+                'discussionExists'  => $discussionExists && $canViewDiscussion,
                 'canViewDiscussion' => $canViewDiscussion,
             ],
             'relationships' => [
@@ -76,12 +71,12 @@ class FeedbackSerializer
                         'id'   => (string) $feedback->to_user_id,
                     ],
                 ],
-                'discussion' => $feedback->discussion_id ? [
-                    'data' => [
+                'discussion' => [
+                    'data' => $canViewDiscussion ? [
                         'type' => 'discussions',
                         'id'   => (string) $feedback->discussion_id,
-                    ],
-                ] : null,
+                    ] : null,
+                ],
             ],
         ];
     }
@@ -157,8 +152,6 @@ class FeedbackSerializer
                 'id'         => (int) $report->id,
                 'reason'     => $report->reason,
                 'resolved'   => (bool) $report->resolved,
-                'created_at' => $createdAtIso,
-                'updated_at' => $updatedAtIso,
                 'createdAt'  => $createdAtIso,
                 'updatedAt'  => $updatedAtIso,
             ],
@@ -194,16 +187,12 @@ class FeedbackSerializer
 
         return [
             'type'       => 'trader-stats',
-            'id'         => (string) $stats->id,
+            'id'         => $stats->exists ? (string) $stats->id : 'user-'.$stats->user_id,
             'attributes' => [
-                'positive_count' => (int) $stats->positive_count,
-                'negative_count' => (int) $stats->negative_count,
-                'neutral_count'  => (int) $stats->neutral_count,
                 'positiveCount'  => (int) $stats->positive_count,
                 'negativeCount'  => (int) $stats->negative_count,
                 'neutralCount'   => (int) $stats->neutral_count,
                 'score'          => (float) $stats->score,
-                'last_updated'   => $lastUpdatedIso,
                 'lastUpdated'    => $lastUpdatedIso,
             ],
             'relationships' => [

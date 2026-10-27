@@ -23,7 +23,8 @@ class RejectFeedbackController implements RequestHandlerInterface
     public function __construct(
         protected NotificationSyncer $notifications,
         protected LoggerInterface $log,
-        protected Dispatcher $events
+        protected Dispatcher $events,
+        protected StatsService $stats
     ) {
     }
 
@@ -62,7 +63,7 @@ class RejectFeedbackController implements RequestHandlerInterface
         $feedback->delete();
 
         // Update stats
-        StatsService::updateUserStats($feedback->to_user_id);
+        $this->stats->updateUserStats($feedback->to_user_id);
 
         // Dispatch event for audit logs
         $this->events->dispatch(new FeedbackRejected($feedback, $actor));

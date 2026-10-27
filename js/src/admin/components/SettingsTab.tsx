@@ -1,8 +1,16 @@
 import app from 'flarum/admin/app';
 import Component from 'flarum/common/Component';
 import Icon from 'flarum/common/components/Icon';
+import type { ComponentAttrs } from 'flarum/common/Component';
+import type TraderFeedbackSettingsPage from '../TraderFeedbackSettingsPage';
 
-export default class SettingsTab extends Component {
+interface SettingsTabAttrs extends ComponentAttrs {
+  page: TraderFeedbackSettingsPage;
+  buildSettingComponent: TraderFeedbackSettingsPage['buildSettingComponent'];
+  submitButton: TraderFeedbackSettingsPage['submitButton'];
+}
+
+export default class SettingsTab extends Component<SettingsTabAttrs> {
   view() {
     const { buildSettingComponent, submitButton, page } = this.attrs;
 
@@ -216,7 +224,9 @@ export default class SettingsTab extends Component {
                 <option value="letters">
                   {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_format_letters')} — 5P / 2N / 1N
                 </option>
-                <option value="symbols">{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_format_symbols')} — +5 =2 -1</option>
+                <option value="symbols">
+                  {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_format_symbols')} — +5 =2 -1
+                </option>
                 <option value="custom">{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_format_custom')}</option>
               </select>
               <p className="helpText">{app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_format_help')}</p>
@@ -242,7 +252,8 @@ export default class SettingsTab extends Component {
                     <Icon name="fas fa-minus" /> {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_var_neutral')}
                   </button>
                   <button type="button" className="Button" onclick={() => page.insertVariable('{negative}')}>
-                    <Icon name="fas fa-thumbs-down" /> {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_var_negative')}
+                    <Icon name="fas fa-thumbs-down" />{' '}
+                    {app.translator.trans('huseyinfiliz-traderfeedback.admin.settings.badge_var_negative')}
                   </button>
                 </div>
 

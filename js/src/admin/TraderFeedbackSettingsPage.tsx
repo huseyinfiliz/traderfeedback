@@ -17,7 +17,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
   stats: any = null;
   included: any[] = [];
 
-  // Badge settings - bu kez sadece helper değişkenler olarak
+  // Transient state for the badge preview.
   customFormatPreview: any = '';
   customFormatError: any = '';
   customFormatTextarea: any = null;
@@ -25,12 +25,12 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
   oninit(vnode: any) {
     super.oninit(vnode);
 
-    // Badge settings'i this.settings'e bağla (ExtensionPage'in built-in sistemi)
+    // Register badge settings with ExtensionPage's settings store.
     this.setting('huseyinfiliz.traderfeedback.badgeFormat', 'percentage');
     this.setting('huseyinfiliz.traderfeedback.badgeCustomFormat', '{total} ({score}%) - {positive}P / {neutral}N / {negative}N');
     this.setting('huseyinfiliz.traderfeedback.badgeCustomPrefix', '');
     this.setting('huseyinfiliz.traderfeedback.badgeTagFilter', '[]');
-    this.setting('huseyinfiliz.traderfeedback.badgeOnlyFirstPost', false);
+    this.setting('huseyinfiliz.traderfeedback.badgeOnlyFirstPost', '0');
 
     // Initial preview synchronously
     this.validateAndPreview(this.setting('huseyinfiliz.traderfeedback.badgeCustomFormat')() || '');
@@ -43,9 +43,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
       <div className="TraderFeedbackPage">
         <StatsCards stats={this.stats} />
         {this.tabs()}
-        <div className="TraderFeedbackPage-content">
-          {this.activeTabContent()}
-        </div>
+        <div className="TraderFeedbackPage-content">{this.activeTabContent()}</div>
       </div>
     );
   }
@@ -96,7 +94,13 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
   activeTabContent() {
     switch (this.activeTab) {
       case 'settings':
-        return <SettingsTab buildSettingComponent={this.buildSettingComponent.bind(this)} submitButton={this.submitButton.bind(this)} page={this} />;
+        return (
+          <SettingsTab
+            buildSettingComponent={this.buildSettingComponent.bind(this)}
+            submitButton={this.submitButton.bind(this)}
+            page={this}
+          />
+        );
       case 'approvals':
         return this.approvalsContent();
       case 'reports':
@@ -188,7 +192,14 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
         } else if (response.total !== undefined) {
           attrs = response;
         } else {
-          attrs = { total: 0, positive: 0, neutral: 0, negative: 0, pending_feedbacks: 0, pending_reports: 0 };
+          attrs = {
+            total: 0,
+            positive: 0,
+            neutral: 0,
+            negative: 0,
+            pending_feedbacks: 0,
+            pending_reports: 0,
+          };
         }
 
         this.stats = {
@@ -278,7 +289,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
   }
 
   approveFeedback(feedback: any) {
-    if (!confirm(app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.confirm_approve'))) return;
+    if (!confirm(String(app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.confirm_approve')))) return;
 
     app
       .request({
@@ -298,7 +309,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
   }
 
   rejectFeedback(feedback: any) {
-    if (!confirm(app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.confirm_reject'))) return;
+    if (!confirm(String(app.translator.trans('huseyinfiliz-traderfeedback.admin.approvals.confirm_reject')))) return;
 
     app
       .request({
@@ -318,7 +329,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
   }
 
   dismissReport(report: any) {
-    if (!confirm(app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.confirm_dismiss'))) return;
+    if (!confirm(String(app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.confirm_dismiss')))) return;
 
     app
       .request({
@@ -338,7 +349,7 @@ export default class TraderFeedbackSettingsPage extends ExtensionPage {
   }
 
   deleteReportedFeedback(report: any) {
-    if (!confirm(app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.confirm_delete'))) return;
+    if (!confirm(String(app.translator.trans('huseyinfiliz-traderfeedback.admin.reports.confirm_delete')))) return;
 
     app
       .request({

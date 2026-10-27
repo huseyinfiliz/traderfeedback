@@ -3,9 +3,17 @@
 namespace HuseyinFiliz\TraderFeedback\Validators;
 
 use Flarum\Foundation\AbstractValidator;
+use Flarum\Locale\TranslatorInterface;
+use Flarum\Settings\SettingsRepositoryInterface;
+use Illuminate\Validation\Factory;
 
 class FeedbackValidator extends AbstractValidator
 {
+    public function __construct(Factory $validator, TranslatorInterface $translator, protected SettingsRepositoryInterface $settings)
+    {
+        parent::__construct($validator, $translator);
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -45,20 +53,15 @@ class FeedbackValidator extends AbstractValidator
     {
         $rules = $this->rules;
 
-        // Settings'i app container'dan alalım
-        $settings = app('flarum.settings');
+        $minLength = max(1, (int) $this->settings->get('huseyinfiliz.traderfeedback.minLength', 10));
+        $maxLength = max($minLength, (int) $this->settings->get('huseyinfiliz.traderfeedback.maxLength', 1000));
 
-        if ($settings) {
-            $minLength = (int) $settings->get('huseyinfiliz.traderfeedback.minLength', 10);
-            $maxLength = (int) $settings->get('huseyinfiliz.traderfeedback.maxLength', 1000);
-
-            $rules['comment'] = [
-                'required',
-                'string',
-                'min:'.$minLength,
-                'max:'.$maxLength,
-            ];
-        }
+        $rules['comment'] = [
+            'required',
+            'string',
+            'min:'.$minLength,
+            'max:'.$maxLength,
+        ];
 
         return $rules;
     }
@@ -69,16 +72,11 @@ class FeedbackValidator extends AbstractValidator
     protected function getMessages(): array
     {
         return [
-            'to_user_id.required'  => 'User ID is required.',
-            'to_user_id.exists'    => 'User does not exist.',
-            'type.required'        => 'Feedback type is required.',
-            'type.in'              => 'Invalid feedback type. Must be positive, neutral, or negative.',
-            'role.required'        => 'Your role in the transaction is required.',
-            'role.in'              => 'Invalid role. Must be buyer, seller, or trader.',
-            'comment.required'     => 'Comment is required.',
-            'comment.min'          => 'Comment must be at least :min characters.',
-            'comment.max'          => 'Comment must not exceed :max characters.',
-            'discussion_id.exists' => 'Discussion does not exist.',
+            'to_user_id.required' => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.user_required'),
+            'to_user_id.exists' => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.user_not_found'),
+            'type.in' => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.invalid_type'),
+            'role.in' => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.invalid_role'),
+            'discussion_id.exists' => $this->translator->trans('huseyinfiliz-traderfeedback.api.validation.discussion_not_found'),
         ];
     }
 }

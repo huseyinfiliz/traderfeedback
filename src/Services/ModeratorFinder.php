@@ -16,7 +16,7 @@ class ModeratorFinder
      *
      * @return Collection<int, User>
      */
-    public static function getModerators(?int $excludeUserId = null): Collection
+    public function getModerators(?int $excludeUserId = null): Collection
     {
         $groupPermissionGroupIds = Permission::where('permission', 'huseyinfiliz-traderfeedback.moderate')
             ->pluck('group_id')
@@ -35,7 +35,7 @@ class ModeratorFinder
             $query->where('id', '!=', $excludeUserId);
         }
 
-        return $query->get()->filter(function (User $user) {
+        return $query->with('groups')->get()->filter(function (User $user) {
             return $user->can('huseyinfiliz-traderfeedback.moderate');
         });
     }

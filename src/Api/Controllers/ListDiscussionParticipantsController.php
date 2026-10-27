@@ -5,6 +5,7 @@ namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 use Flarum\Discussion\Discussion;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
+use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use Illuminate\Support\Arr;
 use Laminas\Diactoros\Response\JsonResponse;
@@ -33,13 +34,11 @@ class ListDiscussionParticipantsController implements RequestHandlerInterface
             ]);
         }
 
-        $discussion = Discussion::findOrFail($discussionId);
-
-        $actor->assertCan('view', $discussion);
+        $discussion = Discussion::whereVisibleTo($actor)->findOrFail($discussionId);
 
         $search = Arr::get($request->getQueryParams(), 'filter.q');
 
-        $query = $discussion->participants()
+        $query = User::query()->whereIn('users.id', $discussion->participants()->select('users.id'))
             ->where('users.id', '!=', $actor->id);
 
         if ($search) {

@@ -136,10 +136,28 @@ class TraderStatsApiTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
 
         $body = json_decode((string) $response->getBody(), true);
-        $this->assertSame(4, $body['data']['attributes']['positive_count']);
-        $this->assertSame(1, $body['data']['attributes']['neutral_count']);
-        $this->assertSame(0, $body['data']['attributes']['negative_count']);
+        $this->assertSame(4, $body['data']['attributes']['positiveCount']);
+        $this->assertSame(1, $body['data']['attributes']['neutralCount']);
+        $this->assertSame(0, $body['data']['attributes']['negativeCount']);
         $this->assertSame(80.0, (float) $body['data']['attributes']['score']);
+    }
+
+    public function test_nonexistent_user_returns_not_found_without_writing_stats()
+    {
+        $response = $this->send($this->request('GET', '/api/trader/stats/999999'));
+        $this->assertSame(404, $response->getStatusCode());
+        $this->assertSame(1, $this->database()->table('tfb_stats')->count());
+    }
+
+    public function test_missing_stats_are_read_without_creating_a_database_record()
+    {
+        $this->app();
+        $this->database()->table('tfb_stats')->delete();
+        $response = $this->send($this->request('GET', '/api/trader/stats/3'));
+        $this->assertSame(200, $response->getStatusCode());
+        $body = json_decode((string) $response->getBody(), true);
+        $this->assertSame(4, $body['data']['attributes']['positiveCount']);
+        $this->assertSame(0, $this->database()->table('tfb_stats')->count());
     }
 
     public function test_stats_summary_requires_moderate_permission()

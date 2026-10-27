@@ -26,7 +26,7 @@ class ListPendingFeedbacksController implements RequestHandlerInterface
         $offset = max((int) Arr::get($params, 'page.offset', 0), 0);
 
         $query = Feedback::where('is_approved', false)
-            ->with(['fromUser', 'toUser', 'discussion']);
+            ->with(['fromUser', 'toUser', 'discussion' => fn ($query) => $query->whereVisibleTo($actor)]);
 
         $userId = Arr::get($params, 'filter.user');
         if ($userId) {

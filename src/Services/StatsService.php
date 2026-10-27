@@ -3,96 +3,66 @@
 namespace HuseyinFiliz\TraderFeedback\Services;
 
 use Carbon\Carbon;
+use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Models\TraderStats;
+use Illuminate\Contracts\Cache\Repository;
+use Illuminate\Database\ConnectionInterface;
 
-/**
- * Service for managing trader statistics.
- */
 class StatsService
 {
-    /**
-     * Update user statistics based on their received feedbacks
-     * Also clears the cache for this user.
-     *
-     * @param int $userId
-     *
-     * @return TraderStats
-     */
-    public static function updateUserStats(int $userId): TraderStats
+    public function __construct(protected ConnectionInterface $db, protected Repository $cache)
     {
-        // Clear cache for this user
-        self::clearCache($userId);
+    }
 
-        $stats = TraderStats::firstOrNew(['user_id' => $userId]);
+    public function forUser(int $userId): TraderStats
+    {
+        User::findOrFail($userId);
 
-        $stats->positive_count = Feedback::where('to_user_id', $userId)
-            ->where('type', Feedback::TYPE_POSITIVE)
-            ->where('is_approved', true)
-            ->count();
+        return TraderStats::where('user_id', $userId)->first() ?? $this->calculate($userId);
+    }
 
-        $stats->neutral_count = Feedback::where('to_user_id', $userId)
-            ->where('type', Feedback::TYPE_NEUTRAL)
-            ->where('is_approved', true)
-            ->count();
+    public function updateUserStats(int $userId): TraderStats
+    {
+        $stats = $this->db->transaction(function () use ($userId) {
+            // Lock the parent row so first-time upserts and concurrent recalculations cannot race.
+            User::whereKey($userId)->select('id')->lockForUpdate()->firstOrFail();
+            $calculated = $this->calculate($userId);
+            $stats = TraderStats::firstOrNew(['user_id' => $userId]);
+            $stats->positive_count = $calculated->positive_count;
+            $stats->neutral_count = $calculated->neutral_count;
+            $stats->negative_count = $calculated->negative_count;
+            $stats->score = $calculated->score;
+            $stats->last_updated = Carbon::now();
+            $stats->save();
 
-        $stats->negative_count = Feedback::where('to_user_id', $userId)
-            ->where('type', Feedback::TYPE_NEGATIVE)
-            ->where('is_approved', true)
-            ->count();
+            return $stats;
+        }, 3);
 
-        $total = $stats->positive_count + $stats->neutral_count + $stats->negative_count;
-        $stats->score = $total > 0 ? ($stats->positive_count / $total) * 100 : 0;
-        $stats->last_updated = Carbon::now();
-        $stats->save();
+        $this->clearCache($userId);
 
         return $stats;
     }
 
-    /**
-     * Recalculate statistics for a user
-     * Alias for updateUserStats for clarity.
-     *
-     * @param int $userId
-     *
-     * @return TraderStats
-     */
-    public static function recalculate(int $userId): TraderStats
+    public function clearCache(int $userId): void
     {
-        return self::updateUserStats($userId);
+        // Invalidate entries written by earlier versions during rolling upgrades.
+        $this->cache->forget("trader_stats_{$userId}");
     }
 
-    /**
-     * Clear cache for a specific user.
-     *
-     * @param int $userId
-     *
-     * @return void
-     */
-    public static function clearCache(int $userId): void
+    private function calculate(int $userId): TraderStats
     {
-        $cacheKey = "trader_stats_{$userId}";
-        $cache = app('cache.store');
+        $counts = Feedback::where('to_user_id', $userId)->where('is_approved', true)
+            ->selectRaw('type, count(*) as total')->groupBy('type')->pluck('total', 'type');
 
-        if ($cache->has($cacheKey)) {
-            $cache->forget($cacheKey);
-        }
-    }
+        $stats = new TraderStats();
+        $stats->user_id = $userId;
+        $stats->positive_count = (int) ($counts[Feedback::TYPE_POSITIVE] ?? 0);
+        $stats->neutral_count = (int) ($counts[Feedback::TYPE_NEUTRAL] ?? 0);
+        $stats->negative_count = (int) ($counts[Feedback::TYPE_NEGATIVE] ?? 0);
+        $total = $stats->positive_count + $stats->neutral_count + $stats->negative_count;
+        $stats->score = $total ? 100 * $stats->positive_count / $total : 0;
 
-    /**
-     * Clear all trader stats cache
-     * Note: This is a simple implementation that clears known keys
-     * For production, consider using cache tags if available.
-     *
-     * @return void
-     */
-    public static function clearAllCache(): void
-    {
-        // Get all user IDs that have stats
-        $userIds = TraderStats::pluck('user_id')->toArray();
-
-        foreach ($userIds as $userId) {
-            self::clearCache($userId);
-        }
+        return $stats;
     }
 }

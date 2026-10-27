@@ -32,7 +32,7 @@ return [
                 $table->index('resolved');
                 $table->index('created_at');
 
-                // Unique constraint: bir kullanıcı bir feedback'i bir kez raporlayabilir
+                // A user may report each feedback once, including resolved reports.
                 $table->unique(['user_id', 'feedback_id'], 'unique_report_per_user');
             });
         }

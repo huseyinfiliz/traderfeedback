@@ -15,17 +15,19 @@ use Flarum\User\User;
  * @property int|null $resolved_by_id
  * @property Carbon   $created_at
  * @property Carbon   $updated_at
+ * @property User|null $reporter
+ * @property User|null $resolvedBy
+ * @property Feedback|null $feedback
  */
 class FeedbackReport extends AbstractModel
 {
     protected $table = 'tfb_reports';
 
-    // ✅ Timestamps enabled
     public $timestamps = true;
 
     protected $fillable = [
         'feedback_id',
-        'user_id',  // ✅ user_id (migration'daki gibi)
+        'user_id',
         'reason',
         'resolved',
         'resolved_by_id',
@@ -46,8 +48,7 @@ class FeedbackReport extends AbstractModel
     }
 
     /**
-     * Reporter relationship
-     * ✅ 'user_id' foreign key belirt.
+     * The user who submitted the report.
      */
     public function reporter()
     {

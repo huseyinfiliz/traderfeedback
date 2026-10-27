@@ -3,29 +3,21 @@ import app from 'flarum/forum/app';
 import PostControls from 'flarum/forum/utils/PostControls';
 import Button from 'flarum/common/components/Button';
 import FeedbackModal from './modals/FeedbackModal';
+import { allowsFeedback } from './utils/discussionRestrictions';
 
 export default function addPostControls() {
-  // PostControls.userControls - Kullanıcı kontrolleri için
   extend(PostControls, 'userControls', function (items, post) {
     const user = post.user();
 
-    // Kendine feedback veremez
-    if (!app.session.user || app.session.user.id() === user?.id()) {
+    if (!app.session.user || !user || !user.attribute('canGiveFeedback')) {
       return;
     }
 
-    // Ayar kontrolü
     if (!app.forum.attribute('huseyinfiliz.traderfeedback.showFeedbackInPostMenu')) {
       return;
     }
 
-    // Tag filter kontrolü
-    if (!shouldShowInDiscussion(post.discussion())) {
-      return;
-    }
-
-    // Lock kontrolü
-    if (!shouldShowWhenLocked(post.discussion())) {
+    if (!allowsFeedback(post.discussion())) {
       return;
     }
 
@@ -44,43 +36,7 @@ export default function addPostControls() {
         },
         app.translator.trans('huseyinfiliz-traderfeedback.forum.post_actions.give_feedback')
       ),
-      10 // Pozitif priority - user controls'da
+      10
     );
   });
-}
-
-// Tag filter kontrolü
-function shouldShowInDiscussion(discussion: any): boolean {
-  const tagFilterJson = app.forum.attribute('huseyinfiliz.traderfeedback.feedbackActionTagFilter') || '[]';
-  let allowedTags: string[] = [];
-
-  try {
-    allowedTags = JSON.parse(tagFilterJson);
-  } catch (e) {
-    allowedTags = [];
-  }
-
-  if (allowedTags.length === 0) {
-    return true;
-  }
-
-  if (!discussion) return false;
-
-  const discussionTags = discussion.tags ? discussion.tags() : [];
-  if (!discussionTags || discussionTags.length === 0) return false;
-
-  return discussionTags.some((tag: any) => allowedTags.includes(tag.id()));
-}
-
-// Lock kontrolü
-function shouldShowWhenLocked(discussion: any): boolean {
-  const onlyWhenLocked = app.forum.attribute('huseyinfiliz.traderfeedback.feedbackOnlyWhenLocked');
-
-  if (!onlyWhenLocked) {
-    return true;
-  }
-
-  if (!discussion) return false;
-
-  return discussion.isLocked && discussion.isLocked();
 }

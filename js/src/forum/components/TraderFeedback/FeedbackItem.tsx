@@ -4,18 +4,27 @@ import Button from 'flarum/common/components/Button';
 import Icon from 'flarum/common/components/Icon';
 import humanTime from 'flarum/common/helpers/humanTime';
 import FeedbackUserDisplay from './FeedbackUserDisplay';
+import type { ComponentAttrs } from 'flarum/common/Component';
+import type { FeedbackAttributes, FeedbackData, FeedbackRole, FeedbackType } from '../../../common/types';
 
-export default class FeedbackItem extends Component {
+export interface FeedbackItemAttrs extends ComponentAttrs {
+  feedback: FeedbackData;
+  includedUsers: Map<string, any>;
+  onDelete: (feedback: FeedbackData) => void;
+  onReport: (feedback: FeedbackData) => void;
+}
+
+export default class FeedbackItem extends Component<FeedbackItemAttrs> {
   loading: boolean = false;
 
   view() {
     const { feedback, includedUsers, onDelete, onReport } = this.attrs;
-    const attrs = feedback.attributes || {};
+    const attrs = feedback.attributes;
 
     const fromUserRelationship = feedback.relationships?.fromUser?.data;
-    const fromUserId = fromUserRelationship?.id || attrs.fromUserId || attrs.from_user_id;
+    const fromUserId = fromUserRelationship?.id || attrs.fromUserId;
 
-    const feedbackDate = attrs.createdAt || attrs.created_at || new Date().toISOString();
+    const feedbackDate = new Date(attrs.createdAt);
 
     return (
       <div className={`FeedbackItem FeedbackItem--${attrs.type}`}>
@@ -45,7 +54,7 @@ export default class FeedbackItem extends Component {
     );
   }
 
-  renderTypeBadge(type) {
+  renderTypeBadge(type: FeedbackType) {
     const icons = {
       positive: 'fas fa-thumbs-up',
       neutral: 'fas fa-minus',
@@ -62,7 +71,7 @@ export default class FeedbackItem extends Component {
     );
   }
 
-  renderRoleBadge(role) {
+  renderRoleBadge(role: FeedbackRole) {
     const icons = {
       buyer: 'fas fa-cart-shopping',
       seller: 'fas fa-store',
@@ -79,8 +88,8 @@ export default class FeedbackItem extends Component {
     );
   }
 
-  renderDiscussionLink(attrs) {
-    if (!attrs.discussionId && !attrs.discussion_id) {
+  renderDiscussionLink(attrs: FeedbackAttributes) {
+    if (!attrs.discussionId) {
       return null;
     }
 
@@ -102,7 +111,7 @@ export default class FeedbackItem extends Component {
 
     return (
       <a
-        href={app.route('discussion', { id: attrs.discussionId || attrs.discussion_id })}
+        href={app.route('discussion', { id: attrs.discussionId })}
         className="FeedbackItem-discussionLink"
         target="_blank"
         rel="noopener noreferrer"
@@ -118,17 +127,16 @@ export default class FeedbackItem extends Component {
     );
   }
 
-  renderActions(feedback, fromUserId) {
+  renderActions(feedback: FeedbackData, fromUserId: string | number) {
     const currentUser = app.session.user;
     if (!currentUser) return null;
 
-    const attrs = feedback.attributes || {};
-    const canReport = attrs.canReport !== false && currentUser.attribute('canReportFeedback') !== false;
-    const canDelete = attrs.canDelete || currentUser.attribute('canDeleteFeedback');
-    const canModerate = currentUser.attribute('canModerateFeedback');
+    const attrs = feedback.attributes;
+    const canReport = attrs.canReport === true;
+    const canDelete = attrs.canDelete === true;
     const isOwn = currentUser.id() === String(fromUserId);
 
-    if (!canReport && !canDelete && !isOwn && !canModerate) {
+    if (!canReport && !canDelete) {
       return null;
     }
 
@@ -141,18 +149,22 @@ export default class FeedbackItem extends Component {
             onclick={() => this.attrs.onReport(feedback)}
             title={app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.report_button')}
           >
-            <span className="FeedbackItem-actionText">{app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.report_button')}</span>
+            <span className="FeedbackItem-actionText">
+              {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.report_button')}
+            </span>
           </Button>
         )}
 
-        {(isOwn || canDelete || canModerate) && (
+        {canDelete && (
           <Button
             className="Button Button--link Button--danger FeedbackItem-deleteBtn"
             icon="fas fa-trash"
             onclick={() => this.attrs.onDelete(feedback)}
             title={app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.delete_button')}
           >
-            <span className="FeedbackItem-actionText">{app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.delete_button')}</span>
+            <span className="FeedbackItem-actionText">
+              {app.translator.trans('huseyinfiliz-traderfeedback.forum.feedback_item.delete_button')}
+            </span>
           </Button>
         )}
       </div>

@@ -7,13 +7,13 @@ import User from 'flarum/common/models/User';
 import TraderStats from '../common/models/TraderStats';
 
 export default function addUserCardStats() {
-  // TraderStats model'ini store'a kaydet
+  // Register trader statistics with the store.
   app.store.models['trader-stats'] = TraderStats;
 
-  // User model'e traderStats relationship ekle
+  // Add the trader statistics relationship to users.
   User.prototype.traderStats = Model.hasOne('traderStats');
 
-  // UserCard'a stats ekle (hem profil hem hovercard için)
+  // Show statistics on profile cards and hovercards.
   extend(UserCard.prototype, 'infoItems', function (items) {
     const user = this.attrs.user;
 
