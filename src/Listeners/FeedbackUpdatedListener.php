@@ -7,7 +7,7 @@ use Flarum\Notification\NotificationSyncer;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackUpdated;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackApprovedBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackNeedsApprovalBlueprint;
-use HuseyinFiliz\TraderFeedback\Services\ModeratorFinder;
+use HuseyinFiliz\TraderFeedback\Services\ModeratorNotificationSyncer;
 use HuseyinFiliz\TraderFeedback\Services\StatsService;
 
 class FeedbackUpdatedListener
@@ -15,7 +15,7 @@ class FeedbackUpdatedListener
     public function __construct(
         protected NotificationSyncer $notifications,
         protected StatsService $stats,
-        protected ModeratorFinder $moderatorFinder
+        protected ModeratorNotificationSyncer $moderatorNotifications
     ) {
     }
 
@@ -32,8 +32,7 @@ class FeedbackUpdatedListener
             // Blueprint matching includes data, which has changed along with the feedback.
             Notification::whereSubject($feedback)->whereIn('type', ['newFeedback', 'feedbackApproved', 'feedbackNeedsApproval'])
                 ->update(['is_deleted' => true]);
-            $moderators = $this->moderatorFinder->getModerators($actor->id);
-            $this->notifications->sync(new FeedbackNeedsApprovalBlueprint($feedback), $moderators->all());
+            $this->moderatorNotifications->syncModerators(new FeedbackNeedsApprovalBlueprint($feedback), $actor->id);
 
             return;
         }

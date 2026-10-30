@@ -5,18 +5,18 @@ namespace HuseyinFiliz\TraderFeedback\Services;
 use Flarum\Group\Group;
 use Flarum\Group\Permission;
 use Flarum\User\User;
-use Illuminate\Database\Eloquent\Collection;
+use Generator;
 
 class ModeratorFinder
 {
     /**
-     * Get all users who can moderate trader feedback, excluding a specific user ID.
+     * Yield bounded batches of users who can moderate trader feedback.
      *
      * @param int|null $excludeUserId
      *
-     * @return Collection<int, User>
+     * @return Generator<int, array<int, User>>
      */
-    public function getModerators(?int $excludeUserId = null): Collection
+    public function batches(?int $excludeUserId = null): Generator
     {
         $groupPermissionGroupIds = Permission::where('permission', 'huseyinfiliz-traderfeedback.moderate')
             ->pluck('group_id')
@@ -25,7 +25,7 @@ class ModeratorFinder
 
         $query = User::query();
 
-        if (!in_array(Group::MEMBER_ID, $groupPermissionGroupIds)) {
+        if (!in_array(Group::MEMBER_ID, $groupPermissionGroupIds) && !in_array(Group::GUEST_ID, $groupPermissionGroupIds)) {
             $query->whereHas('groups', function ($q) use ($groupPermissionGroupIds) {
                 $q->whereIn('id', $groupPermissionGroupIds);
             });
@@ -35,8 +35,21 @@ class ModeratorFinder
             $query->where('id', '!=', $excludeUserId);
         }
 
-        return $query->with('groups')->get()->filter(function (User $user) {
-            return $user->can('huseyinfiliz-traderfeedback.moderate');
-        });
+        $batch = [];
+        foreach ($query->with('groups')->lazyById(200) as $user) {
+            if (!$user->can('huseyinfiliz-traderfeedback.moderate')) {
+                continue;
+            }
+
+            $batch[] = $user;
+            if (count($batch) === 200) {
+                yield $batch;
+                $batch = [];
+            }
+        }
+
+        if ($batch) {
+            yield $batch;
+        }
     }
 }

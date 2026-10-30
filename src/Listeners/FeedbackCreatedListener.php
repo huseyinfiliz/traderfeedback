@@ -6,7 +6,7 @@ use Flarum\Notification\NotificationSyncer;
 use HuseyinFiliz\TraderFeedback\Events\FeedbackCreated;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackNeedsApprovalBlueprint;
 use HuseyinFiliz\TraderFeedback\Notifications\NewFeedbackBlueprint;
-use HuseyinFiliz\TraderFeedback\Services\ModeratorFinder;
+use HuseyinFiliz\TraderFeedback\Services\ModeratorNotificationSyncer;
 use HuseyinFiliz\TraderFeedback\Services\StatsService;
 
 class FeedbackCreatedListener
@@ -14,7 +14,7 @@ class FeedbackCreatedListener
     public function __construct(
         protected NotificationSyncer $notifications,
         protected StatsService $stats,
-        protected ModeratorFinder $moderatorFinder
+        protected ModeratorNotificationSyncer $moderatorNotifications
     ) {
     }
 
@@ -43,14 +43,10 @@ class FeedbackCreatedListener
             }
         } else {
             // Feedback requires approval -> notify moderators
-            $moderators = $this->moderatorFinder->getModerators($feedback->from_user_id);
-
-            if ($moderators->isNotEmpty()) {
-                $this->notifications->sync(
-                    new FeedbackNeedsApprovalBlueprint($feedback),
-                    $moderators->all()
-                );
-            }
+            $this->moderatorNotifications->syncModerators(
+                new FeedbackNeedsApprovalBlueprint($feedback),
+                $feedback->from_user_id
+            );
         }
     }
 

@@ -6,13 +6,12 @@ use Carbon\Carbon;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
 use Flarum\Locale\TranslatorInterface;
-use Flarum\Notification\NotificationSyncer;
 use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Models\FeedbackReport;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackReportedBlueprint;
-use HuseyinFiliz\TraderFeedback\Services\ModeratorFinder;
+use HuseyinFiliz\TraderFeedback\Services\ModeratorNotificationSyncer;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Arr;
 use Laminas\Diactoros\Response\JsonResponse;
@@ -24,9 +23,8 @@ class ReportFeedbackController implements RequestHandlerInterface
 {
     public function __construct(
         protected TranslatorInterface $translator,
-        protected NotificationSyncer $notifications,
-        protected ConnectionInterface $db,
-        protected ModeratorFinder $moderatorFinder
+        protected ModeratorNotificationSyncer $notifications,
+        protected ConnectionInterface $db
     ) {
     }
 
@@ -84,13 +82,7 @@ class ReportFeedbackController implements RequestHandlerInterface
         $report->load(['reporter', 'feedback.fromUser', 'feedback.toUser']);
 
         // Notify moderators about the report
-        $moderators = $this->moderatorFinder->getModerators($actor->id);
-        if ($moderators->isNotEmpty()) {
-            $this->notifications->sync(
-                new FeedbackReportedBlueprint($report),
-                $moderators->all()
-            );
-        }
+        $this->notifications->syncModerators(new FeedbackReportedBlueprint($report), $actor->id);
 
         return new JsonResponse([
             'success' => true,

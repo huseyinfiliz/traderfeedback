@@ -5,6 +5,7 @@ namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 use Flarum\Discussion\Discussion;
 use Flarum\Foundation\ValidationException;
 use Flarum\Http\RequestUtil;
+use Flarum\Post\Post;
 use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use Illuminate\Support\Arr;
@@ -18,6 +19,8 @@ class ListDiscussionParticipantsController implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
+        $actor->assertRegistered();
+        $actor->assertCan('huseyinfiliz-traderfeedback.give');
         $routeParams = $request->getAttribute('routeParameters') ?? [];
         $discussionId = $routeParams['id'] ?? Arr::get($request->getQueryParams(), 'id');
 
@@ -38,7 +41,13 @@ class ListDiscussionParticipantsController implements RequestHandlerInterface
 
         $search = Arr::get($request->getQueryParams(), 'filter.q');
 
-        $query = User::query()->whereIn('users.id', $discussion->participants()->select('users.id'))
+        $posts = Post::whereVisibleTo($actor)
+            ->where('discussion_id', $discussion->id)
+            ->where('type', 'comment')
+            ->where('is_private', false)
+            ->select('user_id');
+
+        $query = User::whereVisibleTo($actor)->whereIn('users.id', $posts)
             ->where('users.id', '!=', $actor->id);
 
         if ($search) {

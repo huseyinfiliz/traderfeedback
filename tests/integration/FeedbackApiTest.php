@@ -5,11 +5,15 @@ namespace HuseyinFiliz\TraderFeedback\Tests\Integration;
 use Carbon\Carbon;
 use Flarum\Discussion\Discussion;
 use Flarum\Extend;
+use Flarum\Notification\Blueprint\BlueprintInterface;
+use Flarum\Notification\Notification;
 use Flarum\Post\Post;
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase;
 use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
+use HuseyinFiliz\TraderFeedback\Notifications\FeedbackNeedsApprovalBlueprint;
+use HuseyinFiliz\TraderFeedback\Services\ModeratorNotificationSyncer;
 use HuseyinFiliz\TraderFeedback\Services\StatsService;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -521,6 +525,111 @@ class FeedbackApiTest extends TestCase
         Discussion::whereKey(1)->update(['hidden_at' => Carbon::now()]);
         $response = $this->send($this->request('GET', '/api/trader/discussions/1/participants', ['authenticatedAs' => 4]));
         $this->assertSame(404, $response->getStatusCode());
+    }
+
+    public function test_participant_selection_requires_registration_and_feedback_permission()
+    {
+        $path = '/api/trader/discussions/1/participants';
+        $this->prepareDatabase([
+            User::class => [array_merge($this->normalUser(), [
+                'id' => 5, 'username' => 'unconfirmed', 'email' => 'unconfirmed@machine.local', 'is_email_confirmed' => 0,
+            ])],
+        ]);
+        $this->assertSame(401, $this->send($this->request('GET', $path))->getStatusCode());
+        $this->assertSame(403, $this->send($this->request('GET', $path, ['authenticatedAs' => 5]))->getStatusCode());
+    }
+
+    public function test_participant_selection_rejects_confirmed_users_without_feedback_permission()
+    {
+        $this->app();
+        $this->database()->table('group_permission')->where('permission', 'huseyinfiliz-traderfeedback.give')->delete();
+        $response = $this->send($this->request('GET', '/api/trader/discussions/1/participants', ['authenticatedAs' => 4]));
+        $this->assertSame(403, $response->getStatusCode());
+    }
+
+    public function test_participant_selection_only_uses_visible_comments()
+    {
+        $this->prepareDatabase([
+            Post::class => [[
+                'id' => 2, 'discussion_id' => 1, 'user_id' => 3, 'type' => 'comment',
+                'content' => '<t><p>Hidden comment</p></t>', 'number' => 2,
+                'created_at' => Carbon::now()->toDateTimeString(), 'hidden_at' => Carbon::now()->toDateTimeString(),
+            ]],
+        ]);
+        $path = '/api/trader/discussions/1/participants';
+        $response = $this->send($this->request('GET', $path, ['authenticatedAs' => 4]));
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame(['2'], array_column(json_decode((string) $response->getBody(), true)['data'], 'id'));
+
+        $response = $this->send($this->request('GET', $path, ['authenticatedAs' => 1]));
+        $this->assertContains('3', array_column(json_decode((string) $response->getBody(), true)['data'], 'id'));
+    }
+
+    public function test_participant_selection_respects_extension_post_visibility()
+    {
+        $this->extend((new Extend\ModelVisibility(Post::class))->scope(function (User $actor, Builder $query) {
+            $query->where('posts.id', '!=', 1);
+        }));
+        $response = $this->send($this->request('GET', '/api/trader/discussions/1/participants', ['authenticatedAs' => 4]));
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([], json_decode((string) $response->getBody(), true)['data']);
+    }
+
+    public function test_participant_selection_respects_extension_user_visibility()
+    {
+        $this->extend((new Extend\ModelVisibility(User::class))->scope(function (User $actor, Builder $query) {
+            $query->where('users.id', '!=', 2);
+        }));
+        $response = $this->send($this->request('GET', '/api/trader/discussions/1/participants', ['authenticatedAs' => 4]));
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([], json_decode((string) $response->getBody(), true)['data']);
+    }
+
+    public function test_moderator_notifications_preserve_all_batches_and_reconcile_existing_recipients()
+    {
+        $batchSizes = [];
+        $this->extend((new Extend\Notification())->beforeSending(function (BlueprintInterface $blueprint, array $recipients) use (&$batchSizes) {
+            $batchSizes[] = count($recipients);
+
+            return array_filter($recipients, fn (User $user) => $user->id !== 404);
+        }));
+        $users = [];
+        for ($id = 5; $id <= 405; $id++) {
+            $users[] = array_merge($this->normalUser(), [
+                'id' => $id, 'username' => 'moderator'.$id, 'email' => 'moderator'.$id.'@machine.local',
+                'is_email_confirmed' => $id !== 405,
+            ]);
+        }
+        $this->prepareDatabase([
+            User::class => $users,
+            'group_permission' => [['group_id' => 3, 'permission' => 'huseyinfiliz-traderfeedback.moderate']],
+        ]);
+        $this->setting('huseyinfiliz.traderfeedback.requireApproval', true);
+        $response = $this->mutate('POST', '/api/trader/feedback', $this->validFeedback());
+        $this->assertSame(201, $response->getStatusCode(), (string) $response->getBody());
+
+        $feedback = Feedback::latest('id')->firstOrFail();
+        $blueprint = new FeedbackNeedsApprovalBlueprint($feedback);
+        $active = fn () => Notification::matchingBlueprint($blueprint)->where('is_deleted', false);
+        $this->assertSame([200, 200, 3], $batchSizes);
+        $this->assertSame(402, $active()->count());
+        foreach ([1, 2, 3, 200, 201, 400, 403] as $id) {
+            $this->assertTrue($active()->where('user_id', $id)->exists(), 'Missing moderator '.$id);
+        }
+        foreach ([4, 404, 405] as $id) {
+            $this->assertFalse($active()->where('user_id', $id)->exists());
+        }
+
+        $syncer = $this->app()->getContainer()->make(ModeratorNotificationSyncer::class);
+        $syncer->syncModerators($blueprint, 4);
+        $this->assertSame(402, $active()->count());
+        $this->assertSame(402, Notification::matchingBlueprint($blueprint)->count());
+
+        $syncer->syncModerators($blueprint, 3);
+        $this->assertSame(402, $active()->count());
+        $this->assertFalse($active()->where('user_id', 3)->exists());
+        $this->assertTrue($active()->where('user_id', 4)->exists());
+        $this->assertTrue($active()->where('user_id', 1)->exists());
     }
 
     public function test_moderation_actions_are_recorded_when_audit_is_enabled()
