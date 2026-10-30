@@ -532,7 +532,10 @@ class FeedbackApiTest extends TestCase
         $path = '/api/trader/discussions/1/participants';
         $this->prepareDatabase([
             User::class => [array_merge($this->normalUser(), [
-                'id' => 5, 'username' => 'unconfirmed', 'email' => 'unconfirmed@machine.local', 'is_email_confirmed' => 0,
+                'id'                 => 5,
+                'username'           => 'unconfirmed',
+                'email'              => 'unconfirmed@machine.local',
+                'is_email_confirmed' => 0,
             ])],
         ]);
         $this->assertSame(401, $this->send($this->request('GET', $path))->getStatusCode());
@@ -551,9 +554,14 @@ class FeedbackApiTest extends TestCase
     {
         $this->prepareDatabase([
             Post::class => [[
-                'id' => 2, 'discussion_id' => 1, 'user_id' => 3, 'type' => 'comment',
-                'content' => '<t><p>Hidden comment</p></t>', 'number' => 2,
-                'created_at' => Carbon::now()->toDateTimeString(), 'hidden_at' => Carbon::now()->toDateTimeString(),
+                'id'            => 2,
+                'discussion_id' => 1,
+                'user_id'       => 3,
+                'type'          => 'comment',
+                'content'       => '<t><p>Hidden comment</p></t>',
+                'number'        => 2,
+                'created_at'    => Carbon::now()->toDateTimeString(),
+                'hidden_at'     => Carbon::now()->toDateTimeString(),
             ]],
         ]);
         $path = '/api/trader/discussions/1/participants';
@@ -596,12 +604,14 @@ class FeedbackApiTest extends TestCase
         $users = [];
         for ($id = 5; $id <= 405; $id++) {
             $users[] = array_merge($this->normalUser(), [
-                'id' => $id, 'username' => 'moderator'.$id, 'email' => 'moderator'.$id.'@machine.local',
+                'id'                 => $id,
+                'username'           => 'moderator'.$id,
+                'email'              => 'moderator'.$id.'@machine.local',
                 'is_email_confirmed' => $id !== 405,
             ]);
         }
         $this->prepareDatabase([
-            User::class => $users,
+            User::class        => $users,
             'group_permission' => [['group_id' => 3, 'permission' => 'huseyinfiliz-traderfeedback.moderate']],
         ]);
         $this->setting('huseyinfiliz.traderfeedback.requireApproval', true);
