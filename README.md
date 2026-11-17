@@ -69,26 +69,6 @@ feedback records for recipients whose selected feedback tab is private.
 
 Report vulnerabilities privately using the instructions in [SECURITY.md](SECURITY.md).
 
-Dependabot checks Composer, Yarn, and GitHub Actions dependencies weekly. Separate
-dependency-audit jobs check the supported PHP dependency graph and the committed
-Yarn lockfile. JavaScript development uses Node.js 26 and Yarn 1.22.22:
-
-```sh
-composer test
-composer analyse:phpstan
-# Run the following commands from the js directory.
-yarn install --frozen-lockfile
-yarn format:check
-yarn typecheck
-yarn build
-```
-
-The PHP integration suite uses Flarum's isolated test installation; never point
-its database configuration at a forum database.
-
-Commit generated `js/dist` bundles with the corresponding source or dependency
-updates. CI validates the build without automatically pushing generated commits.
-
 ## 💖 Support & Contributing
 If you find this extension useful, consider:
 - ⭐ Starring the repository on GitHub
