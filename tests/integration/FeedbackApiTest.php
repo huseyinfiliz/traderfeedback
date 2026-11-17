@@ -472,8 +472,13 @@ class FeedbackApiTest extends TestCase
     {
         $this->extend((new Extend\Policy())->globalPolicy(DenyForumReadPolicy::class));
         $this->prepareDatabase(['tfb_stats' => [[
-            'id' => 1, 'user_id' => 2, 'positive_count' => 1, 'neutral_count' => 0,
-            'negative_count' => 0, 'score' => 100, 'last_updated' => Carbon::now()->toDateTimeString(),
+            'id'             => 1,
+            'user_id'        => 2,
+            'positive_count' => 1,
+            'neutral_count'  => 0,
+            'negative_count' => 0,
+            'score'          => 100,
+            'last_updated'   => Carbon::now()->toDateTimeString(),
         ]]]);
         $this->app();
         $guest = new Guest;
