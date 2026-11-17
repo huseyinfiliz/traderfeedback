@@ -481,7 +481,7 @@ class FeedbackApiTest extends TestCase
             'last_updated'   => Carbon::now()->toDateTimeString(),
         ]]]);
         $this->app();
-        $guest = new Guest;
+        $guest = new Guest();
         $this->assertTrue($guest->hasPermission('viewForum'));
         $this->assertFalse($guest->can('viewForum'));
 
