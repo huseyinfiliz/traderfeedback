@@ -19,5 +19,6 @@ jobs:
       js_package_manager: yarn
       cache_dependency_path: ./js/yarn.lock
 
-      node_version: 20
-      main_git_branch: 2.x
+      node_version: 26
+      # Commit generated bundles with reviewed changes rather than pushing from CI.
+      main_git_branch: ''

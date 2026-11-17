@@ -1,0 +1,48 @@
+name: Trader Feedback dependency audit
+
+on:
+  push:
+    branches: [2.x]
+  pull_request:
+    branches: [2.x]
+  schedule:
+    - cron: '37 7 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  composer:
+    name: PHP dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+          extensions: curl, dom, gd, json, mbstring, openssl, pdo_sqlite, tokenizer, zip
+      - name: Resolve supported dependencies with advisory blocking enabled
+        run: composer update --no-interaction --no-progress --prefer-dist
+      - name: Audit PHP dependencies
+        run: composer audit
+
+  yarn:
+    name: Yarn dependency audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: js
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '26'
+      - name: Verify the pinned Yarn release
+        run: test "$(yarn --version)" = "1.22.22"
+      - name: Install the committed dependency graph
+        run: yarn install --frozen-lockfile --non-interactive
+      - name: Audit JavaScript dependencies
+        run: yarn audit

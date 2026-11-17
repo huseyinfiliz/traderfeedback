@@ -88,15 +88,5 @@
         "test:unit": "Runs all unit tests.",
         "test:integration": "Runs all integration tests.",
         "test:setup": "Sets up a database for use with integration tests. Execute this only once."
-    },
-    "config": {
-        "policy": {
-            "advisories": {
-                "block": false,
-                "ignore": [
-                    "league/flysystem"
-                ]
-            }
-        }
     }
 }
