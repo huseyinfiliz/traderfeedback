@@ -11,6 +11,7 @@ use HuseyinFiliz\TraderFeedback\Models\Feedback;
 class TestUser extends User
 {
     public ?array $permissions = [];
+
     public bool $canViewForum = true;
 
     public function __construct(int $id = 0, array $permissions = [])
