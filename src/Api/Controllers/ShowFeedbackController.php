@@ -16,10 +16,11 @@ class ShowFeedbackController implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
+        $actor->assertCan('viewForum');
         $routeParams = $request->getAttribute('routeParameters') ?? [];
         $id = $routeParams['id'] ?? Arr::get($request->getQueryParams(), 'id');
 
-        $feedback = Feedback::with(['fromUser', 'toUser', 'discussion' => fn ($query) => $query->whereVisibleTo($actor)])->findOrFail($id);
+        $feedback = Feedback::whereVisibleTo($actor)->with(['fromUser', 'toUser', 'discussion' => fn ($query) => $query->whereVisibleTo($actor)])->findOrFail($id);
 
         $actor->assertCan('view', $feedback);
 

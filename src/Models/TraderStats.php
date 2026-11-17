@@ -4,6 +4,7 @@ namespace HuseyinFiliz\TraderFeedback\Models;
 
 use Carbon\Carbon;
 use Flarum\Database\AbstractModel;
+use Flarum\Database\ScopeVisibilityTrait;
 use Flarum\User\User;
 
 /**
@@ -17,6 +18,8 @@ use Flarum\User\User;
  */
 class TraderStats extends AbstractModel
 {
+    use ScopeVisibilityTrait;
+
     protected $table = 'tfb_stats';
 
     protected $fillable = [

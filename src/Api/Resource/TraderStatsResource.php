@@ -6,6 +6,8 @@ use Flarum\Api\Endpoint;
 use Flarum\Api\Resource\AbstractDatabaseResource;
 use Flarum\Api\Schema;
 use HuseyinFiliz\TraderFeedback\Models\TraderStats;
+use Illuminate\Database\Eloquent\Builder;
+use Tobyz\JsonApiServer\Context;
 
 /**
  * @extends AbstractDatabaseResource<TraderStats>
@@ -20,6 +22,11 @@ class TraderStatsResource extends AbstractDatabaseResource
     public function model(): string
     {
         return TraderStats::class;
+    }
+
+    public function scope(Builder $query, Context $context): void
+    {
+        $query->whereVisibleTo($context->getActor());
     }
 
     public function endpoints(): array

@@ -87,7 +87,11 @@ class FeedbackPolicy extends AbstractPolicy
      */
     public function view(User $actor, Feedback $feedback)
     {
-        // Everyone can view approved feedback
+        if ($actor->cannot('viewForum')) {
+            return false;
+        }
+
+        // Approved feedback is public only to actors who can view the forum.
         if ($feedback->is_approved) {
             return true;
         }

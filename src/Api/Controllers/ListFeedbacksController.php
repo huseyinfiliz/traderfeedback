@@ -16,6 +16,7 @@ class ListFeedbacksController implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $actor = RequestUtil::getActor($request);
+        $actor->assertCan('viewForum');
         $params = $request->getQueryParams();
 
         $userId = Arr::get($params, 'filter.user');
@@ -27,7 +28,7 @@ class ListFeedbacksController implements RequestHandlerInterface
         }
         $offset = max((int) Arr::get($params, 'page.offset', 0), 0);
 
-        $query = Feedback::query()->with(['fromUser', 'toUser', 'discussion' => fn ($query) => $query->whereVisibleTo($actor)]);
+        $query = Feedback::whereVisibleTo($actor)->with(['fromUser', 'toUser', 'discussion' => fn ($query) => $query->whereVisibleTo($actor)]);
 
         if ($userId) {
             $query->where('to_user_id', (int) $userId);

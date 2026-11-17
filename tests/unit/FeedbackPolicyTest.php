@@ -11,6 +11,7 @@ use HuseyinFiliz\TraderFeedback\Models\Feedback;
 class TestUser extends User
 {
     public ?array $permissions = [];
+    public bool $canViewForum = true;
 
     public function __construct(int $id = 0, array $permissions = [])
     {
@@ -22,6 +23,11 @@ class TestUser extends User
     public function hasPermission(string $permission): bool
     {
         return in_array($permission, $this->permissions ?? [], true);
+    }
+
+    public function can(string $ability, mixed $arguments = null): bool
+    {
+        return $ability === 'viewForum' ? $this->canViewForum : parent::can($ability, $arguments);
     }
 }
 
@@ -40,7 +46,7 @@ class FeedbackPolicyTest extends TestCase
         return new TestUser($id, $permissions);
     }
 
-    public function test_anyone_can_view_approved_feedback()
+    public function test_forum_readers_can_view_approved_feedback()
     {
         $guest = $this->createUser(0);
 
@@ -50,6 +56,18 @@ class FeedbackPolicyTest extends TestCase
         $feedback->to_user_id = 20;
 
         $this->assertTrue($this->policy->view($guest, $feedback));
+    }
+
+    public function test_forum_policy_denial_prevents_reading_even_with_moderation_permission()
+    {
+        $actor = $this->createUser(99, ['viewForum', 'huseyinfiliz-traderfeedback.moderate']);
+        $actor->canViewForum = false;
+        $feedback = new Feedback();
+        $feedback->is_approved = true;
+
+        $this->assertFalse($this->policy->view($actor, $feedback));
+        $feedback->is_approved = false;
+        $this->assertFalse($this->policy->view($actor, $feedback));
     }
 
     public function test_author_cannot_view_own_unapproved_feedback()

@@ -10,6 +10,8 @@ use Flarum\Notification\Notification;
 use Flarum\Post\Post;
 use Flarum\Testing\integration\RetrievesAuthorizedUsers;
 use Flarum\Testing\integration\TestCase;
+use Flarum\User\Access\AbstractPolicy;
+use Flarum\User\Guest;
 use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Models\Feedback;
 use HuseyinFiliz\TraderFeedback\Notifications\FeedbackNeedsApprovalBlueprint;
@@ -454,6 +456,66 @@ class FeedbackApiTest extends TestCase
         $this->assertSame(422, $this->mutate('POST', '/api/trader/feedback', $this->validFeedback(['discussion_id' => 1]))->getStatusCode());
     }
 
+    public function test_closed_forum_blocks_custom_feedback_and_stats_reads()
+    {
+        $this->app();
+        $this->database()->table('group_permission')->where('permission', 'viewForum')->delete();
+
+        foreach (['/api/trader/feedback', '/api/trader/feedback/1', '/api/trader/stats/3'] as $path) {
+            $response = $this->send($this->request('GET', $path));
+            $this->assertSame(403, $response->getStatusCode(), $path);
+            $this->assertStringNotContainsString('This is an approved feedback', (string) $response->getBody());
+        }
+    }
+
+    public function test_forum_policy_denial_scopes_resources_and_owner_relationships()
+    {
+        $this->extend((new Extend\Policy())->globalPolicy(DenyForumReadPolicy::class));
+        $this->prepareDatabase(['tfb_stats' => [[
+            'id' => 1, 'user_id' => 2, 'positive_count' => 1, 'neutral_count' => 0,
+            'negative_count' => 0, 'score' => 100, 'last_updated' => Carbon::now()->toDateTimeString(),
+        ]]]);
+        $this->app();
+        $guest = new Guest;
+        $this->assertTrue($guest->hasPermission('viewForum'));
+        $this->assertFalse($guest->can('viewForum'));
+
+        foreach (['/api/trader/feedback/1', '/api/trader/stats/2'] as $path) {
+            $this->assertSame(403, $this->send($this->request('GET', $path))->getStatusCode(), $path);
+        }
+        foreach (['/api/trader-feedbacks/1', '/api/trader-stats/1'] as $path) {
+            $this->assertSame(404, $this->send($this->request('GET', $path))->getStatusCode(), $path);
+        }
+        foreach (['/api/trader-feedbacks', '/api/trader-stats'] as $path) {
+            $response = $this->send($this->request('GET', $path));
+            $this->assertSame(200, $response->getStatusCode(), $path);
+            $this->assertSame([], json_decode((string) $response->getBody(), true)['data'], $path);
+        }
+        $response = $this->send($this->request('GET', '/api/users/2', ['authenticatedAs' => 2])
+            ->withQueryParams(['include' => 'feedbacksGiven,traderStats']));
+        $this->assertSame(200, $response->getStatusCode());
+        $body = json_decode((string) $response->getBody(), true);
+        $this->assertSame([], $body['data']['relationships']['feedbacksGiven']['data']);
+        $this->assertNull($body['data']['relationships']['traderStats']['data']);
+        $this->assertEmpty(array_filter($body['included'] ?? [], fn ($item) => in_array($item['type'], ['trader-feedbacks', 'trader-stats'], true)));
+    }
+
+    public function test_feedback_model_visibility_applies_to_custom_resources_and_includes()
+    {
+        $this->extend((new Extend\ModelVisibility(Feedback::class))->scope(function (User $actor, Builder $query) {
+            $query->where('tfb_feedbacks.id', '!=', 1);
+        }));
+        foreach (['/api/trader/feedback/1', '/api/trader-feedbacks/1'] as $path) {
+            $this->assertSame(404, $this->send($this->request('GET', $path))->getStatusCode(), $path);
+        }
+        $response = $this->send($this->request('GET', '/api/trader/feedback'));
+        $this->assertSame([], json_decode((string) $response->getBody(), true)['data']);
+        $response = $this->send($this->request('GET', '/api/users/3')->withQueryParams(['include' => 'feedbacksReceived']));
+        $this->assertSame(200, $response->getStatusCode());
+        $body = json_decode((string) $response->getBody(), true);
+        $this->assertEmpty(array_filter($body['included'] ?? [], fn ($item) => $item['type'] === 'trader-feedbacks'));
+    }
+
     public function test_user_includes_do_not_disclose_pending_feedback()
     {
         $response = $this->send($this->request('GET', '/api/users/3')->withQueryParams(['include' => 'feedbacksReceived']));
@@ -675,5 +737,13 @@ class FeedbackApiTest extends TestCase
             $this->request($method, $path, ['authenticatedAs' => $actor]),
             ['data' => ['attributes' => $attributes]]
         ));
+    }
+}
+
+class DenyForumReadPolicy extends AbstractPolicy
+{
+    public function viewForum(User $actor): ?string
+    {
+        return $this->deny();
     }
 }

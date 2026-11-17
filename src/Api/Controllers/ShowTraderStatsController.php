@@ -2,6 +2,7 @@
 
 namespace HuseyinFiliz\TraderFeedback\Api\Controllers;
 
+use Flarum\Http\RequestUtil;
 use HuseyinFiliz\TraderFeedback\Api\Serializer\FeedbackSerializer;
 use HuseyinFiliz\TraderFeedback\Services\StatsService;
 use Illuminate\Support\Arr;
@@ -18,6 +19,8 @@ class ShowTraderStatsController implements RequestHandlerInterface
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
+        RequestUtil::getActor($request)->assertCan('viewForum');
+
         $routeParams = $request->getAttribute('routeParameters') ?? [];
         $userId = (int) ($routeParams['id'] ?? Arr::get($request->getQueryParams(), 'id'));
 

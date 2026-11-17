@@ -11,6 +11,7 @@ use Flarum\Extend;
 use Flarum\User\User;
 use HuseyinFiliz\TraderFeedback\Access\FeedbackPolicy;
 use HuseyinFiliz\TraderFeedback\Access\GlobalPolicy;
+use HuseyinFiliz\TraderFeedback\Access\ScopeForumVisibility;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\ApproveFeedbackController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\ApproveReportController;
 use HuseyinFiliz\TraderFeedback\Api\Controllers\CreateFeedbackController;
@@ -104,6 +105,12 @@ return [
     new Extend\ApiResource(FeedbackResource::class),
     new Extend\ApiResource(TraderStatsResource::class),
     new Extend\ApiResource(FeedbackReportResource::class),
+
+    (new Extend\ModelVisibility(Feedback::class))
+        ->scope(ScopeForumVisibility::class),
+
+    (new Extend\ModelVisibility(TraderStats::class))
+        ->scope(ScopeForumVisibility::class),
 
     // Extend UserResource in Flarum 2
     (new Extend\ApiResource(Resource\UserResource::class))
